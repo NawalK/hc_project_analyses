@@ -1,0 +1,7 @@
+{
+    "output_dir": "../results/",
+    "output_tag": "test",
+    
+    "icap_data": "/media/miplab-nas2/Data3/BMPD/hc_project/3_func_smoothed/iCAPs_results/PAM50_Alpha_5_950DOT05/K_20_Dist_cosine_Folds_20/iCAPs_z.nii",
+    "ica_data": "/media/miplab-nas2/Data3/BMPD/hc_project/3_func_smoothed/iCAPs_results/PAM50_Alpha_5_950DOT05/K_20_Dist_cosine_Folds_20/iCAPs_z.nii"
+} 
