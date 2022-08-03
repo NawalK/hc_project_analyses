@@ -1,0 +1,14 @@
+{"main_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/",
+ 
+"templates":{"brain":"/templates/MNI/Group_average/MNI_T1w_GM_averageHCs.nii.gz",
+             "spinalcord": "/templates/PAM50/template/PAM50_t2.nii.gz",
+            "sc_levels_path": "/templates/PAM50/spinal_levels/"},
+"masks":{"brain":"/templates/MNI/3mm_resolution/MNI_T1w_GM_averageHCs_3mm_bin.nii.gz",
+             "spinalcord": "/templates/PAM50/template/PAM50_cord.nii.gz"},
+
+
+"output_dir": "../results/",
+"output_tag": "test",
+    
+"list_subjects":["P028","P030","P033","P043","P047","P050","P057","P097","P099","P100","P105","P108","P109","P001","P003","P004","P005","P006","P007","P008","P009","P011","P013"]
+} 
