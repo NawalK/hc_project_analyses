@@ -29,7 +29,7 @@ class Plotting:
             self.data[ana] = nib.load(glob.glob(self.config['main_dir'] + "/" + ana +"/spinalcord_"+str(self.k)+"/Comp_zscored/"+ '*4D*.nii*')[0]).get_fdata()
             
         for ana in self.analyses:
-            self.map_order[ana] = self._sort_maps(self.sorting_method,ana)
+            self.map_order[ana] =self._sort_maps(self.sorting_method,ana)
             self.data[ana] = self.data[ana][:,:,:,self.map_order[ana]]
         
         self.spinal_levels = self._match_levels()
@@ -55,10 +55,14 @@ class Plotting:
             Defines colormap used to plot the maps(default = 'autumn')
         save_results : boolean
             Set to True to save figure (default = False)'''
+        colormaps={};alpha={}
         if len(self.analyses)==2:
-            colormap={}
-            colormap[self.analyses[0]]='autumn'
-            colormap[self.analyses[1]]='winter'
+            colormaps[self.analyses[0]]='autumn'; colormaps[self.analyses[1]]='winter'
+            alpha[self.analyses[0]]=1; alpha[self.analyses[1]]=0.6
+            
+        else:
+            colormaps[self.analyses[0]]=colormap
+            alpha[self.analyses[0]]=1;
         
        
         # By default, use a single line for all 3D maps, otherwise use provided value
@@ -70,6 +74,7 @@ class Plotting:
         template_img = nib.load(self.config['main_dir'] + self.config['templates']['spinalcord'])
         template_data = template_img.get_fdata()
         map_masked={}
+        
         if show_spinal_levels == True: # Load levels if needed
             # Find list of spinal levels to consider (defined in config)
             levels_list = sorted(glob.glob(self.config['main_dir'] +self.config['templates']["sc_levels_path"] + 'spinal_level_*.nii.gz')) # Sorted is used to make sure files are listed from low to high number (i.e., rostro-caudally)
@@ -81,8 +86,8 @@ class Plotting:
                 # Mask level data to use as overlays
                 levels_data = np.where(levels_data > 0, levels_data, np.nan)      
             # To mask maps, values below threshold are replaced by NaN
-            for ana in self.analyses:
-                map_masked[ana] = np.where(self.data[ana] > lthresh, self.data[ana], np.nan)
+        for ana in self.analyses:
+            map_masked[ana] = np.where(self.data[ana] > lthresh, self.data[ana], np.nan)
                
         # Compute number of columns/rows and prepare subplots accordingly 
         total_rows = (self.k//k_per_line + 1)*2 if self.k > k_per_line else 2
@@ -100,22 +105,20 @@ class Plotting:
                 axs[row_coronal,col].imshow(np.rot90(template_data[:,70,:]),cmap='gray',origin='lower');
                 if show_spinal_levels == True:
                     axs[row_coronal,col].imshow(np.rot90(levels_data[:,70,:,self.spinal_levels[i]]),cmap='gray')
-                
-                axs[row_coronal,col].imshow(np.rot90(map_masked[ana][:,template_data.shape[1]//2,:,i]),vmin=lthresh, vmax=uthresh,cmap=colormap[ana])
-                axs[row_coronal,col].imshow(np.rot90(map_masked[ana][:,template_data.shape[1]//2,:,i]),vmin=lthresh, vmax=uthresh,cmap=colormap[ana])
-  
+                axs[row_coronal,col].imshow(np.rot90(map_masked[ana][:,template_data.shape[1]//2,:,i]),vmin=lthresh, vmax=uthresh,cmap=colormaps[ana])
+               
 
             elif centering_method == 'max':
-                max_y = int(np.where(map_masked[self.analyses[0]] == np.nanmax(map_masked[self.analyses[0]][:,:,:,i]))[1])
+                if len(self.analyses)==2:
+                    overlap_map=self._overlap_maps()  
+                    max_y = int(np.where(overlap_map == np.nanmax(overlap_map[:,:,:,i]))[1])
+                else:
+                    max_y = int(np.where(map_masked[self.analyses[0]] == np.nanmax(map_masked[self.analyses[0]][:,:,:,i]))[1])
                 axs[row_coronal,col].imshow(np.rot90(template_data[:,max_y,:]),cmap='gray');
                 if show_spinal_levels == True:
                     axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels[i]]),cmap='gray')
                 for ana in self.analyses:
-                    if ana==self.analyses[0]:
-                        alpha=1
-                    else:
-                        alpha=0.6
-                    axs[row_coronal,col].imshow(np.rot90(map_masked[ana][:,max_y,:,i]),vmin=lthresh, vmax=uthresh,cmap=colormap[ana],alpha=alpha)
+                    axs[row_coronal,col].imshow(np.rot90(map_masked[ana][:,max_y,:,i]),vmin=lthresh, vmax=uthresh,cmap=colormaps[ana],alpha=alpha[ana])
                 
             else:
                 raise(Exception(f'{centering_method} is not a supported centering method.'))
@@ -124,17 +127,16 @@ class Plotting:
             # Draw axial views
             row_axial = 1 if i<k_per_line else (i//k_per_line-1)*2+3
             axs[row_axial,col].axis('off');
-            max_z = int(np.where(map_masked[ana] == np.nanmax(map_masked[ana][:,:,:,i]))[2])
+            
+            if len(self.analyses)==2:
+                overlap_map=self._overlap_maps()  
+                max_z =int(np.where(overlap_map == np.nanmax(overlap_map[:,:,:,i]))[2])
+            else:
+                max_z = int(np.where(map_masked[ana] == np.nanmax(map_masked[ana][:,:,:,i]))[2])
             axs[row_axial,col].imshow(template_data[:,:,max_z].T,cmap='gray');
             
             for ana in self.analyses:
-                for ana in self.analyses:
-                    if ana==self.analyses[0]:
-                        alpha=1
-                    else:
-                        alpha=0.6
-        
-                axs[row_axial,col].imshow(map_masked[ana][:,:,max_z,i].T,vmin=lthresh, vmax=uthresh,cmap=colormap[ana],alpha=alpha)
+                axs[row_axial,col].imshow(map_masked[ana][:,:,max_z,i].T,vmin=lthresh, vmax=uthresh,cmap=colormaps[ana],alpha=alpha[ana])
                      
             # To "zoom" on the spinal cord, we adapt the x and y lims
             axs[row_axial,col].set_xlim([map_masked[ana].shape[0]*0.2,map_masked[ana].shape[0]*0.8])
@@ -197,4 +199,11 @@ class Plotting:
             spinal_levels[i] = np.argsort(level_vals)[-1] if np.sum(level_vals) !=0 else -1 # Take level with maximum values (if no match, use -1)
     
         return spinal_levels
-   
+    
+    def _overlap_maps(self):
+        mask1=np.where(~np.isnan(self.data[self.analyses[0]]),self.data[self.analyses[1]], np.nan)
+        mask2=np.where(~np.isnan(self.data[self.analyses[1]]), self.data[self.analyses[0]], np.nan)
+        overlap_map=(mask1+mask2)/2
+        return overlap_map
+        
+         
