@@ -1,8 +1,9 @@
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import scipy
 
-def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, method='Dice', match_compo=True, save_results=False):
+def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, method='Dice', match_compo=True, plot_results=False,save_results=False):
     ''' Compute the spatial similarity between two sets of 3D components
         
         Inputs
@@ -24,7 +25,12 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, method='Dice'
         Outputs
         ------------
         similarity_matrix : 3D array
-            Matrix containing the similarity between pairs of components from the two datasets '''
+            Matrix containing the similarity between pairs of components from the two datasets 
+        orderX: 2D array
+            Array containing the order of the first dataset after matching (x in the plotting)
+        orderY: 2D array
+            Array containing the order of the second dataset after matching (y in the plotting)
+        '''
 
     print(f"COMPUTING SIMILARITY WITH METHOD: {method}")
 
@@ -37,6 +43,7 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, method='Dice'
 
         print(f"...Compute similarity between pairs of components")
         similarity_matrix = np.zeros((k,k))
+        
         for k1 in range(0,k):
             for k2 in range(0,k):
                 if method == 'Dice':
@@ -47,15 +54,18 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, method='Dice'
                     similarity_matrix[k1,k2] = 2*nb_el_inters / (nb_el_1+nb_el_2)
                 else:
                     raise(Exception(f'The method {method} has not been implemented'))
-
+        
         if match_compo == True:
-            print(f"...Ordering components based on max similarity")
-            order = np.argmax(similarity_matrix,axis=1)
-            similarity_matrix = similarity_matrix[:,order]
+            print(f"...Ordering components based on maximum weight matching")
+            orderX,orderY=scipy.optimize.linear_sum_assignment(similarity_matrix,maximize=True)
+            # if the same composantes match
+            similarity_matrix = similarity_matrix[:,orderY]
         else:
-            order = np.array(range(0,k))
+            orderY = np.array(range(0,k))
+
         # Plot similarity matrix
-        sns.heatmap(similarity_matrix,linewidths=.5,square=True,cmap='YlOrBr',xticklabels=order+1,yticklabels=np.array(range(1,21)));
+        if plot_results == True:
+            sns.heatmap(similarity_matrix,linewidths=.5,square=True,cmap='YlOrBr',xticklabels=orderY+1,yticklabels=np.array(range(1,k+1)));
 
         # Saving result and figure if applicable
         if save_results == True:
@@ -67,5 +77,5 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, method='Dice'
     
     print(f"DONE!")
 
-    return similarity_matrix
+    return similarity_matrix, orderX, orderY
 

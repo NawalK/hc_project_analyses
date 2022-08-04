@@ -1,0 +1,19 @@
+
+*** These modified files were found in JOE when it aborted on Wed Aug  3 17:30:36 2022
+*** JOE was aborted because the terminal closed
+
+*** File '(Unnamed)'
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/.git/MERGE_MSG
+
+*** File '/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/.git/MERGE_MSG'
+Merge branch 'main' of github.com:NawalK/hc_project_analyses into main
+# Please enter a commit message to explain why this merge is necessary,
+# especially if it merges an updated upstream into a topic branch.
+#
+# Lines starting with '#' will be ignored, and an empty message aborts
+# the commit.
+*** File '* Startup Log *'
+Processing '/etc/joe/editorrc'...
+Processing '/etc/joe/ftyperc'...
+Finished processing /etc/joe/ftyperc
+Finished processing /etc/joe/editorrc
