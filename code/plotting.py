@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import glob
+from compute_similarity import compute_similarity
+from scipy.ndimage import center_of_mass
 
 class Plotting:
     '''
@@ -29,9 +31,10 @@ class Plotting:
             self.data[ana] = nib.load(glob.glob(self.config['main_dir'] + "/" + ana +"/spinalcord_"+str(self.k)+"/Comp_zscored/"+ '*4D*.nii*')[0]).get_fdata()
             
         for ana in self.analyses:
-            self.map_order[ana] =self._sort_maps(self.sorting_method,ana)
-            self.data[ana] = self.data[ana][:,:,:,self.map_order[ana]]
-        
+            if ana==self.analyses[0]: # order the first dataset only 
+                self.map_order[ana] =self._sort_maps(self.sorting_method,ana)
+                self.data[ana] = self.data[ana][:,:,:,self.map_order[ana]]
+                    
         self.spinal_levels = self._match_levels()
         
     def sc_plot(self, k_per_line=None, lthresh=2.3, uthresh=4.0, centering_method='max', show_spinal_levels=False, colormap='autumn', save_results=False):
@@ -64,7 +67,13 @@ class Plotting:
             colormaps[self.analyses[0]]=colormap
             alpha[self.analyses[0]]=1;
         
-       
+       # Order the second dataset
+        if len(self.analyses)==2:
+            # calculate the dice coefficient between the two dataset
+            _, _, order2 = compute_similarity(self.config, self.data[self.analyses[0]], self.data[self.analyses[1]], thresh1=lthresh, thresh2=uthresh, method='Dice', match_compo=True, plot_results=False,save_results=False)
+            self.data[self.analyses[1]] = self.data[self.analyses[1]][:,:,:,order2]
+               
+
         # By default, use a single line for all 3D maps, otherwise use provided value
         if (k_per_line is not None and k_per_line <= self.k) or k_per_line is None:
             k_per_line = self.k if k_per_line is None else k_per_line
@@ -100,7 +109,10 @@ class Plotting:
             # Draw coronal views
             row_coronal = 0 if i<k_per_line else (i//k_per_line-1)*2+2
             axs[row_coronal,col].axis('off')
-            axs[row_coronal,col].set_title('Comp' + str(i+1),fontsize=18,pad=20)
+            axs[row_coronal,col].set_title('Comp' + str(i+1)+ '\n level ' + str(self.spinal_levels[i]+1),fontsize=18,pad=20)
+            #axs[row_coronal,col].set_title(('iCAP' + str(i+1) + '\n level ' + str(self.spinal_levels[i]+1) if show_spinal_levels else 'iCAP' + str(i+1)),fontsize=18,pad=15)
+            
+            
             if centering_method == 'middle':
                 axs[row_coronal,col].imshow(np.rot90(template_data[:,70,:]),cmap='gray',origin='lower');
                 if show_spinal_levels == True:
@@ -131,6 +143,7 @@ class Plotting:
             if len(self.analyses)==2:
                 overlap_map=self._overlap_maps()  
                 max_z =int(np.where(overlap_map == np.nanmax(overlap_map[:,:,:,i]))[2])
+                
             else:
                 max_z = int(np.where(map_masked[ana] == np.nanmax(map_masked[ana][:,:,:,i]))[2])
             axs[row_axial,col].imshow(template_data[:,:,max_z].T,cmap='gray');
@@ -145,7 +158,7 @@ class Plotting:
 
         # If option is set, save results as a png
         if save_results == True:
-            plt.savefig(self.config['output_dir'] + self.config['tag_results'] + '_k_' + str(self.k) + '.png')
+            plt.savefig(self.config['output_dir'] + 'spinalcord_k_' + str(self.k) + '.png')
     
     def _sort_maps(self, sorting_method,ana):
         ''' Sort maps based on sorting_method (e.g., rostrocaudally)
@@ -171,7 +184,7 @@ class Plotting:
             raise(Exception(f'{sorting_method} is not a supported sorting method.'))
         return sort_index
 
-    def _match_levels(self):
+    def _match_levels(self,method="CoM"):
         ''' Match maps to corresponding spinal levels
         Output
         ----------
@@ -190,14 +203,29 @@ class Plotting:
         for lvl in range(0,len(levels_list)):
             level_img = nib.load(levels_list[lvl])
             levels_data[:,:,:,lvl] = level_img.get_fdata()
-        # For each map, find rostrocaudal position of point with maximum intensity
-        max_intensity = np.zeros(self.data[self.analyses[0]].shape[3],dtype='int')
-        for i in range(0,self.k):
-            max_intensity[i] = np.where(self.data[self.analyses[0]] == np.nanmax(self.data[self.analyses[0]][:,:,:,i]))[2]
-            # Take this point for each level (we focus on rostrocaudal position and take center of FOV for the other dimensions)
-            level_vals = levels_data[levels_data.shape[0]//2,levels_data.shape[1]//2,max_intensity[i],:]
-            spinal_levels[i] = np.argsort(level_vals)[-1] if np.sum(level_vals) !=0 else -1 # Take level with maximum values (if no match, use -1)
-    
+            
+        if method=="CoM":
+            map_masked = np.where(self.data[self.analyses[0]] > 2, self.data[self.analyses[0]], 0)
+            CoM = np.zeros(map_masked.shape[3],dtype='int')
+            for i in range(0,self.k):
+                _,_,CoM[i]=center_of_mass(self.data[self.analyses[0]][:,:,:,i])
+                print(CoM)
+                # Take this point for each level (we focus on rostrocaudal position and take center of FOV for the other dimensions)
+                level_vals = levels_data[levels_data.shape[0]//2,levels_data.shape[1]//2,CoM[i],:]
+                spinal_levels[i] = np.argsort(level_vals)[-1] if np.sum(level_vals) !=0 else -1 # Take level with maximum values (if no match, use -1)
+              
+                      
+        elif method=="max intensity":
+            # For each map, find rostrocaudal position of point with maximum intensity
+            max_intensity = np.zeros(self.data[self.analyses[0]].shape[3],dtype='int')
+            for i in range(0,self.k):
+                max_intensity[i] = np.where(self.data[self.analyses[0]] == np.nanmax(self.data[self.analyses[0]][:,:,:,i]))[2]
+                # Take this point for each level (we focus on rostrocaudal position and take center of FOV for the other dimensions)
+                level_vals = levels_data[levels_data.shape[0]//2,levels_data.shape[1]//2,max_intensity[i],:]
+                spinal_levels[i] = np.argsort(level_vals)[-1] if np.sum(level_vals) !=0 else -1 # Take level with maximum values (if no match, use -1)
+        else:
+            raise(Exception(f'{sorting_method} is not a supported sorting method.'))
+ 
         return spinal_levels
     
     def _overlap_maps(self):

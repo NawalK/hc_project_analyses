@@ -2,6 +2,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import scipy
+from scipy.ndimage import center_of_mass
 
 def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, method='Dice', match_compo=True, plot_results=False,save_results=False):
     ''' Compute the spatial similarity between two sets of 3D components
@@ -37,7 +38,7 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, method='Dice'
     # Check that datasets have equal number of components
     if data1.shape[3] == data2.shape[3]:
         k = data1.shape[3] # Save number of components for later use
-        print(f"...Binarize data \n Threshold 1 = {thresh1} \n Threshold 2 = {thresh2}")
+        #print(f"...Binarize data \n Threshold 1 = {thresh1} \n Threshold 2 = {thresh2}")
         data1_bin = np.where(data1 >= thresh1, 1, 0)
         data2_bin = np.where(data2 >= thresh2, 1, 0)
 
@@ -52,6 +53,13 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, method='Dice'
                     nb_el_1 = np.sum(data1_bin[:,:,:,k1])
                     nb_el_2 = np.sum(data2_bin[:,:,:,k2])
                     similarity_matrix[k1,k2] = 2*nb_el_inters / (nb_el_1+nb_el_2)
+                elif method == 'Euclidean distance':
+                    # we calculate the center of masse of each composant
+                    cm1=center_of_mass(data1_bin[:,:,:,k1])
+                    cm2=center_of_mass(data2_bin[:,:,:,k2])
+                    # inverse of the euclidian distance between CoG
+                    #similarity_matrix[k1,k2]=1/(np.mean(np.abs(np.array(cm1)-np.array(cm2)))) 
+                    similarity_matrix[k1,k2]=1/(np.mean(np.abs([float(cm1[1])-float(cm2[1]),float(cm1[2])-float(cm2[2])])))
                 else:
                     raise(Exception(f'The method {method} has not been implemented'))
         
@@ -65,7 +73,7 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, method='Dice'
 
         # Plot similarity matrix
         if plot_results == True:
-            sns.heatmap(similarity_matrix,linewidths=.5,square=True,cmap='YlOrBr',xticklabels=orderY+1,yticklabels=np.array(range(1,k+1)));
+            sns.heatmap(similarity_matrix,linewidths=.5,square=True,cmap='YlOrBr',vmax=1,xticklabels=orderY+1,yticklabels=np.array(range(1,k+1)));
 
         # Saving result and figure if applicable
         if save_results == True:
