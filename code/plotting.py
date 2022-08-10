@@ -29,7 +29,7 @@ class Plotting:
         self.data={};self.map_order={}
         for ana in self.analyses:
             self.data[ana] = nib.load(glob.glob(self.config['main_dir'] + "/" + ana +"/spinalcord_"+str(self.k)+"/Comp_zscored/"+ '*4D*.nii*')[0]).get_fdata()
-            
+              
         for ana in self.analyses:
             if ana==self.analyses[0]: # order the first dataset only
                 self.map_order[ana] =self._sort_maps(self.sorting_method,ana)
@@ -159,7 +159,7 @@ class Plotting:
         # If option is set, save results as a png
         if save_results == True:
             if len(self.analyses)==2:
-                plt.savefig(self.config['output_dir'] + 'spinalcord_k_' + str(self.k) + '_' +self.analyses[0]+'_vs_'+ self.analyses[1]+'.png')
+                plt.savefig(self.config['output_dir'] + 'spinalcord_k_' + str(self.k) + '_' +self.analyses[0]+'_vs_'+ self.analyses[1]+ ' _thr' + str(lthresh)+ '.png')
             elif len(self.analyses)==1:
                 plt.savefig(self.config['output_dir'] + 'spinalcord_k_' + str(self.k) + '_' +self.analyses[0]+'.png')
     
@@ -179,8 +179,8 @@ class Plotting:
         if sorting_method == 'rostrocaudal':
             max_z = []
             for i in range(0,self.k):
-                print(np.nanmax(self.data[ana][:,:,:,i]))
-                max_z.append(int(np.where(self.data[ana] == np.nanmax(self.data[ana][:,:,:,i]))[2]))
+                max_z.append(int(np.where(self.data[ana] == np.nanmax(self.data[ana][:,:,:,i]))[2][0]))  # take the first max in z direction
+                
             sort_index = np.argsort(max_z)
             sort_index= sort_index[::-1] # Invert direction to go from up to low
         elif sorting_method == 'no_sorting':
@@ -230,7 +230,7 @@ class Plotting:
                 # Take this point for each level (we focus on rostrocaudal position and take center of FOV for the other dimensions)
                 level_vals = levels_data[levels_data.shape[0]//2,levels_data.shape[1]//2,max_intensity[i],:]
                 spinal_levels[i] = np.argsort(level_vals)[-1] if np.sum(level_vals) !=0 else -1 # Take level with maximum values (if no match, use -1)
-                print(max_intensity[i]) 
+               
         else:
             raise(Exception(f'{sorting_method} is not a supported sorting method.'))
  
