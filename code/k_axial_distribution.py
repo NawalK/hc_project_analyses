@@ -53,7 +53,7 @@ def k_axial_distribution(config, compo_type, thresh=3, vox_percentage=70, save_r
     axial_distribution_counts = {}
 
     print(f'...Computing distribution for each K')
-    for k_tot in config['k_range']: # Loop through the different number of k
+    for k_tot in config['spinalcord']['k_range']: # Loop through the different number of k
         
         # Prepare empty structure to store counts
         axial_distribution_counts[k_tot] = dict(zip(('Q','LR','DV','F'), [0,0,0,0]))
