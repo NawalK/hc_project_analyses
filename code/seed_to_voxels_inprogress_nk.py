@@ -1,7 +1,7 @@
 import glob, os, shutil
 import nibabel as nib
 import numpy as np
-from nilearn.input_data import NiftiMasker
+from nilearn.maskers import NiftiMasker
 from nilearn import image
 from joblib import Parallel, delayed
 from sklearn import decomposition
@@ -35,13 +35,13 @@ class Seed2voxels:
         self.seed_names=seed_names
         self.target_name=target_name
     
-   
-        
-    def extract_data(self,img=None,mask=None,smoothing_fwhm=None, timeseries_txt=None,run="extract",n_jobs=1):
+    def extract_data(self,signal,img=None,mask=None,smoothing_fwhm=None, timeseries_txt=None,run="extract",n_jobs=1):
         '''
     Extracts or load time series in a mask 
     Attributes
     ----------
+    signal: str
+        Defines the type of signal ('raw' for bold or 'ai' for deconvoluted)
     img: list
         list of 4d image filenames (ex: ['sbj1.nii.gz','sbj2.nii.gz'])
     mask: str
@@ -50,8 +50,9 @@ class Seed2voxels:
         to apply smoothing during the extraction (ex: [6,6,6])
     timeseries_txt: list
         list of the output filenames, should be the same lentght as the img (ex: ['ts_sbj1.txt','ts_sbj2.txt'])
-    run: "extract" or "load"
+    run: "extract", "load"
         to run timeserie extraction or load a file (timeseries_txt) that contain the timeseries
+        Note: to load iCAP-based timecourses, use "load_ai", as mean signal and pc1 are not
    
     Return
     ----------
@@ -68,80 +69,77 @@ class Seed2voxels:
         self.smoothing_fwhm=smoothing_fwhm
         self.timeseries_txt=timeseries_txt
         self.job=n_jobs
-        
-        if run=="extract":
-            ## Extract data in the seed___________________________________________
-            ts=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(subject_nb)
-                                       for subject_nb in range(len(self.subject_names)))
-            
-            for subject_nb in range(len(self.subject_names)):
-                timeseries.append(ts[subject_nb][0])
-                timeseries_mean.append(ts[subject_nb][1])
-                timeseries_pc1.append(ts[subject_nb][2])
-                 
-        elif run=="load":
-            timeseries=Parallel(n_jobs=n_jobs)(delayed(np.loadtxt)(timeseries_txt[subject_nb] + '.txt') for subject_nb in range(len(self.subject_names)))
-            timeseries_mean=Parallel(n_jobs=n_jobs)(delayed(np.loadtxt)(timeseries_txt[subject_nb] + '_mean.txt') for subject_nb in range(len(self.subject_names)))
-            timeseries_pc1=Parallel(n_jobs=n_jobs)(delayed(np.loadtxt)(timeseries_txt[subject_nb] + '_PC1.txt') for subject_nb in range(len(self.subject_names)))
-      
+        self.signal=signal
+
+        # Signals are extracted differently for ica and icaps
+        if signal == 'raw':
+            if run=="extract":
+                ## Extract data in the seed___________________________________________
+                ts=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(subject_nb)
+                                        for subject_nb in range(len(self.subject_names)))
+                
+                for subject_nb in range(len(self.subject_names)):
+                    timeseries.append(ts[subject_nb][0])
+                    timeseries_mean.append(ts[subject_nb][1])
+                    timeseries_pc1.append(ts[subject_nb][2])
+                    
+            elif run == "load":
+                timeseries=Parallel(n_jobs=n_jobs)(delayed(np.loadtxt)(timeseries_txt[subject_nb] + '.txt') for subject_nb in range(len(self.subject_names)))
+                timeseries_mean=Parallel(n_jobs=n_jobs)(delayed(np.loadtxt)(timeseries_txt[subject_nb] + '_mean.txt') for subject_nb in range(len(self.subject_names)))
+                timeseries_pc1=Parallel(n_jobs=n_jobs)(delayed(np.loadtxt)(timeseries_txt[subject_nb] + '_PC1.txt') for subject_nb in range(len(self.subject_names)))
+
+            else:
+                raise(Exception(f"Use run='extract' or run='load'"))
+
+        elif signal == 'ai':
+            if run == "load":
+                timeseries = np.array([])
+                for subject_nb in range(len(self.subject_names)):
+                    timeseries = np.append(timeseries,np.loadtxt(timeseries_txt[subject_nb] + '.txt'))
+            elif run == "extract":
+                print('Note: signals can only be extracted for targets for activity-inducing signals.')
+                ts=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(subject_nb)
+                                        for subject_nb in range(len(self.subject_names)))
+                
+                for subject_nb in range(len(self.subject_names)):
+                    timeseries.append(ts[subject_nb][0])
+            else:
+                raise(Exception(f"Use run='extract' or run='load'"))
         else:
-            print("## Use run='extract' or run='load'")
+            raise(Exception(f"Use signal='raw' or signal='ai'"))
         
-        return timeseries,timeseries_mean,timeseries_pc1
+        # For AI-based (i.e. for iCAP pipeline), no need to return timeseries mean and pc1
+        return timeseries if signal=='ai' else (timeseries,timeseries_mean,timeseries_pc1)
+        #return timeseries
 
-
-        
     def _extract_ts(self,subject_nb):
         '''
-    Extracts time series in a mask + calculates the mean
-    Attributes
-    ----------
-    img: list
-        list of 4d image filenames (ex: ['sbj1.nii.gz','sbj2.nii.gz'])
-    mask: str
-        filename of the mask uses to extract the timeseries (ex: 'mask.nii.gz')
-    smoothing_fwhm: array
-        to apply smoothing during the extraction (ex: [6,6,6])
-    timeseries_txt: list
-        list of the output filenames, should be the same lentght as the img (ex: ['ts_sbj1.txt','ts_sbj2.txt'])
-    run: "extract" or "load"
-        to run timeserie extraction or load a file (timeseries_txt) that contain the timeseries
-   
-    Return
-    ----------
-    timeseries:
-        timeseries of each voxels for each participant
-    timeseries_mean:
-        mean timeserie in the mask for each participant
-    timeseries_pc1:
-        principal component in the mask for each participant
+    Extracts time series in a mask + calculates the mean and PC
         '''
-        masker= NiftiMasker(self.mask,smoothing_fwhm=self.smoothing_fwhm, t_r=1.55,low_pass=0.17, high_pass=0.01) # seed masker
+        masker= NiftiMasker(self.mask,smoothing_fwhm=self.smoothing_fwhm, t_r=1.55,low_pass=0.17 if self.signal == 'raw' else None, high_pass=0.01 if self.signal == 'raw' else None) # seed masker
         ts=masker.fit_transform(self.img[subject_nb])
-        ts_mean=np.mean(ts,axis=1) # mean time serie
-        
-        #calculate the principal component in the seed
-        pca=decomposition.PCA(n_components=1)
-        pca_components=pca.fit_transform(ts)
-        ts_pc1=pca_components[:,0]
-       
         np.savetxt(self.timeseries_txt[subject_nb] + '.txt',ts)
-        np.savetxt(self.timeseries_txt[subject_nb] + '_mean.txt',ts_mean)
-        np.savetxt(self.timeseries_txt[subject_nb] + '_PC1.txt',ts_pc1)
+
+        # For raw signal, compute mean and PC
+        if self.signal=='raw':
+            ts_mean=np.mean(ts,axis=1) # mean time serie
+            pca=decomposition.PCA(n_components=1)
+            pca_components=pca.fit_transform(ts)
+            ts_pc1=pca_components[:,0]
+            np.savetxt(self.timeseries_txt[subject_nb] + '_mean.txt',ts_mean)
+            np.savetxt(self.timeseries_txt[subject_nb] + '_PC1.txt',ts_pc1)
         
         print('Timeseries extraction for subject: ' + self.subject_names[subject_nb] + ' done')
         
-        return ts, ts_mean, ts_pc1
+        return ts if self.signal=='ai' else (ts, ts_mean, ts_pc1)
 
-        
-    def correlation_maps(self,seed_ts_mean,voxels_ts,mask,output_img,Fisher=True,n_jobs=1):
-        self.seed_ts_mean=seed_ts_mean;self.voxels_ts=voxels_ts
+    def correlation_maps(self,seed_ts,voxels_ts,mask,output_img,Fisher=True,n_jobs=1):
+        self.seed_ts=seed_ts;self.voxels_ts=voxels_ts
         self.mask=mask; self.output_img=output_img; self.Fisher=Fisher
         self.job=n_jobs
         Parallel(n_jobs=n_jobs)(delayed(self._compute_correlation)(subject_nb)
                                        for subject_nb in range(len(self.subject_names)))
                                
-       
         # transform of all participant in a 4D image
         image.concat_imgs(glob.glob(os.path.dirname(output_img) + '/tmp_*.nii')).to_filename(output_img)
         for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii'):

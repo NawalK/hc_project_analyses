@@ -48,7 +48,7 @@ def k_axial_distribution(config, compo_type, thresh=3, vox_percentage=70, save_r
     mask_names = ('L','R','V','D','LV','LD','RV','RD')
     masks_dict = {}
     for mask in mask_names:
-        masks_dict[mask] = nib.load(config['main_dir'] + config['templates']['sc_masks_path'] + 'PAM50_cord_' + mask + '.nii.gz').get_fdata()
+        masks_dict[mask] = nib.load(config['main_dir'] + config['templates']['sc_axialdiv_path'] + 'PAM50_cord_' + mask + '.nii.gz').get_fdata()
     
     axial_distribution_counts = {}
 

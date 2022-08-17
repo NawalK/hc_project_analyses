@@ -12,7 +12,7 @@ def atlas_distribution(config, compo_type, k, thresh=2,save_results=False):
         config : dict
             Contains information regarding data savings, etc.
         compo_type : str
-            Defined the types of components to explore ('icap' or 'ica')
+            Defines the types of components to explore ('icap' or 'ica')
         k : int
             Number of components
         thresh : float
