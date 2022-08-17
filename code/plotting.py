@@ -9,8 +9,7 @@ import pandas as pd
 import seaborn as sns
 import glob
 from compute_similarity import compute_similarity
-from scipy.ndimage import center_of_mass
-
+from scipy.ndimage import find_objects,center_of_mass,label
 class Plotting:
     '''
     The Plotting class is used to manipulate and visualize maps
@@ -28,7 +27,7 @@ class Plotting:
         
         self.data={};self.map_order={}
         for ana in self.analyses:
-            self.data[ana] = nib.load(glob.glob(self.config['main_dir'] + "/" + ana +"/spinalcord_"+str(self.k)+"/Comp_zscored/"+ '*4D*.nii*')[0]).get_fdata()
+            self.data[ana] = nib.load(glob.glob(self.config['main_dir'] + "/" + ana +"/spinalcord/K_"+str(self.k)+"/comp_zscored/"+ '*4D*.nii*')[0]).get_fdata()
               
         for ana in self.analyses:
             if ana==self.analyses[0]: # order the first dataset only
@@ -58,6 +57,7 @@ class Plotting:
             Defines colormap used to plot the maps(default = 'autumn')
         save_results : boolean
             Set to True to save figure (default = False)'''
+        
         colormaps={};alpha={}
         if len(self.analyses)==2:
             colormaps[self.analyses[0]]='autumn'; colormaps[self.analyses[1]]='winter'
@@ -79,6 +79,7 @@ class Plotting:
             k_per_line = self.k if k_per_line is None else k_per_line
         else:
             raise(Exception('Number of maps per line should be inferior or equal to the total number of maps.'))
+        
         # Load template image for background
         template_img = nib.load(self.config['main_dir'] + self.config['templates']['spinalcord'])
         template_data = template_img.get_fdata()
@@ -209,7 +210,6 @@ class Plotting:
             levels_data[:,:,:,lvl] = level_img.get_fdata()
            
         if method=="CoM":
-            
             map_masked = np.where(self.data[self.analyses[0]] >2, self.data[self.analyses[0]], 0)
             CoM = np.zeros(map_masked.shape[3],dtype='int')
             for i in range(0,self.k):
@@ -241,4 +241,96 @@ class Plotting:
         overlap_map=(mask1+mask2)/2
         return overlap_map
         
-         
+        
+    def brain_plot(self, k_per_line=None, lthresh=2.3, uthresh=4.0, centering_method='max', colormap='autumn', direction='yxz', save_results=False):
+        
+        coordinates=np.zeros((self.k,3))
+        # 1. Load template image for background --------------------------------------------------------
+        template_img = nib.load(self.config['main_dir'] + self.config['templates']['brain'])
+        template_data = template_img.get_fdata()
+        
+        #2. Select & mask func data --------------------------------------------------------------------
+        self.data={}
+        for ana in self.analyses:
+            self.data[ana] = nib.load(glob.glob(self.config['main_dir'] + "/" + ana +"/brain_"+str(self.k)+"/Comp_zscored/"+ '*4D*.nii*')[0]).get_fdata()
+        map_masked= np.where(self.data[ana] > lthresh, self.data[ana], np.nan)
+          
+        # Compute number of columns/rows and prepare subplots accordingly 
+        total_rows = (self.k//k_per_line) if self.k > k_per_line else 2
+        fig, axs = plt.subplots(total_rows, k_per_line*3, figsize=(10*k_per_line, 2*total_rows),facecolor='k')
+        
+        for i in range(0,self.k):
+            coordinates[i]=self._find_xyz_cut_coords(self.data[ana][:,:,:,i])
+            
+           
+        for i in range(0,self.k):
+            for pos,coords in enumerate(coordinates[i]):
+                coords=np.int(coords)
+                if direction[pos]=='x':
+                    cut_bg = np.rot90(template_data[coords,:,:],3)
+                    cut_func = np.rot90(map_masked[coords,:,:,i],3)
+        
+                if direction[pos]=='y':
+                    cut_bg = np.rot90(template_data[:,coords,:],3)
+                    cut_func = np.rot90(map_masked[:,coords,:,i],3)
+            
+        
+                if direction[pos]=='z':
+                    cut_bg = np.rot90(template_data[:,:,coords],3)
+                    cut_func = np.rot90(map_masked[:,:,coords,i],3)
+        
+        
+                row=0 if i<k_per_line else (i//(k_per_line))
+                col=pos if i%k_per_line==0 else i%k_per_line*(3)+pos
+        
+                axs[row,col].imshow(cut_bg,cmap='gray',origin='lower')
+                axs[row,col].imshow(cut_func,cmap=colormap,vmin=lthresh, vmax=uthresh,origin='lower')
+                axs[row,col].set_aspect('equal')
+                if pos==1:
+                    axs[row,col].set_title("Comp " + str(i),color='w')
+  
+                axs[row,col].axis('off')
+                axs[row,col].set_facecolor('k')
+
+    def _find_xyz_cut_coords(self,data):
+        """ Find the center of the largest cluster of activation.
+        also see: https://github.com/nilearn/nilearn/blob/d53169c6af1cbb3db3485c9480a3e7cb31c2537d/nilearn/plotting/find_cuts.py"""""
+        offset = np.zeros(3)
+        my_map=data
+        
+        mask = np.asarray(np.abs(my_map) > (3))
+        mask=self._largest_connected_component(mask)
+        
+        slice_x, slice_y, slice_z= find_objects(mask.astype(int))[0] #  Slices correspond to the minimal parallelepiped that contains the object.
+        my_map = my_map [slice_x, slice_y, slice_z,]
+        mask = mask[slice_x, slice_y, slice_z]
+        my_map *= mask
+        
+        offset += [slice_x.start, slice_y.start, slice_z.start]
+        
+        # For the second threshold, we use a mean, as it is much faster,
+        # although it is less robust
+        second_threshold = np.abs(np.nanmean(my_map[mask]))
+        second_mask = (np.abs(my_map) > second_threshold)
+        if second_mask.sum() > 50:
+            my_map*=self._largest_connected_component(second_mask)
+       
+        cut_coords = center_of_mass(np.abs(my_map))
+        
+        x_map, y_map, z_map= cut_coords + offset
+        coordinates=[x_map, y_map, z_map]
+        
+        
+            
+        return coordinates
+            
+    def _largest_connected_component(self,volume):
+        labels, label_nb = label(volume) #label_nb= number of cluster founded
+        label_count = np.bincount(labels.ravel().astype(int)) # number of consecutive voxels in each cluster
+        label_count[0] = 0 # ingnore the first label
+        return labels == label_count.argmax() # extract the data from the max cluster
+
+
+            
+        
+
