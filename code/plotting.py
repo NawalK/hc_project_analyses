@@ -110,7 +110,6 @@ class Plotting:
             row_coronal = 0 if i<k_per_line else (i//k_per_line-1)*2+2
             axs[row_coronal,col].axis('off')
             axs[row_coronal,col].set_title('Comp' + str(i+1)+ '\n level ' + str(self.spinal_levels[i]+1),fontsize=18,pad=20)
-            #axs[row_coronal,col].set_title(('iCAP' + str(i+1) + '\n level ' + str(self.spinal_levels[i]+1) if show_spinal_levels else 'iCAP' + str(i+1)),fontsize=18,pad=15)
             
             
             if centering_method == 'middle':

@@ -38,7 +38,7 @@ class Seed2voxels:
    
         
     def extract_data(self,img=None,mask=None,smoothing_fwhm=None, timeseries_txt=None,run="extract",n_jobs=1):
-    '''
+        '''
     Extracts or load time series in a mask 
     Attributes
     ----------
@@ -61,7 +61,7 @@ class Seed2voxels:
         mean timeserie in the mask for each participant
     timeseries_pc1:
         principal component in the mask for each participant
-    '''
+        '''
         timeseries_mean=[]; timeseries=[];timeseries_pc1=[]
         self.img=img
         self.mask=mask
@@ -92,7 +92,7 @@ class Seed2voxels:
 
         
     def _extract_ts(self,subject_nb):
-    '''
+        '''
     Extracts time series in a mask + calculates the mean
     Attributes
     ----------
@@ -115,8 +115,8 @@ class Seed2voxels:
         mean timeserie in the mask for each participant
     timeseries_pc1:
         principal component in the mask for each participant
-    '''
-        masker= NiftiMasker(self.mask,smoothing_fwhm=self.smoothing_fwhm) # seed masker
+        '''
+        masker= NiftiMasker(self.mask,smoothing_fwhm=self.smoothing_fwhm, t_r=1.55,low_pass=0.17, high_pass=0.01) # seed masker
         ts=masker.fit_transform(self.img[subject_nb])
         ts_mean=np.mean(ts,axis=1) # mean time serie
         
