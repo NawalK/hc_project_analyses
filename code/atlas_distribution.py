@@ -52,11 +52,17 @@ def atlas_distribution(config, compo_type, k, thresh=2,save_results=False):
             for region in range(0,atlas.shape[3]):
                 distribution[compo,region] = np.sum(np.multiply(data_bin[:,:,:,compo], atlas[:,:,:,region]))
         distribution_df = pd.DataFrame(data = distribution, 
-                  index = [f'iCAP {i}' for i in range(1, 16)], 
+                  index = [f'{compo_type} {i}' for i in range(1, 16)], 
                   columns = labels)    
-        sns.heatmap(distribution_df,cmap='YlOrBr',cbar_kws={'label': '% of components'},pad=10);
-        plt.title('Axial distribution for different K \n Method: ' + compo_type)
-        plt.xlabel('K')   
+        plt.figure(figsize=(22, 3));
+        sns.heatmap(data=distribution_df,cbar_kws={'label': '# of voxels'});
+        plt.title('Distribution of components in atlas regions')
+        # Saving result and figure if applicable
+        if save_results == True:
+            print(f"...Saving results")
+            plt.savefig(config['output_dir'] + config['output_tag'] + '_atlas_distribution_' + compo_type + '.png')
+            distribution_df.to_pickle(config['output_dir'] + config['output_tag'] + '_atlas_distribution_' + compo_type + '.pkl')
+  
     else:
         raise(Exception(f'The dimensions of the data and atlas are not matching.'))
 
