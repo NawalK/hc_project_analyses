@@ -73,7 +73,7 @@ class Seed2voxels:
         if self.signal == 'raw':
             if run == "extract":
                 ## Extract data in the seed___________________________________________
-                ts=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(subject_nb,mask,img[subject_nb],timeseries_txt[subject_nb],smoothing_fwhm)
+                ts=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(mask,img[subject_nb],timeseries_txt[subject_nb],smoothing_fwhm)
                                         for subject_nb in range(len(self.subject_names)))
                 
                 for subject_nb in range(len(self.subject_names)):
@@ -96,7 +96,7 @@ class Seed2voxels:
             
             elif run == "extract":
                 print('Note: signals can only be extracted for targets for activity-inducing signals.')
-                timeseries = Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(subject_nb,mask,img[subject_nb],timeseries_txt[subject_nb])
+                timeseries = Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(mask,img[subject_nb],timeseries_txt[subject_nb],smoothing_fwhm)
                                         for subject_nb in range(len(self.subject_names)))
                 
             else:
@@ -107,7 +107,7 @@ class Seed2voxels:
         # For AI-based (i.e. for iCAP pipeline), no need to return timeseries mean and pc1
         return timeseries if self.signal=='ai' else (timeseries,timeseries_mean,timeseries_pc1)
 
-    def _extract_ts(self,subject_nb,mask,img,ts_txt,smoothing=None):
+    def _extract_ts(self,mask,img,ts_txt,smoothing=None):
         '''
         Extracts time series in a mask + calculates the mean and PC
         '''
