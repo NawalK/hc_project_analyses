@@ -10,6 +10,7 @@ import seaborn as sns
 import glob
 from compute_similarity import compute_similarity
 from scipy.ndimage import find_objects,center_of_mass,label
+from threshold_map import Threshold_map
 class Plotting:
     '''
     The Plotting class is used to manipulate and visualize maps
@@ -27,7 +28,7 @@ class Plotting:
         
         self.data={};self.map_order={}
         for ana in self.analyses:
-            self.data[ana] = nib.load(glob.glob(self.config['main_dir'] + "/" + ana +"/spinalcord/K_"+str(self.k)+"/comp_zscored/"+ '*4D*.nii*')[0]).get_fdata()
+            self.data[ana] = nib.load(glob.glob(self.config['main_dir']+self.config['data']['ica']['spinalcord_dir'] + '/K_' + str(self.k) + '/comp_zscored/*' + self.config['data']['ica']["tag_filename"][0] + '*')[0]).get_fdata()
               
         for ana in self.analyses:
             if ana==self.analyses[0]: # order the first dataset only
@@ -36,7 +37,7 @@ class Plotting:
                     
         self.spinal_levels = self._match_levels()
         
-    def sc_plot(self, k_per_line=None, lthresh=2.3, uthresh=4.0, centering_method='max', show_spinal_levels=False, colormap='autumn', save_results=False):
+    def sc_plot(self, k_per_line=None, lthresh=2.3,uthresh=4.0,perc_thresh=90, centering_method='max', show_spinal_levels=False, colormap='autumn', save_results=False):
         ''' Plot components overlaid on PAM50 template (coronal and axial views are shown)
         
         Inputs
@@ -58,6 +59,13 @@ class Plotting:
         save_results : boolean
             Set to True to save figure (default = False)'''
         
+        # thresholding
+        if lthresh == "auto":
+            lthresh=Threshold_map(glob.glob(self.config['main_dir']+self.config['data']['ica']['spinalcord_dir'] + '/K_' + str(self.k) + '/comp_zscored/' + '*4D*')[0],
+              mask=self.config['main_dir']+ self.config["masks"]["spinalcord"],
+                          percentile=perc_thresh)
+            
+        #print(lthresh)
         colormaps={};alpha={}
         if len(self.analyses)==2:
             colormaps[self.analyses[0]]='autumn'; colormaps[self.analyses[1]]='winter'
