@@ -20,7 +20,7 @@
 
     "data":{"icap":
                 {"sc_dir":"1_nilearn-based/3_func_smoothed/iCAPs_results/PAM50_3x3x6_Alpha_5_950DOT05/",
-                "br_dir":"1_nilearn-based/3_func_smoothed/iCAPs_results/MNI_Alpha_5_950DOT05/",
+                "br_dir":"1_nilearn-based/3_func_smoothed/iCAPs_results/MNI_srv4_Alpha_5_950DOT05/",
                 "k_dir":"Dist_cosine_Folds_20/",
                 "filename":"iCAPs_z.nii"}
             },
