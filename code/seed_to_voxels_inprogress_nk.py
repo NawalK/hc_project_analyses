@@ -95,7 +95,7 @@ class Seed2voxels:
                 timeseries=Parallel(n_jobs=n_jobs)(delayed(np.loadtxt)(timeseries_txt[subject_nb] + '.txt') for subject_nb in range(len(self.subject_names)))
             
             elif run == "extract":
-                print('Note: signals can only be extracted for targets for activity-inducing signals.')
+                print('Note: when using "ai", signals can only be extracted for targets.')
                 timeseries = Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(mask,img[subject_nb],timeseries_txt[subject_nb],smoothing_fwhm)
                                         for subject_nb in range(len(self.subject_names)))
                 
