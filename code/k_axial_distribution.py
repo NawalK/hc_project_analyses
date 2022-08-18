@@ -3,7 +3,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import nibabel as nib
 import pandas as pd
-
+import glob
 #
 # NOTE 
 # File structure still needs to be generalized!
@@ -53,14 +53,16 @@ def k_axial_distribution(config, compo_type, thresh=3, vox_percentage=70, save_r
     axial_distribution_counts = {}
 
     print(f'...Computing distribution for each K')
-    for k_tot in config['spinalcord']['k_range']: # Loop through the different number of k
+    for k_tot in config['k_range']['spinalcord']: # Loop through the different number of k
         
         # Prepare empty structure to store counts
         axial_distribution_counts[k_tot] = dict(zip(('Q','LR','DV','F'), [0,0,0,0]))
         
         print(f'......K = {k_tot}')    
         # TODO: generalize when file structure has been decided
-        img = nib.load(config['main_dir'] + config['data'][compo_type]['sc_dir']  + 'K_' + str(k_tot) + '_' + config['data'][compo_type]['k_dir'] + config['data'][compo_type]['filename'])
+        #img = nib.load(config['main_dir'] + config['data'][compo_type]['sc_dir']  + 'K_' + str(k_tot) + '_' + config['data'][compo_type]['k_dir'] + config['data'][compo_type]['filename'])
+        img = nib.load(glob.glob(config['main_dir'] + config['data'][compo_type]['spinalcord_dir']  + 'K_' + str(k_tot)  + '/comp_zscored/*' + config['data'][compo_type]['tag_filename'] + '*')[0])
+
         data = img.get_fdata()
 
         data_bin = np.where(data >= thresh, 1, 0)
@@ -94,7 +96,7 @@ def k_axial_distribution(config, compo_type, thresh=3, vox_percentage=70, save_r
     axial_distribution_perc_df = axial_distribution_counts_df.div( axial_distribution_counts_df.sum(axis=0), axis=1).mul(100) 
 
     # Plot as a heatmap
-    sns.heatmap(axial_distribution_perc_df,cmap='YlOrBr',cbar_kws={'label': '% of components'},pad=10);
+    sns.heatmap(axial_distribution_perc_df,cmap='YlOrBr',cbar_kws={'label': '% of components'});
     plt.title('Axial distribution for different K \n Method: ' + compo_type)
     plt.xlabel('K')
     
