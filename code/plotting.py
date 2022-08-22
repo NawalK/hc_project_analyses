@@ -28,12 +28,13 @@ class Plotting:
         
         self.data={};self.map_order={}
         for ana in self.analyses:
-            self.data[ana] = nib.load(glob.glob(self.config['main_dir']+self.config['data']['ica']['spinalcord_dir'] + '/K_' + str(self.k) + '/comp_zscored/*' + self.config['data']['ica']["tag_filename"][0] + '*')[0]).get_fdata()
-              
+            self.data[ana] = nib.load(glob.glob(self.config['main_dir']+self.config['data']['ica']['spinalcord_dir'] + '/K_' + str(self.k) + '/comp_zscored/*' + self.config['data']['ica']["tag_filename"] + '*')[0]).get_fdata()
+            print(glob.glob(self.config['main_dir']+self.config['data']['ica']['spinalcord_dir'] + '/K_' + str(self.k) + '/comp_zscored/*' + self.config['data']['ica']["tag_filename"] + '*')[0])
         for ana in self.analyses:
             if ana==self.analyses[0]: # order the first dataset only
                 self.map_order[ana] =self._sort_maps(self.sorting_method,ana)
                 self.data[ana] = self.data[ana][:,:,:,self.map_order[ana]]
+                
                     
         self.spinal_levels = self._match_levels()
         

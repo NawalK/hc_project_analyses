@@ -18,7 +18,7 @@
 
 "data":{"ica":{"spinalcord_dir":"/ICA/spinalcord/",
                 "brain_dir":"/ICA/brain/",
-                "tag_filename":"4D"}},
+                "tag_filename":"4D_K"}},
          
 "output_dir": "../results/",
 "output_tag": "test",
