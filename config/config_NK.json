@@ -22,8 +22,11 @@
                 {"sc_dir":"1_nilearn-based/3_func_smoothed/iCAPs_results/PAM50_3x3x6_Alpha_5_950DOT05/",
                 "br_dir":"1_nilearn-based/3_func_smoothed/iCAPs_results/MNI_srv4_Alpha_5_950DOT05/",
                 "k_dir":"Dist_cosine_Folds_20/",
-                "filename":"iCAPs_z.nii"}
+                "filename":"iCAPs_z.nii"},
+            "ica":{"spinalcord_dir":"/data/ica/spinalcord/",
+                "tag_filename":"zCanICA"}
             },
+
     
     "list_subjects":["P028","P030","P033","P043","P047","P050","P057","P099","P100","P105","P108","P109","P001","P003","P004","P005","P006","P007","P008","P009","P011","P013"]
 
