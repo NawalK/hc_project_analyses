@@ -11,14 +11,17 @@
             "spinalcord_seeds": "/templates/PAM50/rois/",
             "brain_seeds": "/templates/MNI/rois/"},
  
-"masks":{"brain":"/templates/MNI/3mm_resolution/MNI_T1w_GMWM_AverageHCs_3mm_bin_corrected.nii.gz",
+"masks":{"brain":"/templates/MNI/3mm_resolution/MNI_T1w_GM_AverageHCs_3mm_bin_corrected.nii.gz",
              "spinalcord": "/templates/PAM50/template/PAM50_cord.nii.gz"},
 
 "seed2vox_dir": "/seed_to_voxels/",
 
-"data":{"ica":{"spinalcord_dir":"/ICA/spinalcord/",
+"data":{"ICA":{"spinalcord_dir":"/ICA/spinalcord/",
                 "brain_dir":"/ICA/brain/",
-                "tag_filename":"4D_K"}},
+                "tag_filename":"4D_K"},
+       "iCAP":{"spinalcord_dir":"/iCAP/spinalcord/",
+                "brain_dir":"/iCAP/brain/",
+                "tag_filename":"4D"}},
          
 "output_dir": "../results/",
 "output_tag": "test",
