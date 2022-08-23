@@ -126,7 +126,7 @@ class Seed2voxels:
                 
         return ts if self.signal=='ai' else (ts, ts_mean, ts_pc1)
 
-    def correlation_maps(self,seed_ts,voxels_ts,output_img,mask,Fisher=True,n_jobs=1):
+    def correlation_maps(self,seed_ts,voxels_ts,mask,output_img=None,Fisher=True,save_maps=True,n_jobs=1):
         '''
         Compute correlation maps between a seed timecourse and a voxelwise one
         Inputs
@@ -141,6 +141,8 @@ class Seed2voxels:
             path + rootname of the output image (/!\ no extension needed) (ex: '/pathtofile/output')
         Fisher: boolean
             to Fisher-transform the correlation (default = True).
+        save_maps: boolean
+            to save correlation maps (default = True).
         njobs: int
             number of jobs for parallelization
     
@@ -150,24 +152,29 @@ class Seed2voxels:
             4D image containing the correlation maps for all subjects
         subject_labels.txt
             text file containing labels of the subjects included in the correlation analysis
+        correlations: array
+            correlation maps as an array
         '''
-        Parallel(n_jobs=n_jobs)(delayed(self._compute_correlation)(subject_nb,voxels_ts[subject_nb],seed_ts[subject_nb],mask,output_img,Fisher)
+        correlations = Parallel(n_jobs=n_jobs)(delayed(self._compute_correlation)(subject_nb,voxels_ts[subject_nb],seed_ts[subject_nb],mask,output_img,Fisher,save_maps)
                                        for subject_nb in range(len(self.subject_names)))
                                
         # transform of all participant in a 4D image
-        if Fisher == True:
-            image.concat_imgs(glob.glob(os.path.dirname(output_img) + '/tmp_*.nii')).to_filename(output_img + '_zcorr.nii')
-        elif Fisher == False:
-            image.concat_imgs(glob.glob(os.path.dirname(output_img) + '/tmp_*.nii')).to_filename(output_img + '_corr.nii')
-        else:
-            raise(Exception(f"Fisher should be True or False"))
+        if save_maps == True:
+            if Fisher == True:
+                image.concat_imgs(glob.glob(os.path.dirname(output_img) + '/tmp_*.nii')).to_filename(output_img + '_zcorr.nii')
+            elif Fisher == False:
+                image.concat_imgs(glob.glob(os.path.dirname(output_img) + '/tmp_*.nii')).to_filename(output_img + '_corr.nii')
+            else:
+                raise(Exception(f"Fisher should be True or False"))
 
-        for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii'):
-            os.remove(tmp) # remove temporary 3D images files
-        
-        np.savetxt(os.path.dirname(output_img) + '/subjects_labels.txt',self.subject_names,fmt="%s") # copy the config file that store subject info
+            for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii'):
+                os.remove(tmp) # remove temporary 3D images files
+            
+            np.savetxt(os.path.dirname(output_img) + '/subjects_labels.txt',self.subject_names,fmt="%s") # copy the config file that store subject info
 
-    def _compute_correlation(self,subject_nb,voxels_ts,seed_ts,mask,output_img,Fisher):
+        return correlations
+
+    def _compute_correlation(self,subject_nb,voxels_ts,seed_ts,mask,output_img,Fisher,save_maps):
         seed_to_voxel_correlations = np.zeros((voxels_ts.shape[1], 1)) # np.zeros(number of voxels,1)
         for v in range(0,voxels_ts.shape[1]): 
             # compute correlation
@@ -180,9 +187,13 @@ class Seed2voxels:
         if Fisher == True:
             seed_to_voxel_correlations_fisher_z = np.arctanh(seed_to_voxel_correlations)
             seed_to_voxel_correlations_fisher_z_img = masker.inverse_transform(seed_to_voxel_correlations_fisher_z.T)
-            seed_to_voxel_correlations_fisher_z_img.to_filename(os.path.dirname(output_img) + '/tmp_' + str(subject_nb) +'.nii') # create temporary 3D files
+            if save_maps == True:
+                seed_to_voxel_correlations_fisher_z_img.to_filename(os.path.dirname(output_img) + '/tmp_' + str(subject_nb) +'.nii') # create temporary 3D files
         elif Fisher == False:
             seed_to_voxel_correlations_fisher_img = masker.inverse_transform(seed_to_voxel_correlations.T)
-            seed_to_voxel_correlations_fisher_img.to_filename(os.path.dirname(output_img) + '/tmp_' + str(subject_nb) +'.nii') # create temporary 3D files
+            if save_maps == True:
+                seed_to_voxel_correlations_fisher_img.to_filename(os.path.dirname(output_img) + '/tmp_' + str(subject_nb) +'.nii') # create temporary 3D files
         else:
             raise(Exception(f"Fisher should be True or False"))
+       
+        return seed_to_voxel_correlations_fisher_z if Fisher==True else seed_to_voxel_correlations
