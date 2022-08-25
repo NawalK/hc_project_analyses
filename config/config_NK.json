@@ -1,4 +1,8 @@
 {   "main_dir":"/media/miplab-nas2/Data3/BMPD/hc_project/",
+    "coreg_dir":"/media/miplab-nas2/Data3/BMPD/hc_project/1_nilearn-based/2_func_in_template/",
+    "smooth_dir":"/media/miplab-nas2/Data3/BMPD/hc_project/1_nilearn-based/3_func_smoothed/",
+    "coreg_tag":{"brain":"moco_denoised_reg_SPM_inTemplate",
+             "spinalcord":"moco_denoised_inTemplate"},
     
     "output_dir": "../results/",
     "output_tag": "test_nk",
@@ -18,12 +22,14 @@
     "k_range": {"spinalcord":[5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,35,40],
                 "brain":15},
 
-    "data":{"icap":
-                {"sc_dir":"1_nilearn-based/3_func_smoothed/iCAPs_results/PAM50_3x3x6_Alpha_5_950DOT05/",
-                "br_dir":"1_nilearn-based/3_func_smoothed/iCAPs_results/MNI_srv4_Alpha_5_950DOT05/",
-                "k_dir":"Dist_cosine_Folds_20/",
-                "filename":"iCAPs_z.nii"},
-            "ica":{"spinalcord_dir":"/data/ica/spinalcord/",
+    "data":{"iCAP":
+                {"spinalcord_dir":"data/icap/spinalcord/",
+                "brain_dir":"data/icap/brain/",
+                "tag_filename":"iCAPs",
+                "brain_ta_folder": "MNI",
+                "spinalcord_ta_folder": "PAM50_3x3x6"
+                },
+            "ICA":{"spinalcord_dir":"/data/ica/spinalcord/",
                 "tag_filename":"zCanICA"}
             },
 
