@@ -32,8 +32,6 @@ def atlas_distribution(config, compo_type, k, thresh=2,save_results=False):
     atlas = atlas_img.get_fdata()
 
     # Note: the atlas and label files should have the same root, just different extensions (.nii.gz vs .txt)
-    #labels = nib.load(config['main_dir'] + config['templates']['br_atlas'] + '.txt')
-
     labels_file = open(config['main_dir'] + config['templates']['br_atlas'] + '.txt')
     labels = labels_file.read()
     labels = labels.split('\n')
