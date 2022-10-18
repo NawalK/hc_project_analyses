@@ -158,7 +158,7 @@ class FC_Parcellation:
             
         '''
             
-        print("PREPARE SEED MAP")
+        print("PREPARE BRAIN MAPS")
         
         print("...Compute mean connectivity profiles")
 
