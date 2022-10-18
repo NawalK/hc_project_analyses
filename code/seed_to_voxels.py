@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 import glob, os, shutil
-from urllib.parse import non_hierarchical
+#from urllib.parse import non_hierarchical
 import nibabel as nib
 import numpy as np
 from nilearn.maskers import NiftiMasker
@@ -87,8 +88,8 @@ class Seed2voxels:
                     timeseries_mean=Parallel(n_jobs=n_jobs)(delayed(np.loadtxt)(timeseries_txt[subject_nb] + '_mean.txt') for subject_nb in range(len(self.subject_names)))
                     timeseries_pc1=Parallel(n_jobs=n_jobs)(delayed(np.loadtxt)(timeseries_txt[subject_nb] + '_PC1.txt') for subject_nb in range(len(self.subject_names)))
   
-            else:
-                raise(Exception(f"Use run='extract' or run='load'"))
+            #else:
+             #   raise(Exception(f"Use run='extract' or run='load'"))
 
         elif self.signal == 'ai':
             if run == "load":
@@ -99,10 +100,10 @@ class Seed2voxels:
                 timeseries = Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(mask,img[subject_nb],timeseries_txt[subject_nb],smoothing_fwhm)
                                         for subject_nb in range(len(self.subject_names)))
                 
-            else:
-                raise(Exception(f"Use run='extract' or run='load'"))
-        else:
-            raise(Exception(f"Use signal='raw' or signal='ai'"))
+            #else:
+             #   raise(Exception(f"Use run='extract' or run='load"))
+        #else:
+         #   raise(Exception(f"Use signal='raw' or signal='ai'"))
         
         # For AI-based (i.e. for iCAP pipeline), no need to return timeseries mean and pc1
         return timeseries if self.signal=='ai' else (timeseries,timeseries_mean,timeseries_pc1)
@@ -114,9 +115,8 @@ class Seed2voxels:
         masker= NiftiMasker(mask,smoothing_fwhm=smoothing, t_r=1.55,low_pass=0.1 if self.signal == 'raw' else None, high_pass=0.01 if self.signal == 'raw' else None) # seed masker
         ts=masker.fit_transform(img) #low_pass=0.1,high_pass=0.01
         np.savetxt(ts_txt + '.txt',ts)
-
-        # For raw signal, compute mean and PC
-        if self.signal=='raw':
+        
+        if self.signal=="raw":  # For raw signal, compute mean and PC
             ts_mean=np.mean(ts,axis=1) # mean time serie
             pca=decomposition.PCA(n_components=1)
             pca_components=pca.fit_transform(ts)
@@ -171,9 +171,9 @@ class Seed2voxels:
             elif Fisher == False and partial==False:
                 image.concat_imgs(sorted(glob.glob(os.path.dirname(output_img) + '/tmp_*.nii'))).to_filename(output_img + '_corr.nii')
       
-            else:
-                raise(Exception(f"Fisher should be True or False"))
-                raise(Exception(f"partial should be True or False"))
+            #else:
+             #   raise(Exception(f"Fisher should be True or False"))
+              #  raise(Exception(f"partial should be True or False"))
 
             for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii'):
                 os.remove(tmp) # remove temporary 3D images files
@@ -204,8 +204,8 @@ class Seed2voxels:
                 df={'seed_ts':seed_ts[:-1],'target_ts':voxels_ts[:-1, v],'target_ts_deriv':target_derivative[:,v]}
                 df=pd.DataFrame(df) # transform in DataFrame for pingouiun toolbox
                 seed_to_voxel_correlations[v]=pg.partial_corr(data=df, x='seed_ts', y='target_ts', y_covar='target_ts_deriv').r[0] # compute partial correlation and extract the r value only
-        else:
-            raise(Exception(f"partial should be True or False"))
+       # else:
+        #    raise(Exception(f"partial should be True or False"))
         
         # prepare mask for saving
         masker= NiftiMasker(mask).fit()
@@ -220,9 +220,9 @@ class Seed2voxels:
             seed_to_voxel_correlations_fisher_img = masker.inverse_transform(seed_to_voxel_correlations.T)
             if save_maps == True:
                 seed_to_voxel_correlations_fisher_img.to_filename(os.path.dirname(output_img) + '/tmp_' + str(subject_nb).zfill(3) +'.nii') # create temporary 3D files
-        else:
-            
-            raise(Exception(f"Fisher should be True or False"))
+        #else:
+         #   
+          #  raise(Exception(f"Fisher should be True or False"))
             
           
           

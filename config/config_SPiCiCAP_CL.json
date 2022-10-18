@@ -1,0 +1,31 @@
+{"main_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/",
+"t_r":2.5,
+"inputs":{"ICA":{"spinalcord_dir":"/cerebro/cerebro1/dataset/caroline/2022_SPiCiCAP_NK_CL/CL_analyses/denoising/3_func_smoothed/",
+                 "brain_dir":"*",
+                 "tag_filename":"std_outliers_26reg_HP01_std_sc_inTemplate_s.nii.gz"},
+       "iCAP":{"spinalcord_dir":"*",
+                "brain_dir":"*",
+               "tag_filename":"*"}},
+ 
+"templates":{"spinalcord": "/templates/PAM50PAM50_SPiCiCAP/template/PAM50_t2_cropped.nii.gz"},
+
+ 
+"masks":{"spinalcord": "/templates/PAM50/PAM50_SPiCiCAP/template/PAM50_cord_resampled.nii.gz"},
+
+"seed2vox_dir": "/seed_to_voxels/",
+
+"ICA_params":{"n_comp_PCA_indiv":40,
+              "iter": 100},
+ 
+"outputs":{"ICA":{"main_dir":"/ICA/SPiCiCAP/",
+                "tag_filename":"4D_K"},
+       "iCAP":{"spinalcord_dir":"/iCAP/",
+                "tag_filename":"4D"}},
+         
+ 
+ "k_range": {"spinalcord":[4]},
+ 
+"list_subjects":["01","02","03","04","05","06" ,"07","08","09","10","12","11","13","14","15","16" ,"17","18","19"],
+"other":["01","02","03","04","05","06" ,"07","08","09","10","12","11","13","14","15","16" ,"17","18","19"],
+"SPM_Dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spm12/"
+} 

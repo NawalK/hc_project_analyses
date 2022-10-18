@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# coding: utf-8
+# -*- coding: utf-8 -*-
 
 # ## <font color=#B2D732> <span style="background-color: #4424D6"> Imports
 
@@ -76,7 +76,7 @@ for seed_name in seed_names:
 
 
 target_timeseries,target_timeseries_mean,target_timeseries_pc1=seed2voxels.extract_data(img=data_target, mask=mask_target, timeseries_txt=ts_target_txt,
-                                                                run="load",n_jobs=8,smoothing_fwhm=[6,6,6]) # run the analyse for target voxels
+                                                                run="extract",n_jobs=8,smoothing_fwhm=[6,6,6]) # run the analyse for target voxels
 
 
 # ### <font color=#4424D6> II. Time series extraction - Seed </font>
