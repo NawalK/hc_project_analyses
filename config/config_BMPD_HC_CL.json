@@ -16,7 +16,7 @@
 "ICA_params":{"n_comp_PCA_indiv":30,
               "iter": 50},
  
-"outputs":{"ICA":{"main_dir":"/ICA/BMPD_HC/",
+"data":{"ICA":{"spinalcord_dir":"/ICA/SPiCiCAP/spinalcord/",
                 "tag_filename":"4D_K"},
        "iCAP":{"spinalcord_dir":"/iCAP/",
                 "tag_filename":"4D"}},

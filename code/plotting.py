@@ -207,6 +207,7 @@ class Plotting:
                 C1 = 1, C2 = 2, C3 = 3, C4 = 4, etc.
         '''
         # Find list of spinal levels to consider (defined in config)
+        
         levels_list = levels_list = sorted(glob.glob(self.config['main_dir'] +self.config['templates']["sc_levels_path"] + 'spinal_level_*.nii.gz')) # Sorted is used to make sure files are listed f # Sorted is used to make sure files are listed from low to high number (i.e., rostro-caudally)
         
         # Prepare structures
@@ -214,6 +215,7 @@ class Plotting:
         spinal_levels = np.zeros(self.k,dtype='int') # To store corresponding spinal levels
 
         # Loop through levels & store data
+
         for lvl in range(0,len(levels_list)):
             level_img = nib.load(levels_list[lvl])
             levels_data[:,:,:,lvl] = level_img.get_fdata()
