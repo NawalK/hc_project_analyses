@@ -169,7 +169,7 @@ class ICA:
         [1] Nilearn toolbox: https://github.com/nilearn/nilearn/blob/9ddfa7259de3053a5ed6655cd662e115926cf6a5/nilearn/decomposition/base.py#L85*
 
         '''
-        n_comp_pca=self.config["ICA_params"]["n_comp_PCA_indiv"]  #Number of composent for the PCAs at individual level
+        n_comp_pca=2*self.config["n_comp"]#self.config["ICA_params"]["n_comp_PCA_indiv"]  #Number of composent for the PCAs at individual level
         reducedata_all=[]
         for sbj_nb in range(0,len(self.config["list_subjects"])):
             #Dimensionality reduction using truncated SVD 

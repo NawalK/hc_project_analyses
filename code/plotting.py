@@ -11,6 +11,8 @@ import glob
 from compute_similarity import compute_similarity
 from scipy.ndimage import find_objects,center_of_mass,label
 from threshold_map import Threshold_map
+
+#to do: # add different possibility of k for the different dataset
 class Plotting:
     '''
     The Plotting class is used to manipulate and visualize maps
@@ -19,17 +21,34 @@ class Plotting:
     config : dict
         '''
     
-    def __init__(self, config,k, analyses,sorting_method='rostrocaudal'):
+    def __init__(self, config=' ',config2=' ',k=0,k2=0, analyses=' ',sorting_method='rostrocaudal'):
         self.config = config # load config info
         self.k=k
+        if k2 == 0:
+            self.k2=k
+        else:
+            self.k2=k2
         self.analyses= analyses
         self.sorting_method = sorting_method
-        print(self.analyses)
+       
         
-        self.data={};self.map_order={}
-        for ana in self.analyses:
-            self.data[ana] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][ana]['spinalcord_dir'] + '/K_' + str(self.k) + '/comp_zscored/*' + self.config['data'][ana]["tag_filename"] + '*')[0]).get_fdata()
-            print(glob.glob(self.config['main_dir']+self.config['data'][ana]['spinalcord_dir'] + '/K_' + str(self.k) + '/comp_zscored/*' + self.config['data'][ana]["tag_filename"] + '*')[0])
+        self.data={}; self.data2={};self.map_order={}
+        
+        if config2 ==' ':
+            self.data[self.analyses[0]] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.analyses[0]]['spinalcord_dir'] + '/K_' + str(self.k) + '/comp_zscored/*' + self.config['data'][self.analyses[0]]["tag_filename"] + '*')[0]).get_fdata()
+            
+        else:
+            
+            self.config2 = config2 # load config info
+            self.data[self.analyses[0]] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.analyses[0]]['spinalcord_dir'] + '/K_' + str(self.k) + '/comp_zscored/*' + self.config['data'][self.analyses[0]]["tag_filename"] + '*')[0]).get_fdata()
+            if self.analyses[1]== self.analyses[1]:
+                self.analyses[1]=self.analyses[0]  + '2'
+                self.data[self.analyses[1]] = nib.load(glob.glob(self.config2['main_dir']+self.config2['data'][self.analyses[0]]['spinalcord_dir'] + '/K_' + str(self.k2) + '/comp_zscored/*' + self.config2['data'][self.analyses[0]]["tag_filename"] + '*')[0]).get_fdata()
+                
+            else:
+                self.data[self.analyses[1]] = nib.load(glob.glob(self.config2['main_dir']+self.config2['data'][self.analyses[1]]['spinalcord_dir'] + '/K_' + str(self.k2) + '/comp_zscored/*' + self.config2['data'][self.analyses[1]]["tag_filename"] + '*')[0]).get_fdata()
+        
+        print(self.analyses)
         for ana in self.analyses:
             if ana==self.analyses[0]: # order the first dataset only
                 self.map_order[ana] =self._sort_maps(self.sorting_method,ana)
@@ -62,7 +81,7 @@ class Plotting:
         
         # thresholding
         if lthresh == "auto":
-            lthresh=Threshold_map(glob.glob(self.config['main_dir']+self.config['data'][ana]['spinalcord_dir'] + '/K_' + str(self.k) + '/comp_zscored/' + '*4D*')[0],
+            lthresh=Threshold_map(glob.glob(self.config['main_dir']+self.config['data'][self.analyses[0]]['spinalcord_dir'] + '/K_' + str(self.k) + '/comp_zscored/' + '*4D*')[0],
               mask=self.config['main_dir']+ self.config["masks"]["spinalcord"],
                           percentile=perc_thresh)
             
