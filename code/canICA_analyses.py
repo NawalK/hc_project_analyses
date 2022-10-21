@@ -50,15 +50,14 @@ class ICA:
             self.files_func[structure]={};self.func_allsbj[structure]=[]
             for subject_name in self.config["list_subjects"]:
                 if structure=='spinalcord':
-                 
-                    self.files_func[structure][subject_name]=glob.glob(self.config["inputs"]["ICA"]["spinalcord_dir"] + '/sub-' + subject_name + '/'  + structure + '/*' + self.config["inputs"]["ICA"]["tag_filename"] + '*')[0]
+                    self.files_func[structure][subject_name]=glob.glob(self.config["inputs"]["ica"]["spinalcord_dir"] + '/sub-' + subject_name + '/'  + structure + '/*' + self.config["inputs"]["ica"]["tag_filename"] + '*')[0]
                 else:
-                    self.files_func[structure][subject_name]=glob.glob(self.config["inputs"]["ICA"]["brain_dir"] + '/sub-' + subject_name + '/'  + structure + '/*' + self.config["inputs"]["ICA"]["tag_filename"] + '*')[0]
+                    self.files_func[structure][subject_name]=glob.glob(self.config["inputs"]["ica"]["brain_dir"] + '/sub-' + subject_name + '/'  + structure + '/*' + self.config["inputs"]["ica"]["tag_filename"] + '*')[0]
                 self.func_allsbj[structure].append(self.files_func[structure][subject_name]) # array for each structure: nb_subjects[n_volumes,n_voxels]
             #print(self.files_func[structure])
             
         #output dir--------------------------------------------
-        self.analyse_dir=self.config["main_dir"] + self.config["data"]["ICA"][self.structures_ana +"_dir"] +'/' + '/K_' + str(self.config["n_comp"])
+        self.analyse_dir=self.config["main_dir"] + self.config["data"]["ica"][self.structures_ana +"_dir"] +'/' + '/K_' + str(self.config["n_comp"])
         if '_' in self.structures_ana:
             if not os.path.exists(self.analyse_dir):
                 os.mkdir(self.analyse_dir)
@@ -69,7 +68,7 @@ class ICA:
                     os.mkdir(self.analyse_dir +'/'+structure + '/comp_bin/')
                     os.mkdir(self.analyse_dir +'/'+structure  + '/comp_indiv/')  
                     if not os.path.exists(self.analyse_dir +'/'+structure  + '/subject_data/'):
-                        os.mkdir(self.config["main_dir"] + self.config["data"]["ICA"][self.structures_ana + "_dir"] +'/'+  '/subject_data/')
+                        os.mkdir(self.config["main_dir"] + self.config["data"]["ica"][self.structures_ana + "_dir"] +'/'+  '/subject_data/')
                 
             
         else:
@@ -79,8 +78,8 @@ class ICA:
                 os.mkdir(self.analyse_dir + '/comp_zscored/')
                 os.mkdir(self.analyse_dir + '/comp_bin/')
                 os.mkdir(self.analyse_dir +'/comp_indiv/')
-                if not os.path.exists(self.config["main_dir"] + self.config["data"]["ICA"][self.structures_ana + "_dir"] +'/'+  '/subject_data/'):
-                        os.mkdir(self.config["main_dir"] + self.config["data"]["ICA"][self.structures_ana +"_dir"] +'/'+   '/subject_data/')          
+                if not os.path.exists(self.config["main_dir"] + self.config["data"]["ica"][self.structures_ana + "_dir"] +'/'+  '/subject_data/'):
+                        os.mkdir(self.config["main_dir"] + self.config["data"]["ica"][self.structures_ana +"_dir"] +'/'+   '/subject_data/')          
         
         
         # copy the config file in the output dir
@@ -122,7 +121,7 @@ class ICA:
              
             data_sbj[structure]={};self.data_txt={}
             for subject_name in self.config["list_subjects"]:
-                self.data_txt[subject_name]=self.config["main_dir"] + self.config["data"]["ICA"][self.structures_ana + "_dir"] +'/subject_data/' + '/sub-' + subject_name +'_'+structure+'_data.txt'
+                self.data_txt[subject_name]=self.config["main_dir"] + self.config["data"]["ica"][self.structures_ana + "_dir"] +'/subject_data/' + '/sub-' + subject_name +'_'+structure+'_data.txt'
         
             if run=='load':
                 data_sbj[structure]=Parallel(n_jobs=n_jobs)(delayed(np.loadtxt)(self.data_txt[subject_name]) for subject_name in self.config["list_subjects"])
