@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import glob, os, shutil
+import glob, os, shutil, json
 #from urllib.parse import non_hierarchical
 import nibabel as nib
 import numpy as np
@@ -76,7 +76,9 @@ class Seed2voxels:
                 ## Extract data in the seed___________________________________________
                 ts=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(mask,img[subject_nb],timeseries_txt[subject_nb],smoothing_fwhm)
                                         for subject_nb in range(len(self.subject_names)))
-                
+                with open(os.path.dirname(timeseries_txt[0]) + '/seed2voxels_analysis_config.json', 'w') as fp:
+                    json.dump(self.config, fp)
+   
                 for subject_nb in range(len(self.subject_names)):
                     timeseries.append(ts[subject_nb][0])
                     timeseries_mean.append(ts[subject_nb][1])
@@ -100,11 +102,9 @@ class Seed2voxels:
                 timeseries = Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(mask,img[subject_nb],timeseries_txt[subject_nb],smoothing_fwhm)
                                         for subject_nb in range(len(self.subject_names)))
                 
-            #else:
-             #   raise(Exception(f"Use run='extract' or run='load"))
-        #else:
-         #   raise(Exception(f"Use signal='raw' or signal='ai'"))
-        
+                with open(os.path.dirname(timeseries_txt[0]) + '/seed2voxels_analysis_config.json', 'w') as fp:
+                    json.dump(self.config, fp)
+   
         # For AI-based (i.e. for iCAP pipeline), no need to return timeseries mean and pc1
         return timeseries if self.signal=='ai' else (timeseries,timeseries_mean,timeseries_pc1)
 
@@ -112,7 +112,7 @@ class Seed2voxels:
         '''
         Extracts time series in a mask + calculates the mean and PC
         '''
-        masker= NiftiMasker(mask,smoothing_fwhm=smoothing, t_r=1.55,low_pass=0.1 if self.signal == 'raw' else None, high_pass=0.01 if self.signal == 'raw' else None) # seed masker
+        masker= NiftiMasker(mask,smoothing_fwhm=smoothing, t_r=1.55,low_pass=None, high_pass=0.01 if self.signal == 'raw' else None) # seed masker
         ts=masker.fit_transform(img) #low_pass=0.1,high_pass=0.01
         np.savetxt(ts_txt + '.txt',ts)
         
@@ -123,7 +123,9 @@ class Seed2voxels:
             ts_pc1=pca_components[:,0]
             np.savetxt(ts_txt + '_mean.txt',ts_mean)
             np.savetxt(ts_txt + '_PC1.txt',ts_pc1)
-                
+        
+        
+   
         return ts if self.signal=='ai' else (ts, ts_mean, ts_pc1)
 
     def correlation_maps(self,seed_ts,voxels_ts,mask,output_img=None,Fisher=True,partial=False,save_maps=True,n_jobs=1):
