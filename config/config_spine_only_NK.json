@@ -1,0 +1,45 @@
+{
+
+"main_dir":"/media/miplab-nas2/Data3/BMPD/hc_project/",
+
+"datasets":["mtl","gva"],
+"analyses":["ica","icap"],
+
+"list_subjects":{"mtl": ["P003","P004","P005","P006","P007","P008","P009","P011","P013","P028","P030","P033","P043","P047","P050","P057","P099","P100","P105","P108","P109"],
+                "gva": ["01","02","03","04","05","06" ,"07","08","09","10","12","11","13","14","15","16" ,"17","18","19"]},
+
+"templates":{"spinalcord": "/templates/PAM50_hc_project/template/PAM50_t2.nii.gz",
+            "sc_levels_path": "/templates/PAM50_hc_project/spinal_levels/",
+            "sc_axialdiv_path": "/templates/PAM50_hc_project/template/"},
+ 
+"masks":{"mtl":
+            {"spinalcord": "/templates/PAM50_hc_project/template/PAM50_cord_C1toC8.nii"},
+         "gva":
+            {"spinalcord": "/templates/PAM50_hc_project/template/PAM50_cord_C5toC8.nii"}},
+ 
+"data":{"mtl":
+            {"ica":
+                {"spinalcord": {
+                "dir":"/spine_only/mtl/ica/",
+                "tag_filename":"4D_K"}},
+            "icap":
+                {"spinalcord": {
+                "dir":"/spine_only/mtl/icap/",
+                "tag_filename":"iCAPs"}}},
+        "gva":
+            {"ica":
+                {"spinalcord": {
+                "dir":"/spine_only/gva/ica/",
+                "tag_filename":"4D_K"}},
+            "icap":
+                {"spinalcord": {
+                "dir":"/spine_only/gva/icap/",
+                "tag_filename":"iCAPs"}}}
+        },
+
+"k_range":{"mtl":
+            {"spinalcord":[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40]},
+          "gva":
+          {"spinalcord":[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40]}}
+
+} 
