@@ -1,3 +1,4 @@
+from cmath import nan
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -35,53 +36,55 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, method='Dice'
 
     print(f"COMPUTING SIMILARITY WITH METHOD: {method}")
 
-    # Check that datasets have equal number of components
-    if data1.shape[3] == data2.shape[3]:
-        k = data1.shape[3] # Save number of components for later use
-        #print(f"...Binarize data \n Threshold 1 = {thresh1} \n Threshold 2 = {thresh2}")
-        data1_bin = np.where(data1 >= thresh1, 1, 0)
-        data2_bin = np.where(data2 >= thresh2, 1, 0)
+    # Number of components is equal to the max between the two sets
+    k = np.max([data1.shape[3],data2.shape[3]]) # Save number of components for later use
+    
+    #print(f"...Binarize data \n Threshold 1 = {thresh1} \n Threshold 2 = {thresh2}")
+    data1_bin = np.where(data1 >= thresh1, 1, 0)
+    data2_bin = np.where(data2 >= thresh2, 1, 0)
 
-        print(f"...Compute similarity between pairs of components")
-        similarity_matrix = np.zeros((k,k))
+    print(f"...Compute similarity between pairs of components")
+    similarity_matrix = np.zeros((k,k))
         
-        for k1 in range(0,k):
-            for k2 in range(0,k):
-                if method == 'Dice':
-                    # For the intersection, we multiply the two binary maps and count the number of elements
+    for k1 in range(0,k):
+        for k2 in range(0,k):
+            if method == 'Dice':
+                # For the intersection, we multiply the two binary maps and count the number of elements
+                if k1 < data1.shape[3] and k2 < data2.shape[3]: # If the element exist in both datasets, we compute the similarity
                     nb_el_inters = np.sum(np.multiply(data1_bin[:,:,:,k1], data2_bin[:,:,:,k2])) 
                     nb_el_1 = np.sum(data1_bin[:,:,:,k1])
                     nb_el_2 = np.sum(data2_bin[:,:,:,k2])
                     similarity_matrix[k1,k2] = 2*nb_el_inters / (nb_el_1+nb_el_2)
-                elif method == 'Euclidean distance':
-                    # we calculate the center of masse of each composant
+                else: # Else, we just set it to -1
+                    similarity_matrix[k1,k2] = -1
+            elif method == 'Euclidean distance':
+                if k1 < data1.shape[3] and k2 < data2.shape[3]: # If the element exist in both datasets, we compute the similarity
+                    # we calculate the center of masse of each composant 
                     cm1=center_of_mass(data1_bin[:,:,:,k1])
                     cm2=center_of_mass(data2_bin[:,:,:,k2])
                     # inverse of the euclidian distance between CoG
                     #similarity_matrix[k1,k2]=1/(np.mean(np.abs(np.array(cm1)-np.array(cm2)))) 
                     similarity_matrix[k1,k2]=1/(np.mean(np.abs([float(cm1[1])-float(cm2[1]),float(cm1[2])-float(cm2[2])])))
                 else:
-                    raise(Exception(f'The method {method} has not been implemented'))
+                    similarity_matrix[k1,k2] = -1
+            else:
+                raise(Exception(f'The method {method} has not been implemented'))
         
-        if match_compo == True:
-            print(f"...Ordering components based on maximum weight matching")
-            orderX,orderY=scipy.optimize.linear_sum_assignment(similarity_matrix,maximize=True)
-            # if the same composantes match
-            similarity_matrix = similarity_matrix[:,orderY]
-        else:
-            orderY = np.array(range(0,k))
-
-        # Plot similarity matrix
-        if plot_results == True:
-            sns.heatmap(similarity_matrix,linewidths=.5,square=True,cmap='YlOrBr',vmax=1,xticklabels=orderY+1,yticklabels=np.array(range(1,k+1)));
-
-        # Saving result and figure if applicable
-        if save_results == True:
-            plt.savefig(config['output_dir'] + config['output_tag'] + '_k' + str(k) +'.png')
-    
-
+    if match_compo == True:
+        print(f"...Ordering components based on maximum weight matching")
+        orderX,orderY=scipy.optimize.linear_sum_assignment(similarity_matrix,maximize=True)
+        # if the same composantes match
+        similarity_matrix = similarity_matrix[:,orderY]
     else:
-        raise(Exception(f'The two datasets have different number of components ({data1.shape[3]} vs {data2.shape[3]}).'))
+        orderY = np.array(range(0,k))
+
+    # Plot similarity matrix
+    if plot_results == True:
+        sns.heatmap(similarity_matrix,linewidths=.5,square=True,cmap='YlOrBr',vmax=1,xticklabels=orderY+1,yticklabels=np.array(range(1,k+1)));
+
+    # Saving result and figure if applicable
+    if save_results == True:
+        plt.savefig(config['output_dir'] + config['output_tag'] + '_k' + str(k) +'.png')
     
     print(f"DONE!")
 
