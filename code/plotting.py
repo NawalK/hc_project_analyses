@@ -1,16 +1,13 @@
-import os.path
 import os
-from turtle import pd
-from pyparsing import col
 import nibabel as nib
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import seaborn as sns
 import glob
-from compute_similarity_nk import compute_similarity
+from compute_similarity import compute_similarity
 from scipy.ndimage import find_objects,center_of_mass,label
 from threshold_map import Threshold_map
+from sc_utilities import match_levels, sort_maps
 
 class Plotting:
     '''
@@ -22,11 +19,12 @@ class Plotting:
         Region of interest (e.g., 'spinalcord' or 'brain')
     params1,params2 : dict
         Parameters for the clustering
-        - name: str with name of set
         - k: # of clusters
         - dataset: selected dataset (e.g., 'gva' or 'mtl')
         - analysis: analysis method (e.g., 'ica' or 'icap')
         Note: by default, param2=None, which means only one dataset is plotted
+    name1, name2: str
+        Names to identify the sets (built as dataset+analysis+k)
     sorting_method: str
         Method used to sort maps (e.g., 'rostrocaudal')
     data : array 
@@ -67,11 +65,10 @@ class Plotting:
         # Load components
         for set in self.k.keys():
             self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
-            self.map_order[set] = self._sort_maps(self.sorting_method, set)
+            self.map_order[set] = sort_maps(self.data[set], self.sorting_method)
             self.data_sorted[set] = self.data[set][:,:,:,self.map_order[set]]  
-            self.spinal_levels[set] = self._match_levels(set)
+            self.spinal_levels[set] = match_levels(self.config, self.data[set])
             self.spinal_levels_sorted[set] = self.spinal_levels[set][self.map_order[set]]
-
 
     # ======= SPINAL CORD ========
     
@@ -162,8 +159,8 @@ class Plotting:
         else:
             map_masked[main_dataset] = np.where(self.data_sorted[main_dataset] > lthresh, self.data_sorted[main_dataset], np.nan) # Same if only one, no need to take the matched version
         # Compute number of columns/rows and prepare subplots accordingly 
-        total_rows = (self.k[main_dataset]//k_per_line)*2 if self.k[main_dataset] > k_per_line else 2
-        fig, axs = plt.subplots(nrows=total_rows,ncols=k_per_line,figsize=(2*k_per_line, 4*total_rows))
+        total_rows = int(np.ceil(self.k[main_dataset]/k_per_line)*2) if self.k[main_dataset] > k_per_line else 2
+        _, axs = plt.subplots(nrows=total_rows,ncols=k_per_line,figsize=(2*k_per_line, 4*total_rows))
         plt.axis('off')
 
         for i in range(0,max_k):
@@ -296,89 +293,12 @@ class Plotting:
   
                 axs[row,col].axis('off')
                 axs[row,col].set_facecolor('k')
-
-    # ======= SPINAL CORD UTILITIES ========
-
-    def _sort_maps(self, sorting_method, set):
-        ''' Sort maps based on sorting_method (e.g., rostrocaudally)
-        
-        Inputs
-        ----------
-        sorting_method : str
-            Method used to sort maps (e.g., 'rostrocaudal', 'no_sorting')
-        Outputs
-        ----------
-        sort_index : list
-            Contains the indices of the sorted maps   
-        '''  
-        if sorting_method == 'rostrocaudal':
-            max_z = []
-            for i in range(0,self.k[set]):
-                max_z.append(int(np.where(self.data[set] == np.nanmax(self.data[set][:,:,:,i]))[2][0]))  # take the first max in z direction
-                
-            sort_index = np.argsort(max_z)
-            sort_index= sort_index[::-1] # Invert direction to go from up to low
-        elif sorting_method == 'no_sorting':
-            sort_index = list(range(self.k[set]))
-        else:
-            raise(Exception(f'{sorting_method} is not a supported sorting method.'))
-        return sort_index
-
-    def _match_levels(self, set, method="CoM"):
-        ''' Match maps to corresponding spinal levels
-        Output
-        ----------
-        spinal_levels : list
-            Array containing one value per map
-                C1 = 1, C2 = 2, C3 = 3, C4 = 4, etc.
-        '''
-        # Find list of spinal levels to consider (defined in config)
-        
-        levels_list = levels_list = sorted(glob.glob(self.config['main_dir'] +self.config['templates']["sc_levels_path"] + 'spinal_level_*.nii.gz')) # Sorted is used to make sure files are listed f # Sorted is used to make sure files are listed from low to high number (i.e., rostro-caudally)
-        
-        # Prepare structures
-        levels_data = np.zeros((self.data_sorted[set].shape[0],self.data[set].shape[1],self.data[set].shape[2],len(levels_list))) # To store spinal levels, based on size of 4D data (corresponding to template) & number of spinal levels in template
-        spinal_levels = np.zeros(self.k[set],dtype='int') # To store corresponding spinal levels
-
-        # Loop through levels & store data
-
-        for lvl in range(0,len(levels_list)):
-            level_img = nib.load(levels_list[lvl])
-            levels_data[:,:,:,lvl] = level_img.get_fdata()
-           
-        if method=="CoM":
-            map_masked = np.where(self.data[set] >2, self.data[set], 0)
-            CoM = np.zeros(map_masked.shape[3],dtype='int')
-            for i in range(0,self.k[set]):
-                _,_,CoM[i]=center_of_mass(map_masked[:,:,:,i])
-                # Take this point for each level (we focus on rostrocaudal position and take center of FOV for the other dimensions)
-                level_vals = levels_data[levels_data.shape[0]//2,levels_data.shape[1]//2,CoM[i],:]
-                
-                spinal_levels[i] = np.argsort(level_vals)[-1] if np.sum(level_vals) !=0 else -1 # Take level with maximum values (if no match, use -1)
-            
-            
-        elif method=="max intensity":
-            # For each map, find rostrocaudal position of point with maximum intensity
-            max_intensity = np.zeros(self.data[set].shape[3],dtype='int')
-            for i in range(0,self.k[set]):
-                max_intensity[i] = np.where(self.data[set] == np.nanmax(self.data[set][:,:,:,i]))[2]
-                #print(max_intensity)
-                # Take this point for each level (we focus on rostrocaudal position and take center of FOV for the other dimensions)
-                level_vals = levels_data[levels_data.shape[0]//2,levels_data.shape[1]//2,max_intensity[i],:]
-                spinal_levels[i] = np.argsort(level_vals)[-1] if np.sum(level_vals) !=0 else -1 # Take level with maximum values (if no match, use -1)
-               
-        else:
-            raise(Exception(f'{method} is not a supported matching method.'))
- 
-        return spinal_levels
     
     def _overlap_maps(self,k,main_dataset,secondary_dataset):
         mask1=np.where(~np.isnan(self.data_matched[main_dataset][:,:,:,k]),self.data_matched[main_dataset][:,:,:,k], np.nan)
         mask2=np.where(~np.isnan(self.data_sorted[secondary_dataset][:,:,:,k]),self.data_sorted[secondary_dataset][:,:,:,k], np.nan)
         overlap_map=(mask1+mask2)/2
         return overlap_map
-
-    # ======= BRAIN UTILITIES ========
 
     def _find_xyz_cut_coords(self,data):
         """ Find the center of the largest cluster of activation.
@@ -407,8 +327,6 @@ class Plotting:
         
         x_map, y_map, z_map= cut_coords + offset
         coordinates=[x_map, y_map, z_map]
-        
-        
             
         return coordinates
             

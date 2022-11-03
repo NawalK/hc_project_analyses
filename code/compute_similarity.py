@@ -4,8 +4,9 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import scipy
 from scipy.ndimage import center_of_mass
+from sklearn.metrics.pairwise import cosine_similarity
 
-def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, method='Dice', match_compo=True, plot_results=False,save_results=False):
+def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, mask1=None, mask2=None, method='Dice', match_compo=True, plot_results=False,save_results=False,verbose=True):
     ''' Compute the spatial similarity between two sets of 3D components
         
         Inputs
@@ -16,13 +17,20 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, method='Dice'
             Contain the maps of the components to analyze (3D x nb of components) 
         thresh1, thresh2 : float
             Lower threshold value to binarize components (default = 2)
+        mask1, mask2: 3D arrays
+            Only needed for method='Cosine' (default = None)
+            Will be used to mask the maps before computing the cosine similarity
         method : str
             Method to compute similarity (default = 'Dice')
-                'Dice' to compute Dice coefficients (2*|intersection| / nb_el1 + nb_el2) 
+                'Dice' to compute Dice coefficients (2*|intersection| / nb_el1 + nb_el2)
+                'Euclidean distance' to compute the distance between the centers of mass
+                'Cosine' to compute cosine similarity 
         match_compo : boolean
             Match & order components based on max similarity (default = True)
         save_results : str
             Defines whether results are saved or not (default = False)
+        verbose : bool
+            Indicates wheter information on what is being done are printed (default = True)
         
         Outputs
         ------------
@@ -34,19 +42,36 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, method='Dice'
             Array containing the order of the second dataset after matching (y in the plotting)
         '''
 
-    print(f"COMPUTING SIMILARITY WITH METHOD: {method}")
+    if verbose == True:
+        print(f"COMPUTING SIMILARITY WITH METHOD: {method}")
 
     # Number of components is equal to the max between the two sets
     k = np.max([data1.shape[3],data2.shape[3]]) # Save number of components for later use
     
-    #print(f"...Binarize data \n Threshold 1 = {thresh1} \n Threshold 2 = {thresh2}")
-    data1_bin = np.where(data1 >= thresh1, 1, 0)
-    data2_bin = np.where(data2 >= thresh2, 1, 0)
+    if method == 'Dice' or method == 'Euclidean distance': # Binarize data if needed
+        data1_bin = np.where(data1 >= thresh1, 1, 0)
+        data2_bin = np.where(data2 >= thresh2, 1, 0)
+    elif method == 'Cosine': # Prepare structures to save vectorized maps if needed
+        if mask1 is None or mask2 is None: # Check if masks have been given
+            raise(Exception(f'The "Cosine" method requires masks as inputs!'))
+        mask1_vec = np.reshape(mask1,(mask1.shape[0]*mask1.shape[1]*mask1.shape[2],1)) # Reshape masks
+        mask2_vec = np.reshape(mask2,(mask2.shape[0]*mask2.shape[1]*mask2.shape[2],1)) 
+        if np.count_nonzero(mask1_vec) != np.count_nonzero(mask2_vec):
+            raise(Exception(f'The "Cosine" method can only be used for data using the same masks!'))
+        data1_vec = np.zeros((data1.shape[0]*data1.shape[1]*data1.shape[2],k))
+        data2_vec = np.zeros((data2.shape[0]*data2.shape[1]*data2.shape[2],k))
+        data1_masked = np.zeros((np.count_nonzero(mask1_vec),k))
+        data2_masked = np.zeros((np.count_nonzero(mask2_vec),k))    
+        
 
-    print(f"...Compute similarity between pairs of components")
+    if verbose == True:
+        print(f"...Compute similarity between pairs of components")
     similarity_matrix = np.zeros((k,k))
         
     for k1 in range(0,k):
+        if method == 'Cosine': # Reshape as vector & mask if needed 
+            data1_vec[:,k1] = np.reshape(data1[:,:,:,k1],(data1.shape[0]*data1.shape[1]*data1.shape[2],1))
+            data1_masked[:,k1] = data1_vec[np.nonzero(mask1),k1]
         for k2 in range(0,k):
             if method == 'Dice':
                 # For the intersection, we multiply the two binary maps and count the number of elements
@@ -64,14 +89,22 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, method='Dice'
                     cm2=center_of_mass(data2_bin[:,:,:,k2])
                     # inverse of the euclidian distance between CoG
                     #similarity_matrix[k1,k2]=1/(np.mean(np.abs(np.array(cm1)-np.array(cm2)))) 
-                    similarity_matrix[k1,k2]=1/(np.mean(np.abs([float(cm1[1])-float(cm2[1]),float(cm1[2])-float(cm2[2])])))
+                    similarity_matrix[k1,k2] = 1/(np.mean(np.abs([float(cm1[1])-float(cm2[1]),float(cm1[2])-float(cm2[2])])))
+                else:
+                    similarity_matrix[k1,k2] = -1
+            elif method == 'Cosine':
+                data2_vec[:,k2] = np.reshape(data2[:,:,:,k2],(data2.shape[0]*data2.shape[1]*data2.shape[2],1)) # Vectorize
+                data2_masked[:,k2] = data2_vec[np.nonzero(mask2),k2]
+                if k1 < data1.shape[3] and k2 < data2.shape[3]: # If the element exist in both datasets, we compute the similarity
+                    similarity_matrix[k1,k2] = cosine_similarity(data1_masked[:,k1], data2_masked[:,k2])
                 else:
                     similarity_matrix[k1,k2] = -1
             else:
                 raise(Exception(f'The method {method} has not been implemented'))
         
     if match_compo == True:
-        print(f"...Ordering components based on maximum weight matching")
+        if verbose == True:
+            print(f"...Ordering components based on maximum weight matching")
         orderX,orderY=scipy.optimize.linear_sum_assignment(similarity_matrix,maximize=True)
         # if the same composantes match
         similarity_matrix = similarity_matrix[:,orderY]
@@ -86,7 +119,9 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, method='Dice'
     if save_results == True:
         plt.savefig(config['output_dir'] + config['output_tag'] + '_k' + str(k) +'.png')
     
-    print(f"DONE!")
+    if verbose == True:
+        print(f"DONE!")
 
     return similarity_matrix, orderX, orderY
+
 
