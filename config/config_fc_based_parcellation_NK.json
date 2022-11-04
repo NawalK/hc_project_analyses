@@ -1,0 +1,39 @@
+{   "main_dir":"/media/miplab-nas2/Data3/BMPD/hc_project/",
+    "coreg_dir":"/media/miplab-nas2/Data3/BMPD/hc_project/1_nilearn-based/2_func_in_template/",
+    "smooth_dir":"/media/miplab-nas2/Data3/BMPD/hc_project/1_nilearn-based/3_func_smoothed/",
+    "coreg_tag":{"brain":"task-rest_bold_stc_brain_moco_denoised_brsc_reg_SPM_inTemplate",
+             "spinalcord":"task-rest_bold_stc_sc_moco_denoised_brsc_inTemplate"},
+    
+    "output_dir": "../results/",
+    "output_tag": "test_nk",
+    
+    "templates":{"brain":"/templates/MNI_hc_project/MNI_T1w_AverageHCs.nii.gz",
+                "spinalcord": "/templates/PAM50_hc_project/template/PAM50_t2.nii.gz",
+                "sc_axialdiv_path": "/templates/PAM50_hc_project/template/",
+                "sc_levels_path": "/templates/PAM50_hc_project/spinal_levels/",
+                "br_atlas_path": "/templates/MNI_hc_project/atlas_julich/"
+                },
+    
+    "masks":{"brain":"/templates/MNI_hc_project/MNI_T1w_GM_AverageHCs_3mm_bin_corrected.nii",
+            "spinalcord": "/templates/PAM50_hc_project/template/PAM50_cord_C1C7.nii"},
+
+    "seed2vox_dir": "/seed_to_voxels/",
+
+    "k_range": {"spinalcord":[5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,35,40],
+                "brain":15},
+
+    "data":{"iCAP":
+                {"spinalcord_dir":"data/icap/spinalcord/",
+                "brain_dir":"data/icap/brain/",
+                "tag_filename":"iCAPs",
+                "brain_ta_folder": "MNI",
+                "spinalcord_ta_folder": "PAM50_3x3x6"
+                },
+            "ICA":{"spinalcord_dir":"/data/ica/spinalcord/",
+                "tag_filename":"zCanICA"}
+            },
+
+    
+    "list_subjects":["P028","P030","P033","P043","P047","P050","P057","P099","P100","P105","P108","P109","P001","P003","P004","P005","P006","P007","P008","P009","P011","P013"]
+
+} 

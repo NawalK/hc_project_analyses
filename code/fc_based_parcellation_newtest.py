@@ -1,47 +1,56 @@
-from readline import set_completion_display_matches_hook
 import matplotlib.pyplot as plt
 from kneed import KneeLocator
-from sklearn.datasets import make_blobs
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 import numpy as np
 from nilearn.maskers import NiftiMasker
-from nilearn import image
+import nibabel as nib
 
 class FC_Parcellation:
     '''
     The FC_Parcellation class is used to perform the parcellation of a specific roi
-    based on the FC profiles of each of its voxel
+    based on the FC profiles of each of its voxels
     
     Attributes
     ----------
     config : dict
-    connectivity: 3D array
-        connectivity matrix (nb voxels seed x nb sub x nb voxel target)
-    seed_folder: str
-        folder containing seed tcs, etc (& later results) (e.g., /spinalcord_icas_k_9/)
-    seed_name: str
-            name of the seed (e.g., "C3")
-    seed_mask: str
-            path to the binary mask of the seed
-    params: dict
-        parameters for the clustering
-    mean_connectivity: 2D array
-        mean (over subjects) connectivity matrix (nb voxels seed x nb voxel target)
+    struct_source/data_target : str
+        Source (i.e., to parcellate) and target (i.e., the one with wich each voxel of the source is correlated) structures
+        Default is struct_source = 'spinalcord', struct_target = 'brain'
+    data_source/target : dict of array
+        Contains 4D data of all subjects for the structures of interest
+    params_kmeans : dict
+        Parameters for the k-means clustering
+        - init: method for initialization (Default = 'k-means++')
+        - n_init: number of times the algorithm is run with different centroid seeds (Default = 100)
+        - max_iter: maximum number of iterations of the k-means algorithm for a single run (Default = 300)
     '''
     
-    def __init__(self, config, connectivity, seed_folder, seed_mask, seed_name, target_mask, params):
+    def __init__(self, config, struct_source, struct_target, params_kmeans={'init':'k-means++', 'n_init':100, 'max_iter':300}):
         self.config = config # Load config info
-        self.connectivity = connectivity
-        # Take the mean connectivity over subjects
-        self.mean_connectivity = np.squeeze(np.mean(connectivity,axis=1))
-        self.seed_folder = seed_folder
-        self.seed_mask = seed_mask
-        self.seed_name = seed_name
-        self.target_mask = target_mask
-        self.init = params.get('init')
-        self.max_iter = params.get('max_iter')
-        self.n_init = params.get('n_init')
+        self.struct_source = struct_source
+        self.struct_target = struct_target
+        
+        # Load data
+        self.data_source = {}
+        self.data_target = {}
+        for sub in self.config['list_subjects']:
+            self.data_source[sub] = nib.load(config['smooth_dir'] + 'sub-'+ sub + '/' + self.struct_source + '/sub-' + sub + config['coreg_tag'][struct_source] + '.nii').get_fdata() # Read the data as a matrix
+            self.data_target[sub] = nib.load(config['smooth_dir'] + 'sub-'+ sub + '/' + self.struct_target + '/sub-' + sub + config['coreg_tag'][struct_target] + '.nii').get_fdata() 
+
+        self.init = params_kmeans.get('init')
+        self.n_init = params_kmeans.get('n_init')
+        self.max_iter = params_kmeans.get('max_iter')
+
+    def voxelwise_correlation(self, mask_source, mask_target, Fisher=True):
+        '''
+        To compute Pearson correlation between each voxel of mask_source to all voxels of mask_target
+        mask_source/target : str
+            Paths of masks defining the regions to consider
+        Fisher : bool
+            To Fisher-transform the correlation (default = True).
+        '''
+        for sub in self.config['list_subjects']
 
     def run_clustering(self,k):
         '''  

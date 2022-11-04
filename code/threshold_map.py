@@ -1,7 +1,7 @@
 
 import numpy as np
 import nibabel as nib
-from nilearn.input_data import NiftiMasker
+from nilearn.maskers import NiftiMasker
 
 def Threshold_map(img_filename=None,mask=None,percentile=90):
     '''

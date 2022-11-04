@@ -1,12 +1,9 @@
-from readline import set_completion_display_matches_hook
 import matplotlib.pyplot as plt
 from kneed import KneeLocator
-from sklearn.datasets import make_blobs
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 import numpy as np
 from nilearn.maskers import NiftiMasker
-from nilearn import image
 
 class FC_Parcellation:
     '''
