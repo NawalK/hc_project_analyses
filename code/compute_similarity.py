@@ -70,8 +70,8 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, mask1=None, m
         
     for k1 in range(0,k):
         if method == 'Cosine': # Reshape as vector & mask if needed 
-            data1_vec[:,k1] = np.reshape(data1[:,:,:,k1],(data1.shape[0]*data1.shape[1]*data1.shape[2],1))
-            data1_masked[:,k1] = data1_vec[np.nonzero(mask1),k1]
+            data1_vec[:,k1] = np.reshape(data1[:,:,:,k1],(data1.shape[0]*data1.shape[1]*data1.shape[2],))
+            data1_masked[:,k1] = data1_vec[np.flatnonzero(mask1_vec),k1]
         for k2 in range(0,k):
             if method == 'Dice':
                 # For the intersection, we multiply the two binary maps and count the number of elements
@@ -93,10 +93,10 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, mask1=None, m
                 else:
                     similarity_matrix[k1,k2] = -1
             elif method == 'Cosine':
-                data2_vec[:,k2] = np.reshape(data2[:,:,:,k2],(data2.shape[0]*data2.shape[1]*data2.shape[2],1)) # Vectorize
-                data2_masked[:,k2] = data2_vec[np.nonzero(mask2),k2]
+                data2_vec[:,k2] = np.reshape(data2[:,:,:,k2],(data2.shape[0]*data2.shape[1]*data2.shape[2],)) # Vectorize
+                data2_masked[:,k2] = data2_vec[np.flatnonzero(mask2_vec),k2]
                 if k1 < data1.shape[3] and k2 < data2.shape[3]: # If the element exist in both datasets, we compute the similarity
-                    similarity_matrix[k1,k2] = cosine_similarity(data1_masked[:,k1], data2_masked[:,k2])
+                    similarity_matrix[k1,k2] = cosine_similarity(data1_masked[:,k1].reshape(1, -1), data2_masked[:,k2].reshape(1, -1))
                 else:
                     similarity_matrix[k1,k2] = -1
             else:
