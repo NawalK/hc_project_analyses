@@ -50,7 +50,7 @@ class SpineOnlyAnalysis:
             for k_ind,k in enumerate(self.k_range[set]): # For each k
                 self.data[set][k] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
             
-    def spatial_similarity(self, k1 = None, k2 = None, k_range = None, similarity_method = 'Dice', sorting_method = 'rostrocaudal'):
+    def spatial_similarity(self, k1 = None, k2 = None, k_range = None, similarity_method = 'Dice', sorting_method = 'rostrocaudal', verbose=True):
         '''
         Compares spatial similarity for different sets of components.
         Can be used for different purposes:
@@ -74,6 +74,8 @@ class SpineOnlyAnalysis:
         sorting_method : str
             Method used to sort maps (default = 'rostrocaudal')
             Note: only used for method 1
+        verbose : bool
+            If True, print progress for each K (default=True)
         
         Outputs
         ----------
@@ -116,13 +118,14 @@ class SpineOnlyAnalysis:
             print('METHOD 2: Comparing two sets of components across K values')
             mean_similarity = np.empty(len(k_range), dtype=object)
             for k_ind, k in enumerate(k_range):
-                print(f'... Computing similarity for K={k}')
+                if verbose == True:
+                    print(f'... Computing similarity for K={k}')
                 if similarity_method == 'Cosine': # We need masks
                     mask1 = nib.load(self.config['main_dir']+self.config['masks'][self.dataset[self.name1]]['spinalcord']).get_fdata()
                     mask2 = nib.load(self.config['main_dir']+self.config['masks'][self.dataset[self.name2]]['spinalcord']).get_fdata()
                     similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], mask1=mask1, mask2=mask2, thresh1=2, thresh2=2, method=similarity_method, match_compo=True, verbose=False)
                 else:
-                    similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], mask1=mask1, mask2=mask2, thresh1=2, thresh2=2, method=similarity_method, match_compo=True, verbose=False)
+                    similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], thresh1=2, thresh2=2, method=similarity_method, match_compo=True, verbose=False)
                 mean_similarity[k_ind] = np.mean(np.diagonal(similarity_matrix)) 
             fig, ax = plt.subplots(figsize=(10,4))
             ax.plot(range(1,len(k_range)+1), mean_similarity, linewidth=2, markersize=10, marker='.')
@@ -134,7 +137,7 @@ class SpineOnlyAnalysis:
             raise(Exception(f'Something went wrong! No method was assigned...'))
 
 
-    def k_axial_distribution(self, data_name, k_range=None, thresh=2, vox_percentage=70, save_results=False):
+    def k_axial_distribution(self, data_name, k_range=None, thresh=2, vox_percentage=70, save_results=False, verbose=True):
         '''
         Compares the axial distribution of components for different Ks
         Categories:
@@ -155,6 +158,8 @@ class SpineOnlyAnalysis:
             Defines the percentage of voxels that need to be in a region to consider it matched (default = 70)
         save_results : str
             Defines whether results are saved or not (default = False)
+        verbose : bool
+            If True, print progress for each K (default=True)
             
         Outputs
         ------------
@@ -182,7 +187,8 @@ class SpineOnlyAnalysis:
             # Prepare empty structure to store counts
             axial_distribution_counts[k_tot] = dict(zip(('Q','LR','DV','F'), [0,0,0,0]))
             
-            print(f'......K = {k_tot}')    
+            if verbose == True:
+                print(f'......K = {k_tot}')    
 
             data = self.data[data_name][k_tot]
 
