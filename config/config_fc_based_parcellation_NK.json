@@ -1,8 +1,8 @@
 {   "main_dir":"/media/miplab-nas2/Data3/BMPD/hc_project/",
-    "coreg_dir":"/media/miplab-nas2/Data3/BMPD/hc_project/1_nilearn-based/2_func_in_template/",
-    "smooth_dir":"/media/miplab-nas2/Data3/BMPD/hc_project/1_nilearn-based/3_func_smoothed/",
-    "coreg_tag":{"brain":"task-rest_bold_stc_brain_moco_denoised_brsc_reg_SPM_inTemplate",
-             "spinalcord":"task-rest_bold_stc_sc_moco_denoised_brsc_inTemplate"},
+    "coreg_dir":"/brain&spine/1_nilearn-based/2_func_in_template/",
+    "smooth_dir":"/brain&spine/1_nilearn-based/3_func_smoothed/",
+    "coreg_tag":{"brain":"_task-rest_bold_stc_brain_moco_denoised_brsc_reg_SPM_inTemplate_s",
+             "spinalcord":"_task-rest_bold_stc_sc_moco_denoised_inTemplate_s_3x3x6"},
     
     "output_dir": "../results/",
     "output_tag": "test_nk",
@@ -15,7 +15,7 @@
                 },
     
     "masks":{"brain":"/templates/MNI_hc_project/MNI_T1w_GM_AverageHCs_3mm_bin_corrected.nii",
-            "spinalcord": "/templates/PAM50_hc_project/template/PAM50_cord_C1C7.nii"},
+            "spinalcord": "/templates/PAM50_hc_project/template/PAM50_gm_C1toC8.nii.gz"},
 
     "seed2vox_dir": "/seed_to_voxels/",
 
@@ -34,6 +34,6 @@
             },
 
     
-    "list_subjects":["P028","P030","P033","P043","P047","P050","P057","P099","P100","P105","P108","P109","P001","P003","P004","P005","P006","P007","P008","P009","P011","P013"]
+    "list_subjects":["P028","P030","P033","P043","P047","P050","P100","P105","P108","P109","P001","P003","P004","P005","P006","P007","P008","P009","P011","P013"]
 
 } 
