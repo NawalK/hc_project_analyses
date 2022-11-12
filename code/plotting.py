@@ -202,7 +202,7 @@ class Plotting:
                     if len(self.k.keys())==2 and i<self.k[secondary_dataset]:
                         axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_sorted[secondary_dataset][i]]),cmap='gray')
                     else:
-                        axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_matched[main_dataset][i]]),cmap='gray')
+                        axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_sorted[main_dataset][i]]),cmap='gray')
                 # Show components
                 axs[row_coronal,col].imshow(np.rot90(map_masked[main_dataset][:,max_y,:,i]),vmin=lthresh, vmax=uthresh,cmap=colormaps[main_dataset],alpha=alpha[main_dataset])
                 if len(self.k.keys())==2 and i<self.k[secondary_dataset]: # If maps present in both

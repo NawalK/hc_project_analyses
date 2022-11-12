@@ -61,23 +61,23 @@ class FC_Parcellation:
         print(f"COMPUTE VOXELWISE CORRELATION")
         
         # Read mask data
-        mask_source = nib.load(mask_source_path).get_data().astype(bool)
-        mask_target = nib.load(mask_target_path).get_data().astype(bool)
+        self.mask_source = nib.load(mask_source_path).get_data().astype(bool)
+        self.mask_target = nib.load(mask_target_path).get_data().astype(bool)
 
         # Subsample target masks if needed
         if subsample_target == True:
             print(f"... Subsampling target mask for efficiency")
-            subsampling_mask = np.zeros(mask_target.shape).astype(bool)
+            subsampling_mask = np.zeros(self.mask_target.shape).astype(bool)
             subsampling_mask[::2,::2,::2] = 1
-            mask_target *= subsampling_mask
+            self.mask_target *= subsampling_mask
 
         # Compute correlations
-        start = time.time()
+        # start = time.time()
         print(f"... Computing correlations for all possibilities")
         for sub in self.config['list_subjects']:
             print(f"...... Subject {sub}")
-            data_source_masked = self.data_source[sub][mask_source]
-            data_target_masked = self.data_target[sub][mask_target] 
+            data_source_masked = self.data_source[sub][self.mask_source]
+            data_target_masked = self.data_target[sub][self.mask_target] 
             self.correlations[sub] = self._corr2_coeff(data_source_masked,data_target_masked)
         
         #print("... Operation performed in %.2f s!" % (time.time() - start))
@@ -154,7 +154,7 @@ class FC_Parcellation:
         sse_knee = kl.elbow
         print(f'Knee of SSE curve is at K = {sse_knee}')    
         # Two subplots
-        fig, (ax1,ax2) = plt.subplots(1, 2, figsize=(15, 5))
+        fig, (ax1,ax2) = plt.subplots(1, 2, figsize=(10, 3))
         # SSE subplot with knee highlighted
         ax1.plot(k_range, sse)
         ax1.set(xticks=k_range, xlabel = "Number of Clusters", ylabel = "SSE")
@@ -182,9 +182,9 @@ class FC_Parcellation:
             
         print("PREPARE SEED MAP")
 
-        seed = NiftiMasker(self.seed_mask).fit()
+        seed = NiftiMasker(self.mask_source).fit()
         labels_img = seed.inverse_transform(self.kmeans.labels_+1) # +1 because labels start from 0 
-        labels_img.to_filename(self.config['main_dir'] + self.config['seed2vox_dir'] + self.seed_folder + self.seed_name + '/cbp/labels_K' + str(self.k) + '.nii.gz')
+        labels_img.to_filename(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_labels_K' + str(self.k) + '.nii.gz')
 
         print("DONE")
 
@@ -210,10 +210,10 @@ class FC_Parcellation:
             brain_maps[label,:] = np.mean(self.correlations_mean[np.where(self.kmeans.labels_==label),:],axis=1)
 
         print("...Save as nifti files")
-        brain_mask = NiftiMasker(self.target_mask).fit()
+        brain_mask = NiftiMasker(self.mask_target).fit()
         for label in np.unique(self.kmeans.labels_):
             brain_map_img = brain_mask.inverse_transform(brain_maps[label,:])
-            brain_map_img.to_filename(self.config['main_dir'] + self.config['seed2vox_dir'] + self.seed_folder + self.seed_name + '/cbp/brain_pattern_K' + str(self.k) + '_' + str(label+1) + '.nii.gz')
+            brain_map_img.to_filename(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_brain_pattern_K' + str(self.k) + '_' + str(label+1) + '.nii.gz')
 
         print("DONE")
 
