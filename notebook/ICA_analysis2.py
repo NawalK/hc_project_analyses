@@ -27,41 +27,35 @@
 
 # ## <font color=#00988c> Imports </font>
 
-# In[1]:
+# In[ ]:
 
 
-import sys,os
+import sys
 import json
-# Spinal cord Toolbox_________________________________________
-### Cerebro:
-sys.path.append("/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spinalcordtoolbox-5.0.0")
-sys.path.append("/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spinalcordtoolbox-5.0.0/scripts") #sys.path.insert(0, "/cerebro/cerebro1/dataset/bmpd/derivatives/sc_preproc/code/sct/spinalcordtoolbox")
 sys.path.append("/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/code/") #sys.path.insert(0, "/cerebro/cerebro1/dataset/bmpd/derivatives/sc_preproc/code/sct/spinalcordtoolbox")
-
-from spinalcordtoolbox.utils.sys import run_proc
 
 from canICA_analyses import ICA
 
 
-
 # ## <font color=#00988c>  Run the ICA analysis </font>
 
-# In[11]:
+# In[ ]:
 
-os.chdir("/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/code/") #sys.path.insert(0, "/cerebro/cerebro1/dataset/bmpd/derivatives/sc_preproc
+
 # Load the dataset config
-#config_BMPD_HC_CL.json
-with open('../config/config_BMPD_HC_CL.json') as config_file:
+#config_BMPD_HC_CL.json #config_SPiCiCAP_CL.json
+with open('/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/config/config_SPiCiCAP_CL.json') as config_file:
     config = json.load(config_file)
     
 for k in config["k_range"]["spinalcord"]:
     config["n_comp"]=k # usefull if you want to test only on k
     print(config["n_comp"])
     icas = ICA("spinalcord",config) # "brain_spinalcord" or "brain" or "spinalcord"
-    #all_data=icas.get_data(run='extract',t_r=config["t_r"],n_jobs=8) # load or extract
+    if k==4:
+        all_data=icas.get_data(run='extract',t_r=config["t_r"],n_jobs=8) # load or extract
     all_data=icas.get_data(run='load',t_r=config["t_r"],n_jobs=8) # load or extract
+   
     reducedata_all=icas.indiv_PCA(all_data,save_indiv_img=True)
     components=icas.get_CCA(reducedata_all)
     components_final,components_final_z=icas.get_ICA(components)
     zcomponents4D_filename=icas.save_components(components_final,components_final_z)
-    

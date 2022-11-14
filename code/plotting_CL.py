@@ -9,7 +9,6 @@ from scipy.ndimage import find_objects,center_of_mass,label
 from threshold_map import Threshold_map
 from sc_utilities import match_levels, sort_maps
 
-# error line 207 : remplace spinal_levels_matched[main_dataset][i] by self.spinal_levels_sorted[main_dataset][i] ?
 class Plotting:
     '''
     The Plotting class is used to manipulate and visualize maps
@@ -45,8 +44,10 @@ class Plotting:
         self.k[self.name1] = params1.get('k')
         self.dataset = {}
         self.dataset[self.name1] = params1.get('dataset') 
+        
         self.analysis = {}
         self.analysis[self.name1] = params1.get('analysis')
+       
         if params2 is not None: # We will look into a second set of components (if params2=None, we just have one)
             self.name2 = params2.get('dataset')+'_'+params2.get('analysis')+'_'+str(params2.get('k'))
             self.k[self.name2] = params2.get('k')
@@ -65,7 +66,6 @@ class Plotting:
          
         # Load components
         for set in self.k.keys():
-            
             self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
             self.map_order[set] = sort_maps(self.data[set], self.sorting_method)
             self.data_sorted[set] = self.data[set][:,:,:,self.map_order[set]]  
@@ -176,6 +176,7 @@ class Plotting:
                 if i<self.k[secondary_dataset]:
                     axs[row_coronal,col].set_title('Main #' + str(self.map_order[main_dataset][order2[i]]+1) + '\n Sec. #' + str(self.map_order[secondary_dataset][i]+1) + '\n Level ' + str(self.spinal_levels_sorted[secondary_dataset][i]+1),fontsize=18,pad=20)
                 else:
+                    
                     axs[row_coronal,col].set_title('Main #' + str(self.map_order[main_dataset][order2[i]]+1) + '\n Level ' + str(self.spinal_levels_matched[main_dataset][i]+1),fontsize=18,pad=20)
             else:
                 axs[row_coronal,col].set_title('#' + str(self.map_order[main_dataset][i]+1) + '\n Level ' + str(self.spinal_levels_sorted[main_dataset][i]+1),fontsize=18,pad=20)
@@ -204,8 +205,9 @@ class Plotting:
                     if len(self.k.keys())==2 and i<self.k[secondary_dataset]:
                         axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_sorted[secondary_dataset][i]]),cmap='gray')
                     else:
-                        axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_matched[main_dataset][i]]),cmap='gray')
+                        axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_sorted[main_dataset][i]]),cmap='gray')
                 # Show components
+                
                 axs[row_coronal,col].imshow(np.rot90(map_masked[main_dataset][:,max_y,:,i]),vmin=lthresh, vmax=uthresh,cmap=colormaps[main_dataset],alpha=alpha[main_dataset])
                 if len(self.k.keys())==2 and i<self.k[secondary_dataset]: # If maps present in both
                     axs[row_coronal,col].imshow(np.rot90(map_masked[secondary_dataset][:,max_y,:,i]),vmin=lthresh, vmax=uthresh,cmap=colormaps[secondary_dataset],alpha=alpha[secondary_dataset])
