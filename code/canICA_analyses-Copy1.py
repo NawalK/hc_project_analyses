@@ -65,7 +65,7 @@ class ICA:
                 
             
         #output dir--------------------------------------------
-        self.analyse_dir=self.config["main_dir"] + self.config["data"][self.dataset]["ica"][self.structures]["dir"]+'/' +self.dataset+'/'+ self.structures + '/' + '/K_' + str(self.config["n_comp"])
+        self.analyse_dir=self.config["main_dir"] + self.config["data"][self.dataset]["ica"][self.structures]["dir"]+'/' + '/' + '/K_' + str(self.config["ica_ana"]["n_comp"])
         if '_' in self.structures_ana:
             if not os.path.exists(self.analyse_dir):
                 os.mkdir(self.analyse_dir)
@@ -86,8 +86,8 @@ class ICA:
                 os.mkdir(self.analyse_dir + '/comp_zscored/')
                 os.mkdir(self.analyse_dir + '/comp_bin/')
                 os.mkdir(self.analyse_dir +'/comp_indiv/')
-                if not os.path.exists(self.config["main_dir"] + self.config["data"][dataset]["ica"][self.structures_ana[0]]["dir"]+'/' +self.dataset+ '/'+ self.structures +  '/subject_data/'):
-                        os.mkdir(self.config["main_dir"] + self.config["data"][self.dataset]["ica"][self.structures_ana[0]]["dir"]+'/' +self.dataset+ '/'+ self.structures +  '/subject_data/')          
+                if not os.path.exists(self.config["main_dir"] + self.config["data"][dataset]["ica"][self.structures_ana[0]]["dir"]+'/' +  '/subject_data/'):
+                        os.mkdir(self.config["main_dir"] + self.config["data"][self.dataset]["ica"][self.structures_ana[0]]["dir"]+'/' +  '/subject_data/')          
         
         
         # copy the config file in the output dir
@@ -132,7 +132,7 @@ class ICA:
              
             data_sbj[structure]={};self.data_txt={}
             for subject_name in self.config["list_subjects"][self.dataset]:
-                self.data_txt[subject_name]=self.config["main_dir"] + self.config["data"][self.dataset]["ica"][structure]["dir"] + self.dataset + '/'+ structure +'/subject_data/' + '/sub-' + subject_name +'_'+structure+'_data.txt'
+                self.data_txt[subject_name]=self.config["main_dir"] + self.config["data"][self.dataset]["ica"][structure]["dir"] +'/subject_data/' + '/sub-' + subject_name +'_'+structure+'_data.txt'
                 
         
             if run=='load':
@@ -316,8 +316,8 @@ class ICA:
                 nifti_masker[structure]= NiftiMasker(mask_img=self.config["main_dir"] + self.config["masks"][structure], standardize=False,smoothing_fwhm=None).fit() #Extract the data inside the mask and create a vector
                 n_voxels[structure]= nifti_masker[structure].fit_transform(self.config["main_dir"] + self.config[self.dataset]["masks"][structure]).shape[1] # number of voxels in the structure
 
-                components_final[structure]=np.empty(shape=(n_voxels[structure],self.config["n_comp"]),dtype='float') # matrix of brain voxels 
-                components_final_z[structure]=np.empty(shape=(n_voxels[structure],self.config["n_comp"]),dtype='float') # matrix of brain voxels 
+                components_final[structure]=np.empty(shape=(n_voxels[structure],self.config["ica_ana"]["n_comp"]),dtype='float') # matrix of brain voxels 
+                components_final_z[structure]=np.empty(shape=(n_voxels[structure],self.config["ica_ana"]["n_comp"]),dtype='float') # matrix of brain voxels 
             
             for voxel in range(0,n_voxels[self.structures[0]]):
                 components_final[self.structures[0]][voxel,:]=components_[voxel,:]
@@ -366,8 +366,8 @@ class ICA:
             components_img = nifti_masker[structure].inverse_transform(components_final[structure].T) #from matrice to nifti
             zcomponents_img = nifti_masker[structure].inverse_transform(components_final_z[structure].T) #check the component
         
-            components4D_filename=outputdir +  '/comp_raw/CanICA_' + str(len(self.config["list_subjects"][self.dataset])) + 'sbj_'+ self.structures_ana[0] +'_'+structure +'_4D_K_'+ str(self.config["n_comp"]) + '.nii.gz' # filename of the 4D image
-            zcomponents4D_filename=outputdir  + '/comp_zscored/zCanICA_' + str(len(self.config["list_subjects"][self.dataset])) + 'sbj_'+ self.structures_ana[0] +'_'+ structure + '_4D_K_'+ str(self.config["n_comp"]) + '.nii.gz'
+            components4D_filename=outputdir +  '/comp_raw/CanICA_' + str(len(self.config["list_subjects"][self.dataset])) + 'sbj_'+ self.structures_ana[0] +'_'+structure +'_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '.nii.gz' # filename of the 4D image
+            zcomponents4D_filename=outputdir  + '/comp_zscored/zCanICA_' + str(len(self.config["list_subjects"][self.dataset])) + 'sbj_'+ self.structures_ana[0] +'_'+ structure + '_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '.nii.gz'
             components_img.to_filename(components4D_filename)
             zcomponents_img.to_filename(zcomponents4D_filename)
         

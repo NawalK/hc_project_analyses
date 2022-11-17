@@ -19,46 +19,67 @@ from spinalcordtoolbox.utils.sys import run_proc
 
 
 class ICA:
-    '''
-    The iCA class is used to calculate CanICA in different structures (brain and/or spinalcord)
-    Attributes
-    ----------
-    structures_ana: str
-        structure to analyse shoud be "brain" or "spinalcord" or "brain_spinalcord" 
-    config : dict
-        Contains information regarding subjects, paths, etc.
-    input_dir: str
-        path of the input directory
     
+    def __init__(self,inputs_strct1,inputs_strct2,structures_ana,dataset,config):
+        '''
+        inputs_strct1: list
+            list of files from the structure to analyse
+        
+        inputs_strct2: list
+            list of files from the second structure to analyse
+  
+        structures_ana: str
+            structure to analyse shoud be "brain" or "spinalcord" or "brain_spinalcord" 
+        config : dict
+            Contains information regarding subjects, paths, etc.
+        input_dir: str
+            path of the input directory
+
+
+        '''
     
-    '''
-    
-    def __init__(self,structures_ana,config):
         self.structures_ana=structures_ana # name of the structure.s to analyze
         self.config = config # load config inf
-        if '_' in self.structures_ana: # if the string contains '_' then 2 structures will be processed
-            self.structures=[self.structures_ana.split('_')[0],self.structures_ana.split('_')[1]] #
+        self.dataset=dataset # load config inf
+        if len(self.structures_ana) == 2: # if the string contains '_' then 2 structures will be processed
+            self.structures=[self.structures_ana[0],self.structures_ana[1]] #
             print('Analyse will be run on ' + self.structures[0] + ' and ' + self.structures[1] + ' structures simultaneously')
         else: # else only one structure
-            self.structures=[self.structures_ana]
-            print('Analyse will be run on ' + self.structures[0] +' structure')
-            print('Mask: ' + self.config["main_dir"] + self.config["masks"][self.structures_ana])
+            self.structures=self.structures_ana[0]
+            print('Analyse will be run on ' + self.structures +' structure')
+            print('Mask: ' + self.config["main_dir"] + self.config["masks"][dataset][self.structures])
        
         # Load inputs for each individual and each structure
         self.files_func={};self.func_allsbj={}
-        for structure in self.structures:
-            self.files_func[structure]={};self.func_allsbj[structure]=[]
-            for subject_name in self.config["list_subjects"]:
-                if structure=='spinalcord':
-                    self.files_func[structure][subject_name]=glob.glob(self.config["inputs"]["ica"]["spinalcord_dir"] + '/sub-' + subject_name + '/'  + structure + '/*' + self.config["inputs"]["ica"]["tag_filename"] + '*')[0]
-                else:
-                    self.files_func[structure][subject_name]=glob.glob(self.config["inputs"]["ica"]["brain_dir"] + '/sub-' + subject_name + '/'  + structure + '/*' + self.config["inputs"]["ica"]["tag_filename"] + '*')[0]
-                self.func_allsbj[structure].append(self.files_func[structure][subject_name]) # array for each structure: nb_subjects[n_volumes,n_voxels]
-            #print(self.files_func[structure])
+        if len(self.structures_ana) == 2:
+            for structure in self.structures:
+                self.files_func[structure]={};self.func_allsbj[structure]=[]
+                if structure == self.structures[0]:
+                    for sbj_nb in range(0,len(self.config["list_subjects"][dataset])):
+                        subject_name=self.config["list_subjects"][dataset][sbj_nb]
+                        self.files_func[structure][subject_name]=inputs_strct1[sbj_nb]
+                        
+                elif structure == self.structures[1]:
+                    for sbj_nb in range(0,len(self.config["list_subjects"][dataset])):
+                        subject_name=self.config["list_subjects"][dataset][sbj_nb]
+                        self.files_func[structure][subject_name]=inputs_strct2[sbj_nb]
+                        
+                
+
+
+        else:
+            print(self.structures)
+            self.files_func[self.structures]={};self.func_allsbj[self.structures]=[]
+            for sbj_nb in range(0,len(self.config["list_subjects"][dataset])):
+                subject_name=self.config["list_subjects"][dataset][sbj_nb]
+                self.files_func[self.structures][subject_name]=inputs_strct1[sbj_nb]
+       
+                
             
         #output dir--------------------------------------------
-        self.analyse_dir=self.config["main_dir"] + self.config["data"]["ica"][self.structures_ana +"_dir"] +'/' + '/K_' + str(self.config["n_comp"])
-        if '_' in self.structures_ana:
+        if len(self.structures_ana) == 2:
+            self.analyse_dir=self.config["main_dir"] + self.config["data"][self.dataset]["ica"][self.structures_ana[0]+'_'+self.structures_ana[1]]["dir"]+'/' + '/' + '/K_' + str(self.config["ica_ana"]["n_comp"])
+        
             if not os.path.exists(self.analyse_dir):
                 os.mkdir(self.analyse_dir)
                 for structure in self.structures:
@@ -68,23 +89,23 @@ class ICA:
                     os.mkdir(self.analyse_dir +'/'+structure + '/comp_bin/')
                     os.mkdir(self.analyse_dir +'/'+structure  + '/comp_indiv/')  
                     if not os.path.exists(self.analyse_dir +'/'+structure  + '/subject_data/'):
-                        os.mkdir(self.config["main_dir"] + self.config["data"]["ica"][self.structures_ana + "_dir"] +'/'+  '/subject_data/')
+                        os.mkdir(self.config["main_dir"] + self.config["data"][self.dataset]["ica"][self.structures_ana[0]+'_'+self.structures_ana[1]]["dir"] +'/'+  '/subject_data/')
                 
             
         else:
+            self.analyse_dir=self.config["main_dir"] + self.config["data"][self.dataset]["ica"][self.structures]["dir"]+'/' + '/' + '/K_' + str(self.config["ica_ana"]["n_comp"])
+        
             if not os.path.exists(self.analyse_dir):
                 os.mkdir(self.analyse_dir)
                 os.mkdir(self.analyse_dir + '/comp_raw/')
                 os.mkdir(self.analyse_dir + '/comp_zscored/')
                 os.mkdir(self.analyse_dir + '/comp_bin/')
                 os.mkdir(self.analyse_dir +'/comp_indiv/')
-                if not os.path.exists(self.config["main_dir"] + self.config["data"]["ica"][self.structures_ana + "_dir"] +'/'+  '/subject_data/'):
-                        os.mkdir(self.config["main_dir"] + self.config["data"]["ica"][self.structures_ana +"_dir"] +'/'+   '/subject_data/')          
+                if not os.path.exists(self.config["main_dir"] + self.config["data"][dataset]["ica"][self.structures_ana[0]]["dir"]+'/' +  '/subject_data/'):
+                        os.mkdir(self.config["main_dir"] + self.config["data"][self.dataset]["ica"][self.structures_ana[0]]["dir"]+'/' +  '/subject_data/')          
         
         
         # copy the config file in the output dir
-        #shutil.copyfile(self.config["main_dir"] + '/ICA/code/config/' + 'ICA_anayses_config.json', self.analyse_dir + '/ICA_anayses_config.json')
-        
         with open(self.analyse_dir + '/ICA_anayses_config.json', 'w') as fp:
             json.dump(config, fp)
 
@@ -104,8 +125,8 @@ class ICA:
         Array inside the list = values inside each voxel(volumes x total nb voxels)
     
         '''
-        
-        data_all={};data_all[self.structures_ana]=[];
+        data_all={};
+        #sdata_all[self.structures]=[];
         data_sbj={};self.nifti_masker={};
         if run==None:
             print('Please choose the methods: run=load or run=extract')
@@ -113,35 +134,47 @@ class ICA:
         if t_r==None:
             print('Please enter the time repetition, e.g. t_r=1.5')
       
-        for structure in self.structures:
+        structures=self.structures_ana
+        for structure in structures:
+            
+            
         #Extract the data inside the mask and create a vector
         #---------------------------------------------------------
-            self.nifti_masker[structure]= NiftiMasker(mask_img=self.config["main_dir"] + self.config["masks"][self.structures_ana],
+            self.nifti_masker[structure]= NiftiMasker(mask_img=self.config["main_dir"] + self.config["masks"][self.dataset][structure],
                                  t_r=t_r,low_pass=None,high_pass=None,standardize=False,smoothing_fwhm=None).fit() #Extract the data inside the mask and create a vector
-             
+            
             data_sbj[structure]={};self.data_txt={}
-            for subject_name in self.config["list_subjects"]:
-                self.data_txt[subject_name]=self.config["main_dir"] + self.config["data"]["ica"][self.structures_ana + "_dir"] +'/subject_data/' + '/sub-' + subject_name +'_'+structure+'_data.txt'
+            for subject_name in self.config["list_subjects"][self.dataset]:
+                if len(self.structures_ana) == 2:
+                    self.data_txt[subject_name]=self.config["main_dir"] + self.config["data"][self.dataset]["ica"][self.structures_ana[0]+'_'+self.structures_ana[1]]["dir"] +'/subject_data/' + '/sub-' + subject_name +'_'+structure+'_data.txt'
+                    
+                else:
+                    self.data_txt[subject_name]=self.config["main_dir"] + self.config["data"][self.dataset]["ica"][structure]["dir"] +'/subject_data/' + '/sub-' + subject_name +'_'+structure+'_data.txt'
+                
         
             if run=='load':
-                data_sbj[structure]=Parallel(n_jobs=n_jobs)(delayed(np.loadtxt)(self.data_txt[subject_name]) for subject_name in self.config["list_subjects"])
+                data_sbj[structure]=Parallel(n_jobs=n_jobs)(delayed(np.loadtxt)(self.data_txt[subject_name]) for subject_name in self.config["list_subjects"][self.dataset])
     
             if run=='extract':
                 data_sbj[structure]=Parallel(n_jobs=n_jobs)(delayed(self._extract_data)(subject_name,structure)
-                                       for subject_name in self.config["list_subjects"])
+                                       for subject_name in self.config["list_subjects"][self.dataset])
         
         # Group individual data in a main dictionnary
         #---------------------------------------------------------                    
         # if more than one structure concatenate the arrays of the two structures for each individual :
-        if '_' in self.structures_ana:
-            data_sbj[self.structures_ana]={};data_all[self.structures_ana]=[]
-            for subject_nb in range(0,len(self.config["list_subjects"])):
-                data_sbj[self.structures_ana][subject_nb]=np.concatenate([data_sbj[self.structures[0]][subject_nb],data_sbj[self.structures[1]][subject_nb]],axis=1)# shape: n_volumes, n_voxels(brain + sc)
-        data_all_structure=data_sbj[self.structures_ana]
+        if len(self.structures_ana) == 2:
+            data_sbj[self.structures_ana[0]+'_'+self.structures_ana[1]]={};data_all[self.structures_ana[0]+'_'+self.structures_ana[1]]=[]
+            for subject_nb in range(0,len(self.config["list_subjects"][self.dataset])):
+                data_sbj[self.structures_ana[0]+'_'+self.structures_ana[1]][subject_nb]=np.concatenate([data_sbj[self.structures_ana[0]][subject_nb],data_sbj[self.structures_ana[1]][subject_nb]],axis=1)# shape: n_volumes, n_voxels(brain + sc)
+                print(data_sbj[self.structures_ana[0]+'_'+self.structures_ana[1]][subject_nb].shape)
+            data_all_structure=data_sbj[self.structures_ana[0]+'_'+self.structures_ana[1]]
+        else:
+            data_all_structure=data_sbj[self.structures_ana[0]]
         
         return data_all_structure
     
     def _extract_data(self,subject_name,structure):
+        
         data_indiv= self.nifti_masker[structure].transform(self.files_func[structure][subject_name]) # array for one subject, shape: n_volumes,n_voxels
         np.savetxt(self.data_txt[subject_name], data_indiv, fmt='%.18e', delimiter=' ', newline='\n', header='', footer='', comments='# ', encoding=None)  
         print(">> data extraction done <<")
@@ -169,9 +202,9 @@ class ICA:
         [1] Nilearn toolbox: https://github.com/nilearn/nilearn/blob/9ddfa7259de3053a5ed6655cd662e115926cf6a5/nilearn/decomposition/base.py#L85*
 
         '''
-        n_comp_pca=2*self.config["n_comp"]#self.config["ICA_params"]["n_comp_PCA_indiv"]  #Number of composent for the PCAs at individual level
+        n_comp_pca=2*self.config["ica_ana"]["n_comp"]#self.config["ICA_params"]["n_comp_PCA_indiv"]  #Number of composent for the PCAs at individual level
         reducedata_all=[]
-        for sbj_nb in range(0,len(self.config["list_subjects"])):
+        for sbj_nb in range(0,len(self.config["list_subjects"][self.dataset])):
             #Dimensionality reduction using truncated SVD 
             U, S, V = linalg.svd(data_all_structure[sbj_nb].T, full_matrices=False) # transpose the matrice of data in voxels x volumes
             U, V = svd_flip(U, V) # # flip eigenvectors' sign to enforce deterministic output
@@ -187,10 +220,10 @@ class ICA:
                 reducedata_all=np.concatenate([reducedata_all, U]) # concatenation of reduce data (n_comp*n_sbj,n_voxels)
             
         if save_indiv_img== True:
-            for structure in self.structures:
+            for structure in self.structures_ana:
                 j=0
-                for sbj_nb in range(0,len(self.config["list_subjects"])):
-                    subject_name=self.config["list_subjects"][sbj_nb]
+                for sbj_nb in range(0,len(self.config["list_subjects"][self.dataset])):
+                    subject_name=self.config["list_subjects"][self.dataset][sbj_nb]
                     
                     for i in range(j,j+n_comp_pca):
                         j=i
@@ -220,7 +253,7 @@ class ICA:
         References:
         [1] Nilearn toolbox https://github.com/nilearn/nilearn/blob/9ddfa7259de3053a5ed6655cd662e115926cf6a5/nilearn/decomposition/multi_pca.py#L14*
         '''
-        n_comp_cca=self.config["n_comp"]
+        n_comp_cca=self.config["ica_ana"]["n_comp"]
         S = np.sqrt(np.sum(reducedata_all** 2, axis=1)) #Calculate the root sum square = canonical root or variate
         S[S == 0] = 1 # if one value is equale to 0 change it by 1
         reducedata_all /= S[:, np.newaxis] # divide data by canonical root (proportion of variance)
@@ -250,7 +283,7 @@ class ICA:
         References:
         [1] Nilearn toolbox https://github.com/nilearn/nilearn/blob/9ddfa7259de3053a5ed6655cd662e115926cf6a5/nilearn/decomposition/multi_pca.py#L14*
         '''
-        self.iter=self.config["ICA_params"]["iter"]
+        self.iter=self.config["ica_ana"]["iter"]
         components_final={};components_final_z={}
         random_state=None
         ratio=1.#float(15)
@@ -287,18 +320,18 @@ class ICA:
             components_z[:,i] = (components_[:,i]-med)/np.sqrt((np.sum((components_[:,i]-med)**2))/len(components_[:,i]))   # normalization 
                                                              
         if not '_' in self.structures_ana:
-            components_final[self.structures_ana]=components_
-            components_final_z[self.structures_ana]=components_z
+            components_final[self.structures]=components_
+            components_final_z[self.structures]=components_z
         
         # For brain and spinal cord analyses split the component in two voxel matrices to be transform in two separates images in the next step
         if '_' in self.structures_ana:
             n_voxels={};nifti_masker={}
             for structure in self.structures:
                 nifti_masker[structure]= NiftiMasker(mask_img=self.config["main_dir"] + self.config["masks"][structure], standardize=False,smoothing_fwhm=None).fit() #Extract the data inside the mask and create a vector
-                n_voxels[structure]= nifti_masker[structure].fit_transform(self.config["main_dir"] + self.config["masks"][structure]).shape[1] # number of voxels in the structure
+                n_voxels[structure]= nifti_masker[structure].fit_transform(self.config["main_dir"] + self.config[self.dataset]["masks"][structure]).shape[1] # number of voxels in the structure
 
-                components_final[structure]=np.empty(shape=(n_voxels[structure],self.config["n_comp"]),dtype='float') # matrix of brain voxels 
-                components_final_z[structure]=np.empty(shape=(n_voxels[structure],self.config["n_comp"]),dtype='float') # matrix of brain voxels 
+                components_final[structure]=np.empty(shape=(n_voxels[structure],self.config["ica_ana"]["n_comp"]),dtype='float') # matrix of brain voxels 
+                components_final_z[structure]=np.empty(shape=(n_voxels[structure],self.config["ica_ana"]["n_comp"]),dtype='float') # matrix of brain voxels 
             
             for voxel in range(0,n_voxels[self.structures[0]]):
                 components_final[self.structures[0]][voxel,:]=components_[voxel,:]
@@ -323,7 +356,14 @@ class ICA:
         components_filename: image
         '''
         nifti_masker={};
-        for structure in self.structures:
+        
+        if '_' in self.structures_ana:
+            structures=self.structures
+        else:
+            structures=self.structures_ana
+                
+        for structure in structures:
+
             zimg=[]
         # Define output folders -----------------------------------------------------------------
             if not '_' in self.structures_ana:
@@ -333,26 +373,26 @@ class ICA:
                                                              
         # 1. Transform matrice of data into image nifti
         #-----------------------------------------------------------------
-            nifti_masker[structure]= NiftiMasker(mask_img= self.config["main_dir"] + self.config["masks"][structure], standardize=False,smoothing_fwhm=None).fit() # mask
+            nifti_masker[structure]= NiftiMasker(mask_img= self.config["main_dir"] + self.config["masks"][self.dataset][structure], standardize=False,smoothing_fwhm=None).fit() # mask
             
         #2. Save 4D image
         #----------------------------------------------------------------------
             components_img = nifti_masker[structure].inverse_transform(components_final[structure].T) #from matrice to nifti
             zcomponents_img = nifti_masker[structure].inverse_transform(components_final_z[structure].T) #check the component
         
-            components4D_filename=outputdir +  '/comp_raw/CanICA_' + str(len(self.config["list_subjects"])) + 'sbj_'+ self.structures_ana +'_'+structure +'_4D_K_'+ str(self.config["n_comp"]) + '.nii.gz' # filename of the 4D image
-            zcomponents4D_filename=outputdir  + '/comp_zscored/zCanICA_' + str(len(self.config["list_subjects"])) + 'sbj_'+ self.structures_ana +'_'+ structure + '_4D_K_'+ str(self.config["n_comp"]) + '.nii.gz'
+            components4D_filename=outputdir +  '/comp_raw/CanICA_' + str(len(self.config["list_subjects"][self.dataset])) + 'sbj_'+ self.structures_ana[0] +'_'+structure +'_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '.nii.gz' # filename of the 4D image
+            zcomponents4D_filename=outputdir  + '/comp_zscored/zCanICA_' + str(len(self.config["list_subjects"][self.dataset])) + 'sbj_'+ self.structures_ana[0] +'_'+ structure + '_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '.nii.gz'
             components_img.to_filename(components4D_filename)
             zcomponents_img.to_filename(zcomponents4D_filename)
         
         #3. Save 3D images
         #----------------------------------------------------------------------
             for i, cur_img in enumerate(iter_img(components_img)): #extract each composante of the image
-                indiv_comp_img=outputdir + '/comp_raw/CanICA_' + str(len(self.config["list_subjects"])) + 'sbj_'+ self.structures_ana +'_'+structure +'_k_' + str(i+1) + '.nii.gz' #filename
+                indiv_comp_img=outputdir + '/comp_raw/CanICA_' + str(len(self.config["list_subjects"][self.dataset])) + 'sbj_'+ self.structures_ana[0] +'_'+structure +'_k_' + str(i+1) + '.nii.gz' #filename
                 cur_img.to_filename(indiv_comp_img) # save the image
                 
             for i, zcur_img in enumerate(iter_img(zcomponents_img)):
-                zindiv_comp_img=outputdir + '/comp_zscored/zCanICA_' + str(len(self.config["list_subjects"])) + 'sbj_'+ self.structures_ana +'_'+structure +'_k_' + str(i+1) + '.nii.gz'
+                zindiv_comp_img=outputdir + '/comp_zscored/zCanICA_' + str(len(self.config["list_subjects"][self.dataset])) + 'sbj_'+ self.structures_ana[0] +'_'+structure +'_k_' + str(i+1) + '.nii.gz'
                 zcur_img.to_filename(zindiv_comp_img)
         
         
