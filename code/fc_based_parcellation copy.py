@@ -1,11 +1,10 @@
 import matplotlib.pyplot as plt
 from kneed import KneeLocator
-from sklearn.cluster import KMeans, SpectralClustering, AgglomerativeClustering
+from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 import numpy as np
 from nilearn.maskers import NiftiMasker
 import nibabel as nib
-from joblib import Parallel, delayed
 import time
 import os
 
@@ -23,17 +22,13 @@ class FC_Parcellation:
     data_source/target : dict of array
         Contains 4D data of all subjects for the structures of interest
     params_kmeans : dict
-        Parameters for k-means clustering
+        Parameters for the k-means clustering
         - init: method for initialization (Default = 'k-means++')
         - n_init: number of times the algorithm is run with different centroid seeds (Default = 100)
         - max_iter: maximum number of iterations of the k-means algorithm for a single run (Default = 300)
-    params_agglom : dict
-        Parameters for agglomerative clustering
-        - linkage: distance to use between sets of observations (Default = 'ward')
-        - affinity: metric used to compute the linkage (Default = 'euclidean')
     '''
     
-    def __init__(self, config, struct_source='spinacord', struct_target='brain', params_kmeans={'init':'k-means++', 'n_init':100, 'max_iter':300}, params_agglom={'linkage':'ward', 'affinity':'euclidean'}):
+    def __init__(self, config, struct_source='spinacord', struct_target='brain', params_kmeans={'init':'k-means++', 'n_init':100, 'max_iter':300}):
         self.config = config # Load config info
         self.struct_source = struct_source
         self.struct_target = struct_target
@@ -48,8 +43,6 @@ class FC_Parcellation:
         self.init = params_kmeans.get('init')
         self.n_init = params_kmeans.get('n_init')
         self.max_iter = params_kmeans.get('max_iter')
-        self.linkage = params_agglom.get('linkage')
-        self.affinity = params_agglom.get('affinity')
 
     def compute_voxelwise_correlation(self, mask_source_path, mask_target_path, load_from_file, save_results=True, Fisher=True, n_jobs=10):
         '''
@@ -101,7 +94,7 @@ class FC_Parcellation:
         self.correlations_mean = np.mean(self.correlations, axis=0)
         print("DONE!")
 
-    def run_clustering(self, k, algorithm='kmeans'):
+    def run_clustering(self,k):
         '''  
         Run k-means clustering for a specific number of clusters
         (See define_n_clusters to help pick this)
@@ -110,8 +103,6 @@ class FC_Parcellation:
         ------------
         k: int
             number of clusters  
-        algorithm: str
-            defines which algorithm to use ('kmeans' or 'agglom') (Default = 'kmeans')
 
         Output
         ------------
@@ -120,34 +111,20 @@ class FC_Parcellation:
         '''
 
         self.k = k 
-        self.algorithm = algorithm # So that the algorithm is defined based on last run of clustering
 
-        if algorithm == 'kmeans':
-            print(f"RUN K-MEANS CLUSTERING FOR K = {self.k}")
-            
-            # Dict containing k means parameters
-            kmeans_kwargs = {'n_clusters': self.k, 'init': self.init, 'max_iter': self.max_iter, 'n_init': self.n_init}
+        print(f"RUN K-MEANS CLUSTERING FOR K = {self.k}")
+        
+        # Dict containing k means parameters
+        kmeans_kwargs = { 'init': self.init, 'max_iter': self.max_iter, 'n_init': self.n_init}
 
-            kmeans_clusters = KMeans(**kmeans_kwargs)
-            kmeans_clusters.fit(self.correlations_mean)
+        kmeans = KMeans(n_clusters=self.k,**kmeans_kwargs)
+        kmeans.fit(self.correlations_mean)
 
-            self.clusters = kmeans_clusters
-        elif algorithm == 'agglom':
-            print(f"RUN AGGLOMERATIVE CLUSTERING FOR K = {self.k}")
-            # Dict containing parameters
-            agglom_kwargs = {'n_clusters': self.k, 'linkage': self.linkage, 'affinity': self.affinity}
-
-            agglom_clusters = AgglomerativeClustering(**agglom_kwargs)
-            agglom_clusters.fit(self.correlations_mean)
-
-            self.clusters = agglom_clusters
-
-        else:
-            raise(Exception(f'Algorithm {algorithm} is not a vadid option.'))
+        self.kmeans = kmeans
 
         print("DONE")
 
-    def define_n_clusters(self, k_range, algorithm='kmeans', save_results=True):
+    def define_n_clusters(self, k_range, save_results=True):
         '''  
         Probe different number of clusters to define best option
         Two methods are used:
@@ -158,8 +135,6 @@ class FC_Parcellation:
         ------------
         k_range : array
             Number of clusters to include in the comparison
-        algorithm: str
-            defines which algorithm to use ('kmeans' or 'agglom') (Default = 'kmeans')
         save_results : boolean
             Results are saved as npy and png if set to True (Default = True)
          
@@ -167,15 +142,10 @@ class FC_Parcellation:
         
         print("DEFINE NUMBER OF CLUSTERS")
 
-        print(f"...Loading clustering parameters, method {algorithm}")
+        print("...Loading k-means parameters")
   
-        # Dict containing clustering parameters
-        if algorithm == 'kmeans':
-            kwargs = {'init': self.init, 'max_iter': self.max_iter, 'n_init': self.n_init}     
-        elif algorithm == 'agglom':
-            kwargs = {'linkage': self.linkage, 'affinity': self.affinity}
-        else:
-            raise(Exception(f'Algorithm {algorithm} is not a vadid option.'))
+        # Dict containing k means parameters
+        kmeans_kwargs = {'init': self.init, 'max_iter': self.max_iter, 'n_init': self.n_init}
 
         sse = []
         silhouette_coefficients = []
@@ -184,16 +154,10 @@ class FC_Parcellation:
         # Compute metrics for each number of clusters
         for k in k_range:
             print(f"......K = {k}")
-
-            if algorithm == 'kmeans':
-                clusters = KMeans(n_clusters=k,**kwargs)
-                clusters.fit(self.correlations_mean)
-                sse.append(clusters.inertia_)
-            elif algorithm == 'agglom':
-                clusters = AgglomerativeClustering(n_clusters=k,**kwargs)
-                clusters.fit(self.correlations_mean)
-                sse = np.zeros(len(k_range)) # SSE not relevant here 
-            score = silhouette_score(self.correlations_mean, clusters.labels_)
+            kmeans = KMeans(n_clusters=k,**kmeans_kwargs)
+            kmeans.fit(self.correlations_mean)
+            sse.append(kmeans.inertia_)
+            score = silhouette_score(self.correlations_mean, kmeans.labels_)
             silhouette_coefficients.append(score)
 
         # Find knee point of SSE
@@ -214,10 +178,10 @@ class FC_Parcellation:
 
         if save_results == True:
             # Save arrays
-            np.save(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.algorithm + '_define_K_SSE.npy',sse)
-            np.save(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.algorithm + '_define_K_silhouette.npy',silhouette_coefficients)
+            np.save(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_define_K_SSE.npy',sse)
+            np.save(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_define_K_silhouette.npy',silhouette_coefficients)
             # Save figure
-            plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.algorithm + '_define_K.png')
+            plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_define_K.png')
 
         print("DONE")
 
@@ -237,8 +201,8 @@ class FC_Parcellation:
         print("PREPARE SEED MAP")
 
         seed = NiftiMasker(self.mask_source_path).fit()
-        labels_img = seed.inverse_transform(self.clusters.labels_+1) # +1 because labels start from 0 
-        labels_img.to_filename(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.algorithm + '_labels_K' + str(self.k) + '.nii.gz')
+        labels_img = seed.inverse_transform(self.kmeans.labels_+1) # +1 because labels start from 0 
+        labels_img.to_filename(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_labels_K' + str(self.k) + '.nii.gz')
 
         print("DONE")
 
@@ -259,16 +223,16 @@ class FC_Parcellation:
         
         print("...Compute mean connectivity profiles")
 
-        brain_maps = np.zeros((len(np.unique(self.clusters.labels_)), self.correlations_mean.shape[1]))
-        for label in np.unique(self.clusters.labels_):
-            brain_maps[label,:] = np.mean(self.correlations_mean[np.where(self.clusters.labels_==label),:],axis=1)
+        brain_maps = np.zeros((len(np.unique(self.kmeans.labels_)), self.correlations_mean.shape[1]))
+        for label in np.unique(self.kmeans.labels_):
+            brain_maps[label,:] = np.mean(self.correlations_mean[np.where(self.kmeans.labels_==label),:],axis=1)
 
         print("...Save as nifti files")
         brain_mask = NiftiMasker(self.mask_target_path).fit()
         
-        for label in np.unique(self.clusters.labels_):
+        for label in np.unique(self.kmeans.labels_):
             brain_map_img = brain_mask.inverse_transform(brain_maps[label,:])
-            brain_map_img.to_filename(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.algorithm + '_brain_pattern_K' + str(self.k) + '_' + str(label+1) + '.nii.gz')
+            brain_map_img.to_filename(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_brain_pattern_K' + str(self.k) + '_' + str(label+1) + '.nii.gz')
 
         print("DONE")
 
@@ -285,12 +249,4 @@ class FC_Parcellation:
         return np.dot(A_mA, B_mB.T) / np.sqrt(np.dot(ssA[:, None],ssB[None]))
 
 
-    def _compute_k_scores(self, k, algorithm, kwargs):
-        if algorithm == 'kmeans':
-            clusters = KMeans(n_clusters=k,**kwargs)
-        elif algorithm == 'agglom':
-            clusters = AgglomerativeClustering(n_clusters=k,**kwargs)
-        clusters.fit(self.correlations_mean)
-        sse = clusters.inertia_
-        silhouette = silhouette_score(self.correlations_mean, clusters.labels_)
-        return sse, silhouette
+        

@@ -1,11 +1,11 @@
 {   "main_dir":"/media/miplab-nas2/Data3/BMPD/hc_project/",
-    "coreg_dir":"/brain&spine/archives/1_nilearn-based/2_func_in_template/",
-    "smooth_dir":"/brain&spine/archives/1_nilearn-based/3_func_smoothed/",
-    "coreg_tag":{"brain":"_task-rest_bold_stc_brain_moco_denoised_brsc_reg_SPM_inTemplate_s",
-             "spinalcord":"_task-rest_bold_stc_sc_moco_denoised_inTemplate_s_3x3x6"},
+    "coreg_dir":"/",
+    "smooth_dir":"/brain&spine/",
+    "coreg_tag":{"brain":"_task-rest_bold_stc_brain_moco_BP_brsc_reg_SPM_inTemplate_s",
+             "spinalcord":"_task-rest_bold_stc_sc_moco_BP_brsc_inTemplate_s"},
     
-    "output_dir": "/brain&spine/archives/fc_parcellation/",
-    "output_tag": "test_code",
+    "output_dir": "/brain&spine/results/fc_parcellation/",
+    "output_tag": "new_denoising",
     
     "templates":{"brain":"/templates/MNI_hc_project/MNI_T1w_AverageHCs.nii.gz",
                 "spinalcord": "/templates/PAM50_hc_project/template/PAM50_t2.nii.gz",
@@ -29,6 +29,7 @@
             },
 
     
-    "list_subjects":["P028","P030","P033","P043","P047","P050","P100","P105","P108","P109","P001","P003","P004","P005","P006","P007","P008","P009","P011","P013"]
+    "list_subjects":["P028"],
+    "tokeep":["P028","P030","P033","P043","P047","P050","P057","P099","P100","P105","P108","P109","A003","A004","A005","A006","A007","A008","A009","A011","A013","P031","P089","P094","P096","P097","P098","P103","P104","P106","P111","A002","A010","A012"]
 
 } 
