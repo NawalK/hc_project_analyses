@@ -106,7 +106,7 @@ class SpineOnlyAnalysis:
                 mask2 = nib.load(self.config['main_dir']+self.config['masks'][self.dataset[self.name2]]['spinalcord']).get_fdata()
                 similarity_matrix,_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2], mask1=mask1, mask2=mask2, thresh1=2, thresh2=2, method=similarity_method, match_compo=True, verbose=False)
             else:
-                similarity_matrix,_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2], thresh1=2, thresh2=2, method=similarity_method, match_compo=True, verbose=False)
+                similarity_matrix,_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k1-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k2-1)//10], method=similarity_method, match_compo=True, verbose=False)
             plt.figure(figsize=(7,7))
             sns.heatmap(similarity_matrix, linewidths=.5, square=True, cmap='YlOrBr', vmin=0, vmax=1, xticklabels=orderY+1, yticklabels=np.array(range(1,k1+1)),cbar_kws={'shrink' : 0.8, 'label': similarity_method});
             plt.xlabel(self.name2)
@@ -123,9 +123,9 @@ class SpineOnlyAnalysis:
                 if similarity_method == 'Cosine': # We need masks
                     mask1 = nib.load(self.config['main_dir']+self.config['masks'][self.dataset[self.name1]]['spinalcord']).get_fdata()
                     mask2 = nib.load(self.config['main_dir']+self.config['masks'][self.dataset[self.name2]]['spinalcord']).get_fdata()
-                    similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], mask1=mask1, mask2=mask2, thresh1=2, thresh2=2, method=similarity_method, match_compo=True, verbose=False)
+                    similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], mask1=mask1, mask2=mask2, method=similarity_method, match_compo=True, verbose=False)
                 else:
-                    similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], thresh1=2, thresh2=2, method=similarity_method, match_compo=True, verbose=False)
+                    similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name]][(k-1)//10], method=similarity_method, match_compo=True, verbose=False)
                 mean_similarity[k_ind] = np.mean(np.diagonal(similarity_matrix)) 
             fig, ax = plt.subplots(figsize=(10,4))
             ax.plot(range(1,len(k_range)+1), mean_similarity, linewidth=2, markersize=10, marker='.')
@@ -137,7 +137,7 @@ class SpineOnlyAnalysis:
             raise(Exception(f'Something went wrong! No method was assigned...'))
 
 
-    def k_axial_distribution(self, data_name, k_range=None, thresh=2, vox_percentage=70, save_results=False, verbose=True):
+    def k_axial_distribution(self, data_name, k_range=None, vox_percentage=70, save_results=False, verbose=True):
         '''
         Compares the axial distribution of components for different Ks
         Categories:
@@ -169,7 +169,7 @@ class SpineOnlyAnalysis:
         # Set range of K
         k_range = self.k_range[data_name] if k_range == None else k_range
 
-        print(f'COMPUTING AXIAL DISTRIBUTION \n ––– Set: {data_name} \n ––– Range: {k_range} \n ––– Threshold: {thresh} \n ––– % for matching: {vox_percentage}')
+        print(f'COMPUTING AXIAL DISTRIBUTION \n ––– Set: {data_name} \n ––– Range: {k_range} \n ––– % for matching: {vox_percentage}')
 
         print(f'...Loading data for the different spinal masks')
 
@@ -192,15 +192,14 @@ class SpineOnlyAnalysis:
 
             data = self.data[data_name][k_tot]
 
-            data_bin = np.where(data >= thresh, 1, 0)
-
             # Look through each component for a particular k
             for k in range(0,k_tot):
-                total_voxels = np.sum(data_bin[:,:,:,k]) # Total number of voxels in this component
+                data_bin = np.where(data[:,:,:,k] >= self.config['z_thresh'][self.dataset[data_name]][(k-1)//10], 1, 0)
+                total_voxels = np.sum(data_bin) # Total number of voxels in this component
                 perc_in_masks = {}
                 for mask in mask_names:
                     # Compute the number of voxels in different masks
-                    counts_in_masks = np.sum(np.multiply(data_bin[:,:,:,k],masks_dict[mask])) 
+                    counts_in_masks = np.sum(np.multiply(data_bin,masks_dict[mask])) 
                     # Take the percentage
                     if total_voxels != 0:
                         perc_in_masks[mask] = (counts_in_masks / total_voxels) * 100
