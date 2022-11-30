@@ -50,7 +50,7 @@ class SpineOnlyAnalysis:
             for k_ind,k in enumerate(self.k_range[set]): # For each k
                 self.data[set][k] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
             
-    def spatial_similarity(self, k1 = None, k2 = None, k_range = None, similarity_method = 'Dice', sorting_method = 'rostrocaudal', verbose=True):
+    def spatial_similarity(self, k1=None, k2=None, k_range=None, similarity_method='Dice', sorting_method='rostrocaudal', save_results=True, verbose=True):
         '''
         Compares spatial similarity for different sets of components.
         Can be used for different purposes:
@@ -74,13 +74,10 @@ class SpineOnlyAnalysis:
         sorting_method : str
             Method used to sort maps (default = 'rostrocaudal')
             Note: only used for method 1
+        save_results : boolean
+            Results are saved as npy and png if set to True (Default = True)
         verbose : bool
             If True, print progress for each K (default=True)
-        
-        Outputs
-        ----------
-        XXXX to do 
-
         '''
 
         # Check if k values are provided & choose method accordingly
@@ -114,6 +111,11 @@ class SpineOnlyAnalysis:
             
             mean_similarity = mean(x for x in np.diagonal(similarity_matrix) if x !=-1) # If ks are different, we avoid taking -1 values (no correspondance)
             print(f'The mean similarity is {mean_similarity:.2f}')
+
+            if save_results == True:
+                # Save figure
+                plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_mean_similarity_' + '{:.2f}'.format(mean_similarity) + '.png')
+
         elif method == 2:
             print('METHOD 2: Comparing two sets of components across K values')
             mean_similarity = np.empty(len(k_range), dtype=object)
@@ -125,19 +127,21 @@ class SpineOnlyAnalysis:
                     mask2 = nib.load(self.config['main_dir']+self.config['masks'][self.dataset[self.name2]]['spinalcord']).get_fdata()
                     similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], mask1=mask1, mask2=mask2, method=similarity_method, match_compo=True, verbose=False)
                 else:
-                    similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name]][(k-1)//10], method=similarity_method, match_compo=True, verbose=False)
+                    similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k-1)//10], method=similarity_method, match_compo=True, verbose=False)
                 mean_similarity[k_ind] = np.mean(np.diagonal(similarity_matrix)) 
             fig, ax = plt.subplots(figsize=(10,4))
             ax.plot(range(1,len(k_range)+1), mean_similarity, linewidth=2, markersize=10, marker='.')
             ax.set_xticks(range(1,len(k_range)+1))
             ax.set_xticklabels(k_range)
             plt.title('Spatial similarity for different granularity levels'); plt.xlabel('K value'); plt.ylabel('Mean similarity');
+            if save_results == True:
+                # Save figure
+                plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_similarity_across_K.png')
 
         else: 
             raise(Exception(f'Something went wrong! No method was assigned...'))
 
-
-    def k_axial_distribution(self, data_name, k_range=None, vox_percentage=70, save_results=False, verbose=True):
+    def k_axial_distribution(self, data_name, k_range=None, vox_percentage=70, save_results=True, verbose=True):
         '''
         Compares the axial distribution of components for different Ks
         Categories:
@@ -159,7 +163,7 @@ class SpineOnlyAnalysis:
         save_results : str
             Defines whether results are saved or not (default = False)
         verbose : bool
-            If True, print progress for each K (default=True)
+            If True, print progress for each K (default = True)
             
         Outputs
         ------------
@@ -225,14 +229,14 @@ class SpineOnlyAnalysis:
         axial_distribution_perc_df = axial_distribution_counts_df.div( axial_distribution_counts_df.sum(axis=0), axis=1).mul(100) 
 
         # Plot as a heatmap
-        sns.heatmap(axial_distribution_perc_df,cmap='YlOrBr',cbar_kws={'label': '% of components'});
+        sns.heatmap(axial_distribution_perc_df,cmap='YlOrBr',vmin=0, vmax=100,cbar_kws={'label': '% of components'});
         plt.title('Axial distribution for different K \n Set: ' + data_name)
         plt.xlabel('K')
         
         # Saving result and figure if applicable
         if save_results == True:
-            plt.savefig(self.config['output_dir'] + self.config['output_tag'] + '_axial_distribution_' + data_name + '.png')
-        
+            plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_axial_distribution_' + data_name + '.png')
+
         print(f'DONE!')
         
         return axial_distribution_counts

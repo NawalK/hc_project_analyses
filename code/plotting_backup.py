@@ -67,7 +67,7 @@ class Plotting:
             self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
             self.map_order[set] = sort_maps(self.data[set], self.sorting_method)
             self.data_sorted[set] = self.data[set][:,:,:,self.map_order[set]]  
-            self.spinal_levels[set] = match_levels(self.config, self.data[set],method="max intensity")
+            self.spinal_levels[set] = match_levels(self.config, self.data[set],method="CoM")
             self.spinal_levels_sorted[set] = self.spinal_levels[set][self.map_order[set]]
 
     # ======= SPINAL CORD ========
@@ -172,7 +172,7 @@ class Plotting:
             
             if len(self.k.keys())==2: 
                 if i<self.k[secondary_dataset]:
-                    axs[row_coronal,col].set_title('Main #' + str(self.map_order[main_dataset][order2[i]]+1) + '\n Sec. #' + str(self.map_order[secondary_dataset][i]+1) + '\n Level ' + str(self.spinal_levels_sorted[secondary_dataset][i]+1),fontsize=18,pad=20)
+                    axs[row_coronal,col].set_title('Main #' + str(self.map_order[main_dataset][order2[i]]+1) + '\n Sec. #' + str(self.map_order[secondary_dataset][i]+1) + '\n Level ' + str(self.spinal_levels_matched[main_dataset][i]+1),fontsize=18,pad=20)
                 else:
                     axs[row_coronal,col].set_title('Main #' + str(self.map_order[main_dataset][order2[i]]+1) + '\n Level ' + str(self.spinal_levels_matched[main_dataset][i]+1),fontsize=18,pad=20)
             else:
@@ -200,10 +200,8 @@ class Plotting:
                 # Show spinal levels
                 if show_spinal_levels == True:
                     if len(self.k.keys())==2:
-                        if i<self.k[secondary_dataset]:
-                            axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_sorted[secondary_dataset][i]]),cmap='gray')
-                        else:
-                            axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_matched[main_dataset][i]]),cmap='gray')
+                        axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_matched[main_dataset][i]]),cmap='gray')
+
                     else:
                         axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_sorted[main_dataset][i]]),cmap='gray')
                 # Show components
@@ -240,7 +238,7 @@ class Plotting:
         # If option is set, save results as a png
         if save_results == True:
             if len(self.k.keys())==2:
-                plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.region + '_k_' + main_dataset + '_vs_' + secondary_dataset + '_thr' + str(lthresh)+ 'to' + str(uthresh) + '.png')
+                plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.region + '_k_' + main_dataset + '_vs_' + secondary_dataset + ' _thr' + str(lthresh)+ 'to' + str(uthresh) + '.png')
             elif len(self.k.keys())==1:
                 plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.region + '_k_' + main_dataset + '_thr' + str(lthresh)+ 'to' + str(uthresh) + '.png')
     
