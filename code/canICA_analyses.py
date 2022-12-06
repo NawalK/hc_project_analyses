@@ -68,7 +68,6 @@ class ICA:
 
 
         else:
-            print(self.structures)
             self.files_func[self.structures]={};self.func_allsbj[self.structures]=[]
             for sbj_nb in range(0,len(self.config["list_subjects"][dataset])):
                 subject_name=self.config["list_subjects"][dataset][sbj_nb]
@@ -82,13 +81,11 @@ class ICA:
         
             if not os.path.exists(self.analyse_dir):
                 os.mkdir(self.analyse_dir)
-                for structure in self.structures:
-                    os.mkdir(self.analyse_dir +'/'+structure)
-                    os.mkdir(self.analyse_dir +'/'+structure +'/comp_raw/')
-                    os.mkdir(self.analyse_dir +'/'+structure + '/comp_zscored/')
-                    os.mkdir(self.analyse_dir +'/'+structure + '/comp_bin/')
-                    os.mkdir(self.analyse_dir +'/'+structure  + '/comp_indiv/')  
-                    if not os.path.exists(self.analyse_dir +'/'+structure  + '/subject_data/'):
+                os.mkdir(self.analyse_dir +'/comp_raw/')
+                os.mkdir(self.analyse_dir + '/comp_zscored/')
+                os.mkdir(self.analyse_dir + '/comp_bin/')
+                os.mkdir(self.analyse_dir + '/comp_indiv/')  
+                if not os.path.exists(self.config["main_dir"] + self.config["data"][self.dataset]["ica"][self.structures_ana[0]+'_'+self.structures_ana[1]]["dir"] +'/'+  '/subject_data/'):
                         os.mkdir(self.config["main_dir"] + self.config["data"][self.dataset]["ica"][self.structures_ana[0]+'_'+self.structures_ana[1]]["dir"] +'/'+  '/subject_data/')
                 
             
@@ -101,7 +98,7 @@ class ICA:
                 os.mkdir(self.analyse_dir + '/comp_zscored/')
                 os.mkdir(self.analyse_dir + '/comp_bin/')
                 os.mkdir(self.analyse_dir +'/comp_indiv/')
-                if not os.path.exists(self.config["main_dir"] + self.config["data"][dataset]["ica"][self.structures_ana[0]]["dir"]+'/' +  '/subject_data/'):
+                if not os.path.exists(self.config["main_dir"] + self.config["data"][self.dataset]["ica"][self.structures_ana[0]]["dir"]+'/' +  '/subject_data/'):
                         os.mkdir(self.config["main_dir"] + self.config["data"][self.dataset]["ica"][self.structures_ana[0]]["dir"]+'/' +  '/subject_data/')          
         
         
@@ -138,6 +135,7 @@ class ICA:
         for structure in structures:
             
             
+            
         #Extract the data inside the mask and create a vector
         #---------------------------------------------------------
             self.nifti_masker[structure]= NiftiMasker(mask_img=self.config["main_dir"] + self.config["masks"][self.dataset][structure],
@@ -156,6 +154,7 @@ class ICA:
                 data_sbj[structure]=Parallel(n_jobs=n_jobs)(delayed(np.loadtxt)(self.data_txt[subject_name]) for subject_name in self.config["list_subjects"][self.dataset])
     
             if run=='extract':
+                
                 data_sbj[structure]=Parallel(n_jobs=n_jobs)(delayed(self._extract_data)(subject_name,structure)
                                        for subject_name in self.config["list_subjects"][self.dataset])
         
@@ -202,7 +201,14 @@ class ICA:
         [1] Nilearn toolbox: https://github.com/nilearn/nilearn/blob/9ddfa7259de3053a5ed6655cd662e115926cf6a5/nilearn/decomposition/base.py#L85*
 
         '''
-        n_comp_pca=2*self.config["ica_ana"]["n_comp"]#self.config["ICA_params"]["n_comp_PCA_indiv"]  #Number of composent for the PCAs at individual level
+        if self.config["ica_ana"]["n_comp"]<10:
+            n_comp_pca=20
+            
+        elif self.config["ica_ana"]["n_comp"]>=10 and self.config["ica_ana"]["n_comp"]< 20:
+            n_comp_pca=40
+            
+        elif self.config["ica_ana"]["n_comp"]>=20 and self.config["ica_ana"]["n_comp"]<= 40:
+            n_comp_pca=60 
         reducedata_all=[]
         for sbj_nb in range(0,len(self.config["list_subjects"][self.dataset])):
             #Dimensionality reduction using truncated SVD 
@@ -219,8 +225,9 @@ class ICA:
             else: 
                 reducedata_all=np.concatenate([reducedata_all, U]) # concatenation of reduce data (n_comp*n_sbj,n_voxels)
             
-        if save_indiv_img== True:
+        if save_indiv_img== True and len(self.structures_ana)<2 :
             for structure in self.structures_ana:
+            
                 j=0
                 for sbj_nb in range(0,len(self.config["list_subjects"][self.dataset])):
                     subject_name=self.config["list_subjects"][self.dataset][sbj_nb]
@@ -229,6 +236,7 @@ class ICA:
                         j=i
                         
                     j=+i+1
+                   
                     components_img = self.nifti_masker[structure].inverse_transform(reducedata_all[j-n_comp_pca:j]) # transform the components in nifti
                     components_img.to_filename(self.analyse_dir + '/comp_indiv/sub-' + subject_name +'_comp_ICA.nii.gz') #save the n components for each subjects
                     print("- 4D image create for sbj  " +subject_name)
@@ -318,18 +326,17 @@ class ICA:
         for i in range(0,len(components_.T)):
             med  = np.median(components_)
             components_z[:,i] = (components_[:,i]-med)/np.sqrt((np.sum((components_[:,i]-med)**2))/len(components_[:,i]))   # normalization 
-                                                             
-        if not '_' in self.structures_ana:
+                                                    
+        if len(self.structures_ana) < 2:
             components_final[self.structures]=components_
             components_final_z[self.structures]=components_z
         
         # For brain and spinal cord analyses split the component in two voxel matrices to be transform in two separates images in the next step
-        if '_' in self.structures_ana:
+        if len(self.structures_ana) == 2:
             n_voxels={};nifti_masker={}
             for structure in self.structures:
-                nifti_masker[structure]= NiftiMasker(mask_img=self.config["main_dir"] + self.config["masks"][structure], standardize=False,smoothing_fwhm=None).fit() #Extract the data inside the mask and create a vector
-                n_voxels[structure]= nifti_masker[structure].fit_transform(self.config["main_dir"] + self.config[self.dataset]["masks"][structure]).shape[1] # number of voxels in the structure
-
+                nifti_masker[structure]= NiftiMasker(mask_img=self.config["main_dir"] + self.config["masks"][self.dataset][structure], standardize=False,smoothing_fwhm=None).fit() #Extract the data inside the mask and create a vector
+                n_voxels[structure]= nifti_masker[structure].fit_transform(self.config["main_dir"] + self.config["masks"][self.dataset][structure]).shape[1] # number of voxels in the structure
                 components_final[structure]=np.empty(shape=(n_voxels[structure],self.config["ica_ana"]["n_comp"]),dtype='float') # matrix of brain voxels 
                 components_final_z[structure]=np.empty(shape=(n_voxels[structure],self.config["ica_ana"]["n_comp"]),dtype='float') # matrix of brain voxels 
             

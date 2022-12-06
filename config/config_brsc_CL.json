@@ -1,6 +1,6 @@
 {"main_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/",
 
- "acq_params":{"mtl_younger":{"TR":1.55,
+ "acq_params":{"mtl_all":{"TR":1.55,
               "physio_frq":400},
               "mtl_older":{"TR":1.55,
               "physio_frq":400}},
@@ -12,26 +12,26 @@
             "spinalcord_seeds": "/templates/PAM50/rois/",
             "brain_seeds": "/templates/MNI/rois/"},
  
-"masks":{"mtl_younger":{"brain":"/templates/MNI/3mm_resolution/MNI_T1w_GM_AverageHCs_3mm_bin_corrected.nii.gz",
+"masks":{"mtl_all":{"brain":"/templates/MNI/3mm_resolution/MNI_T1w_GM_AverageHCs_3mm_bin_corrected.nii.gz",
              "spinalcord": "/templates/PAM50/template/PAM50_cord_C1toC8.nii.gz"},
          "mtl_older":{"brain":"/templates/MNI/3mm_resolution/MNI_T1w_GM_AverageHCs_3mm_bin_corrected.nii.gz",
                       "spinalcord": "/templates/PAM50/template/PAM50_cord_C1toC8.nii.gz"}},
 
  
-"data":{"mtl_younger":{"inputs_ica":
+"data":{"mtl_all":{"inputs_ica":
                {"dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/",
                 "spinalcord":
                     {"tag_filename_spinalcord":"moco_HP_sc_inTemplate_s.nii.gz",
-                    "tag_filename_brain_spinalcord":"moco_BP_brsc_inTemplate_s.nii.gz"},
+                    "tag_filename_brain_spinalcord":"moco_brsc_BP_inTemplate_s.nii.gz"},
                "brain":
                     {"tag_filename_brain":" ",
-                    "tag_filename_brain_spinalcord":"moco_BP_brsc_reg_SPM_inTemplate_s.nii.gz"}},
+                    "tag_filename_brain_spinalcord":"moco_brsc_BP_reg_SPM_inTemplate_s.nii.gz"}},
                "ica":
                {"spinalcord":
-                    {"dir":"/ICA/mtl_younger/spinalcord/",
+                    {"dir":"/ICA/mtl_all/spinalcord/",
                     "tag_filename":"4D_K"},
                "brain":
-                    {"dir":"/ICA/mtl_younger/brain/",
+                    {"dir":"/ICA/mtl_all/brain/",
                     "tag_filename":"4D_K"},
                "brain_spinalcord":
                     {"dir":"/ICA/mtl_younger/brain_spinalcord/",
@@ -56,18 +56,20 @@
                     "tag_filename":"4D_K"}}}},
          
 
- "ica_ana":{"iter": 200,
+ "ica_ana":{"iter": 50,
             "n_comp":0,
-            "k_range": {"spinalcord":[4],
+            "k_range": {"spinalcord":[16],
                         "spinalcordbis":[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,35,39,40],
                 "brain":15,
-                        "brain-spinalcord":4}},
+                        "brain-spinalcord":10}},
  
- 
-"list_subjects":{"mtl_younger":["P028","P030"],
-                "gva":["01","02","03","04","05","06" ,"07","08","09","10","12","11","13","14","15","16" ,"17","18","19"],
-"mtl_younge": ["P028","P030","P033","P043","P047","P050","P057","P099","P100","P105","P108","P109","A003","A004","A005","A006","A007","A008","A009","A011","A013"],
-                "mtl_older":["P028","P030","P033","P043","P047","P050","P057","P099","P100","P105","P108","P109","P003","P004","P005","P006","P007","P008","P009","P011","P013"]},
+"seed2voxels_ana":{"main_dir": "/seed_to_voxels/",
+            "second_level_dir":"/2_second_level/brain_mask/"}, 
+"list_subjects":{"mtl_younger":["P028","P030","P033","P043","P047","P050","P057","P099","P100","P105","P108","P109","A003","A004","A005","A006","A007","A008","A009","A011","A013"],
+                "mtl_older":["01","02","03","04","05","06" ,"07","08","09","10","12","11","13","14","15","16" ,"17","18","19"],
+                "mtl_all":["P028","P030","P033","P043","P047","P050","P057","P099","P100","P105","P108","P109","A003","A004","A005","A006","A007","A008","A009","A011","A013","P031","P033","P089","P094","P096","P097","P098","P103","P104","P106","P111","A002","A010","A012","A015","A017"]},
 
- "SPM_Dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spm12/"
+"tools_dir":{"main_codes":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/codes/",
+             "sct_toolbox":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spinalcordtoolbox-5.0.0",
+            "spm_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spm12/"}
 } 

@@ -1,8 +1,9 @@
 {"main_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/",
+ "denoised_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/1_func_denoised/",
 "coreg_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/2_func_in_template/",
 "smooth_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/",
-"coreg_tag":{"brain":"moco_BP_brsc_reg_SPM_inTemplate",
-             "spinalcord":"moco_BP_brsc_inTemplate"},
+"coreg_tag":{"brain":"moco_brsc_BP",
+             "spinalcord":"moco_brsc_BP"},
 
  "templates":{"brain":"/templates/MNI/3mm_resolution/MNI_T1w_AverageHCs_3mm.nii.gz",
              "spinalcord": "/templates/PAM50/template/PAM50_t2.nii.gz",
@@ -36,9 +37,19 @@
                 "brain":15}},
  
  "seed2vox_dir": "/seed_to_voxels/",
+ "tools_dir":{"main_codes":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/codes/",
+             "sct_toolbox":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spinalcordtoolbox-5.0.0",
+            "spm_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spm12/"},
  
  
-"list_subjects":["P028","P030","P033","P043","P047","P050","P057","P099","P100","P105","P108","P109","A003","A004","A005","A006","A007","A008","A009","A011","A013","P031","P033","P089","P094","P096","P097","P098","P103","P104","P106","P111","A002","A010","A012","A015","A017"],
+"list_subjects_23":["P028","P043","P047","P057","P099","P100","P109","A003","A004","A008","A011","P089","P094","P096","P097","P098","P103","P104","P106","A002","A012","A015","A017"],
+"list_subjects_20":["P028","P030","P033","P043","P047","P050","P057","P099","P100","P109","A008","A011","P031","P033","P089","P094","P096","P097","P098","P106"],
+"list_subjects_1":["P028"],
+
+  
+  
+"list_subjects_37":["P028","P030","P033","P043","P047","P050","P057","P099","P100","P105","P108","P109","A003","A004","A005","A006","A007","A008","A009","A011","A013","P031","P089","P094","P096","P097","P098","P103","P104","P106","P111","A002","A010","A012","A015","A017"],
+ 
  "list_dataset":["bmpd"],
 "list_subjects_younger":["P028","P030","P033","P043","P047","P050","P057","P099","P100","P105","P108","P109","A003","A004","A005","A006","A007","A008","A009","A011","A013"],
 "list_dataset_younger":["bmpd","bmpd","bmpd","bmpd","bmpd","bmpd","bmpd","bmpd","bmpd","bmpd","bmpd","bmpd","stratals","stratals","stratals","stratals","stratals","stratals","stratals","stratals","stratals"],

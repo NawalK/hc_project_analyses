@@ -1,6 +1,6 @@
 {"main_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/",
 
- "acq_params":{"mtl":{"TR":1.55,
+ "acq_params":{"mtl_all":{"TR":1.55,
               "physio_frq":400},
               "gva":{"TR":2.5,
               "physio_frq":100}},
@@ -12,12 +12,13 @@
             "spinalcord_seeds": "/templates/PAM50/rois/",
             "brain_seeds": "/templates/MNI/rois/"},
  
-"masks":{"mtl":{"brain":"/templates/MNI/3mm_resolution/MNI_T1w_GM_AverageHCs_3mm_bin_corrected.nii.gz",
+"masks":{"mtl":{"spinalcord": "/templates/PAM50/template/PAM50_cord_C1toC8.nii.gz"},
+         "mtl_all":{"brain":"/templates/MNI/3mm_resolution/MNI_T1w_GM_AverageHCs_3mm_bin_corrected.nii.gz",
              "spinalcord": "/templates/PAM50/template/PAM50_cord_C1toC8.nii.gz"},
          "gva":{"spinalcord": "/templates/PAM50/template/PAM50_cord_C5toC8.nii.gz"}},
 
  
-"data":{"mtl":{"inputs_ica":
+"data":{"mtl_all":{"inputs_ica":
                {"dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/",
                 "spinalcord":
                     {"tag_filename_spinalcord":"moco_HP_sc_inTemplate_s.nii.gz",
@@ -27,7 +28,7 @@
                     "tag_filename_brain-spinalcord":"moco_BP_brsc_reg_SPM_inTemplate_s.nii.gz"}},
                "ica":
                {"spinalcord":
-                    {"dir":"/ICA/mtl/spinalcord/",
+                    {"dir":"/ICA/mtl_all/spinalcord/",
                     "tag_filename":"4D_K"},
                "brain":
                     {"dir":"/ICA/",
@@ -40,13 +41,16 @@
                     {"dir":"/ICA/brain/",
                     "tag_filename":"4D_K"}}},
        "gva":{"inputs_ica":
-               {"dir":"/cerebro/cerebro1/dataset/caroline/2022_SPiCiCAP_NK_CL/CL_analyses/denoising/3_func_smoothed/",
+               {"dir1":"/cerebro/cerebro1/dataset/caroline/2022_SPiCiCAP_NK_CL/CL_analyses/denoising/3_func_smoothed/",
+                "dir":"/cerebro/cerebro1/dataset/caroline/2022_SPiCiCAP_NK_CL/CL_analyses/denoising/Denoised_CL_DCT_NK/",
                 "spinalcord":
-                {"tag_filename_spinalcord":"moco_HP_sc_inTemplate_s.nii.gz",
+                {"tag_filename_spinalcord":".nii.gz",
+                 "tag_filename_spinalcord1":"moco_HP_sc_inTemplate_s.nii.gz",
                  "tag_filename_brain-spinalcord":"moco_BP_brsc_inTemplate_s.nii.gz"}},
                 "ica":
                {"spinalcord":
-                {"dir":"/ICA/gva/spinalcord/",
+                {
+                 "dir":"/ICA/gva/spinalcord/",
                 "tag_filename":"4D_K"}},
                "icap":
                 {"spinalcord":
@@ -54,9 +58,9 @@
                 "tag_filename":"4D"}}}},
          
 
- "ica_ana":{"iter": 200,
+ "ica_ana":{"iter": 100,
             "n_comp":0,
-            "k_range": {"spinalcord":[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40],
+            "k_range": {"spinalcord":[16],
                         "spinalcordbis":[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,35,39,40],
                 "brain":15}},
  
@@ -65,11 +69,7 @@
  
 "list_subjects":{"mtl":["P028","P030","P033","P043","P047","P050","P057","P099","P100","P105","P108","P109","A003","A004","A005","A006","A007","A008","A009","A011","A013"],
                 "gva":["01","02","03","04","05","06" ,"07","08","09","10","12","11","13","14","15","16" ,"17","18","19"],
-"mtl_younger": ["P028","P030","P033","P043","P047","P050","P057","P099","P100","P105","P108","P109","A003","A004","A005","A006","A007","A008","A009","A011","A013"],
-                "mtl_older":["P028","P030","P033","P043","P047","P050","P057","P099","P100","P105","P108","P109","P003","P004","P005","P006","P007","P008","P009","P011","P013"]},
+"mtl_all": ["P028","P030","P033","P043","P047","P050","P057","P099","P100","P105","P108","P109","A003","A004","A005","A006","A007","A008","A009","A011","A013","P031","P033","P089","P094","P096","P097","P098","P103","P104","P106","P111","A002","A010","A012","A015","A017"]},
 
- "list_dataset_younger":["bmpd","bmpd","bmpd","bmpd","bmpd","bmpd","bmpd","bmpd","bmpd","bmpd","bmpd","bmpd","stratals","stratals","stratals","stratals","stratals","stratals","stratals","stratals","stratals"],
-"list_subjects_older":["P031","P033","P089","P094","P096","P097","P098","P103","P104","P106","P111","A002","A010","A012"],
- "list_dataset_older":["bmpd","bmpd","bmpd","bmpd","bmpd","bmpd","bmpd","bmpd","bmpd","bmpd","bmpd","stratals","stratals","stratals"],
  "SPM_Dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spm12/"
 } 
