@@ -60,7 +60,7 @@ def match_levels(config, data, method="CoM"):
         levels_data[:,:,:,lvl] = level_img.get_fdata()
            
     if method=="CoM":
-        map_masked = np.where(data >2, data, 0)
+        map_masked = np.where(data > 1.5, data, 0) # IMPORTANT NOTE: here, a low threshold at 1.5 is used, as the goal is to have rough maps to match to levels
         CoM = np.zeros(map_masked.shape[3],dtype='int')
         for i in range(0,data.shape[3]):
             _,_,CoM[i]=center_of_mass(map_masked[:,:,:,i])
