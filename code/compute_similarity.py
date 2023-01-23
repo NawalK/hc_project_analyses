@@ -3,8 +3,9 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import scipy
-from scipy.ndimage import center_of_mass
+from scipy.ndimage import center_of_mass,label,find_objects
 from sklearn.metrics.pairwise import cosine_similarity
+from collections import Counter 
 
 def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, mask1=None, mask2=None, method='Dice', match_compo=True, plot_results=False,save_results=False,verbose=True):
     ''' Compute the spatial similarity between two sets of 3D components
@@ -84,10 +85,15 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, mask1=None, m
                     similarity_matrix[k1,k2] = -1
             elif method == 'Euclidean distance':
                 if k1 < data1.shape[3] and k2 < data2.shape[3]: # If the element exist in both datasets, we compute the similarity
-                    # we calculate the center of masse of each composant 
-                    cm1=center_of_mass(data1_bin[:,:,:,k1])
-                    cm2=center_of_mass(data2_bin[:,:,:,k2])
-                    # inverse of the euclidian distance between CoG
+                    # Label data to find the different clusters
+                    lbl1 = label(data1_bin[:,:,:,k1])[0]
+                    lbl2 = label(data2_bin[:,:,:,k2])[0]
+    
+                    # We calculate the center of mass of the largest clusters
+                    cm1 = center_of_mass(data1_bin[:,:,:,k1],lbl1,Counter(lbl1.ravel()).most_common()[1][0])
+                    cm2 = center_of_mass(data2_bin[:,:,:,k2],lbl2,Counter(lbl2.ravel()).most_common()[1][0])
+
+                    # inverse of the euclidean distance between CoG
                     #similarity_matrix[k1,k2]=1/(np.mean(np.abs(np.array(cm1)-np.array(cm2)))) 
                     similarity_matrix[k1,k2] = 1/(np.mean(np.abs([float(cm1[1])-float(cm2[1]),float(cm1[2])-float(cm2[2])])))
                 else:
