@@ -45,13 +45,13 @@
                {"dir1":"/cerebro/cerebro1/dataset/caroline/2022_SPiCiCAP_NK_CL/CL_analyses/denoising/3_func_smoothed/",
                 "dir":"/cerebro/cerebro1/dataset/caroline/2022_SPiCiCAP_NK_CL/CL_analyses/denoising/Denoised_CL_DCT_NK/",
                 "spinalcord":
-                {"tag_filename_spinalcord":"_144vol.nii.gz",
+                {"tag_filename_spinalcord":"_216vol.nii.gz",
                  "tag_filename_spinalcord1":"moco_HP_sc_inTemplate_s.nii.gz",
                  "tag_filename_brain-spinalcord":"moco_BP_brsc_inTemplate_s.nii.gz"}},
                 "ica":
                {"spinalcord":
                 {
-                 "dir":"/ICA/gva/spinalcord/temporal_cropping/6min/",
+                 "dir":"/ICA/gva/spinalcord/temporal_cropping/9min/",
                 "tag_filename":"4D_K"}},
                "icap":
                 {"spinalcord":
