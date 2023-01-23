@@ -5,6 +5,9 @@ from sklearn.utils.extmath import svd_flip
 from sklearn.utils.extmath import randomized_svd
 from sklearn.utils import check_random_state
 from sklearn.decomposition import fastica
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+    
 from operator import itemgetter
 from scipy.stats import scoreatpercentile
 import numpy as np
@@ -183,9 +186,9 @@ class ICA:
         
     def indiv_PCA(self,data_all_structure,save_indiv_img=False):
         '''
-        We separate observation noise from subject-specific patterns through principal component analysis (PCA).   
-        The principal components explaining most of the variance for a given subject's data set form the patterns of interest, while the tail of the spectrum is considered as observation noise.  Specifically, for each subject, we
-        use a singular value decomposition (SVD) of the individual data matrix
+         Perform temporal dimensionality reduction.
+         We separate observation noise from subject-specific patterns through principal component analysis (PCA).   
+        The principal components explaining most of the variance for a given subject's data set form the patterns of interest, while the tail of the spectrum is considered as observation noise.  Specifically, for each subject, we use a singular value decomposition (SVD) of the individual data matrix
         Attributes
         ----------
         data_all_structure: list
@@ -195,7 +198,11 @@ class ICA:
         return
         ----------
         reducedata_all: array
-        (n_comp_PCA_indiv * n_subjects,n_voxels)
+        (n_comp_PCA_indiv * n_subjects,n_voxels) => reduced resting state matrix
+        
+        save_indiv_img: bolean
+        default = False, 
+        put True to save the individuals n principal components extractd f
          
         References:
         [1] Nilearn toolbox: https://github.com/nilearn/nilearn/blob/9ddfa7259de3053a5ed6655cd662e115926cf6a5/nilearn/decomposition/base.py#L85*
@@ -208,11 +215,15 @@ class ICA:
             n_comp_pca=40
             
         elif self.config["ica_ana"]["n_comp"]>=20 and self.config["ica_ana"]["n_comp"]<= 40:
-            n_comp_pca=60 
+            n_comp_pca=60
+        elif self.config["ica_ana"]["n_comp"]>=20 and self.config["ica_ana"]["n_comp"]<= 60:
+            n_comp_pca=80 
+            
         reducedata_all=[]
         for sbj_nb in range(0,len(self.config["list_subjects"][self.dataset])):
             #Dimensionality reduction using truncated SVD 
-            U, S, V = linalg.svd(data_all_structure[sbj_nb].T, full_matrices=False) # transpose the matrice of data in voxels x volumes
+            # U: U is the left singular vectors, S (sigma) is the diagonal/eigenvalues, V:  is the right singular vectors,
+            U, S, V = linalg.svd(data_all_structure[sbj_nb].T, full_matrices=False) # transpose the matrice of data in voxels x volumes or 
             U, V = svd_flip(U, V) # # flip eigenvectors' sign to enforce deterministic output
             # The "copy" are there to free the reference on the non reduceddata, and hence clear memory early
             U = U[:, :n_comp_pca].copy(); #The 1D projection axis with the maximum variance preserved
@@ -223,11 +234,10 @@ class ICA:
             if sbj_nb==0:
                 reducedata_all = U
             else: 
-                reducedata_all=np.concatenate([reducedata_all, U]) # concatenation of reduce data (n_comp*n_sbj,n_voxels)
+                reducedata_all=np.concatenate([reducedata_all, U]) # concatenation of individual components, sbj1PC1, sbj1PC2 ... sbjnPC1,sbjnPC2.. (n_comp*n_sbj,n_voxels)
             
         if save_indiv_img== True and len(self.structures_ana)<2 :
             for structure in self.structures_ana:
-            
                 j=0
                 for sbj_nb in range(0,len(self.config["list_subjects"][self.dataset])):
                     subject_name=self.config["list_subjects"][self.dataset][sbj_nb]
@@ -238,7 +248,7 @@ class ICA:
                     j=+i+1
                    
                     components_img = self.nifti_masker[structure].inverse_transform(reducedata_all[j-n_comp_pca:j]) # transform the components in nifti
-                    components_img.to_filename(self.analyse_dir + '/comp_indiv/sub-' + subject_name +'_comp_ICA.nii.gz') #save the n components for each subjects
+                    components_img.to_filename(self.analyse_dir + '/comp_indiv/sub-' + subject_name +'_comp_ICA.nii.gz') #save the n principal components for each subjects
                     print("- 4D image create for sbj  " +subject_name)
         print(">> Individual PCA done <<")
         return reducedata_all
@@ -250,9 +260,7 @@ class ICA:
         Attributes
         ----------
         reducedata_all
-        save_indiv_img: Boolean
-            If the individual composants needs to be saved
-        
+                
         return
         ----------
         components_: array
@@ -262,13 +270,13 @@ class ICA:
         [1] Nilearn toolbox https://github.com/nilearn/nilearn/blob/9ddfa7259de3053a5ed6655cd662e115926cf6a5/nilearn/decomposition/multi_pca.py#L14*
         '''
         n_comp_cca=self.config["ica_ana"]["n_comp"]
-        S = np.sqrt(np.sum(reducedata_all** 2, axis=1)) #Calculate the root sum square = canonical root or variate
+        S = np.sqrt(np.sum(reducedata_all** 2, axis=1)) #Calculate the root sum square = canonical root or variate. for each individual the value will decrease from the first to the last component
         S[S == 0] = 1 # if one value is equale to 0 change it by 1
         reducedata_all /= S[:, np.newaxis] # divide data by canonical root (proportion of variance)
         components_, variance_, _=randomized_svd(reducedata_all.T, n_components=n_comp_cca,transpose=True,n_iter=3,random_state=None) #SVD is equivalent to standard CCA
         reducedata_all *= S[:, np.newaxis] # # Untransform the original reduced data
-
         
+               
 
         return components_
 
@@ -302,7 +310,8 @@ class ICA:
 
         results = (fastica(components_, whiten=True, fun='cube',random_state=seed)
         for seed in seeds)
-
+             
+ 
         ica_maps_gen_ = (result[2] for result in results)
         ica_maps_and_sparsities = ((ica_map,
                                     np.sum(np.abs(ica_map), axis=1).max())
@@ -407,4 +416,86 @@ class ICA:
         return zcomponents4D_filename
     
     
-    
+    def spatial_regression(self,components_final,individual_data,save=False,output_filename=False):
+        
+        '''
+        The full set of group-ICA spatial maps are entered in a linear model fit (spatial regression) against the separate fMRI data sets, resulting in matrices describing temporal dynamics for each component and subject.
+        Noe that this fonction was not implemented for br + sc yet
+        Attributes
+        ----------
+        components_final : array (n_voxels,n_comp)
+        matrix of voxels for each components
+        
+        individual_data : : array (n_volumes,n_voxels)
+        matrix of voxels for each volumes for ONE subject
+        
+        save: bool
+        default= False
+        Put True to save the temporal_dynamics matrix in a .txt file
+        
+        outputs
+        ----------
+        temporal_dynamics: array (n_volumes,n_comp)
+        '''
+        if individual_data.shape[1] !=  components_final.shape[0]:
+            raise Exception("Shape components_final.shape[0] and individual_data.shape[1] should be the number of voxels for both component matrix and indiviual data")
+        
+        if '_' in self.structures_ana:
+            raise Exception("Warning: this function was not implemeted for two structures yet")
+        else:
+            model = LinearRegression()
+            model.fit(components_final, individual_data.T)
+            temporal_dynamics = model.coef_  
+            
+        if save==True:
+            if output_filename==False:
+                raise Exception("Please provide an output_filename")
+        
+            np.savetxt(output_filename, temporal_dynamics, fmt='%.18e', delimiter=' ', newline='\n', header='', footer='', comments='# ', encoding=None)
+        
+        return temporal_dynamics
+
+    def dual_regression(self,temporal_dynamics,individual_data,standardize=False):
+        
+        '''
+        the dual-regression approach is used to identify, within each subject's fMRI data set, subject-specific temporal dynamics and associated spatial maps
+        The spatial regression should be done before. see def spatial_regression(self,components_final,individual_data)
+        It will enter the temporal dynamics for each component and subject (calculated from the spatial regression, i.e time-course matrices) in a linear model against the associated fMRI data set to estimate subject-specific spatial maps.
+        Note that this fonction was not implemented for br + sc yet
+        Attributes
+        ----------
+        temporal_dynamics: array (n_volumes,n_comp)
+        time-course matrices for each component for ONE subject
+        
+        individual_data : : array (n_volumes,n_voxels)
+        matrix of voxels for each volumes for ONE subject
+        
+        standardize: bool
+            apply temporal normalization
+      
+               
+        outputs
+        ----------
+        spatial_map: array (n_voxels,n_comp)
+        matrix of voxels for each components for ONE subject
+        
+        '''
+        
+        if individual_data.shape[0] !=  temporal_dynamics.shape[0]:
+            raise Exception("Shape [0] should be the number of volumes for both temporal dynamics and indiviual data")
+            
+        if '_' in self.structures_ana:
+            raise Exception("Warning: this function was not implemeted for two structures yet")
+        else:
+           
+            S = StandardScaler(with_mean=False, with_std=True)
+            Z = StandardScaler(with_mean=True, with_std=True)
+            if standardize == True:
+                temporal_dynamics = S.fit_transform(temporal_dynamics)
+
+            model = LinearRegression()
+            model.fit(temporal_dynamics, individual_data)
+            spatial_coefficients = model.coef_
+            spatial_coefficients = Z.fit_transform(spatial_coefficients)
+            
+            return spatial_coefficients
