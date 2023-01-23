@@ -50,7 +50,7 @@ class SpineOnlyAnalysis:
             for k_ind,k in enumerate(self.k_range[set]): # For each k
                 self.data[set][k] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
             
-    def spatial_similarity(self, k1=None, k2=None, k_range=None, similarity_method='Dice', sorting_method='rostrocaudal', save_results=True, verbose=True):
+    def spatial_similarity(self, k1=None, k2=None, k_range=None, thresh=None, similarity_method='Dice', sorting_method='rostrocaudal', save_results=True, verbose=True):
         '''
         Compares spatial similarity for different sets of components.
         Can be used for different purposes:
@@ -66,6 +66,9 @@ class SpineOnlyAnalysis:
             K values of interest (default = None) => For method 1
         k_range : array
             Range K values of interest (default = None) => For method 2
+        thresh : float, int
+            Lower threshold value to binarize components (default = None)
+            /!\ If set to None, the threshold values of the config files are used!
         similarity_method : str
             Method to compute similarity (default = 'Dice')
                 'Dice' to compute Dice coefficients (2*|intersection| / nb_el1 + nb_el2)
@@ -91,6 +94,14 @@ class SpineOnlyAnalysis:
                 k2 = k1
         elif k_range != None and k1 == None and k2 == None:
             method = 2
+
+        if thresh is None:
+            print(f'Z threshold taken from config file.')
+        elif type(thresh) is float or int:
+            print(f'Z threshold: {thresh}')
+        else:
+            raise(Exception(f'Threshold should be a number and it is a {type(thresh)}'))
+     
         
         # For method 1, we focus on one similarity matrix
         if method == 1:
@@ -103,7 +114,11 @@ class SpineOnlyAnalysis:
                 mask2 = nib.load(self.config['main_dir']+self.config['masks'][self.dataset[self.name2]]['spinalcord']).get_fdata()
                 similarity_matrix,_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2], mask1=mask1, mask2=mask2, thresh1=2, thresh2=2, method=similarity_method, match_compo=True, verbose=False)
             else:
-                similarity_matrix,_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k1-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k2-1)//10], method=similarity_method, match_compo=True, verbose=False)
+                if thresh is None:
+                    similarity_matrix,_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k1-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k2-1)//10], method=similarity_method, match_compo=True, verbose=False)
+                else:
+                    similarity_matrix,_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2], thresh1=thresh, thresh2=thresh, method=similarity_method, match_compo=True, verbose=False)
+                
             plt.figure(figsize=(7,7))
             sns.heatmap(similarity_matrix, linewidths=.5, square=True, cmap='YlOrBr', vmin=0, vmax=1, xticklabels=orderY+1, yticklabels=np.array(range(1,k1+1)),cbar_kws={'shrink' : 0.8, 'label': similarity_method});
             plt.xlabel(self.name2)
@@ -127,7 +142,10 @@ class SpineOnlyAnalysis:
                     mask2 = nib.load(self.config['main_dir']+self.config['masks'][self.dataset[self.name2]]['spinalcord']).get_fdata()
                     similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], mask1=mask1, mask2=mask2, method=similarity_method, match_compo=True, verbose=False)
                 else:
-                    similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k-1)//10], method=similarity_method, match_compo=True, verbose=False)
+                    if thresh is None:
+                        similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k-1)//10], method=similarity_method, match_compo=True, verbose=False)
+                    else:
+                        similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], thresh1=thresh, thresh2=thresh, method=similarity_method, match_compo=True, verbose=False)
                 mean_similarity[k_ind] = np.mean(np.diagonal(similarity_matrix)) 
             fig, ax = plt.subplots(figsize=(10,4))
             ax.plot(range(1,len(k_range)+1), mean_similarity, linewidth=2, markersize=10, marker='.')
@@ -141,7 +159,7 @@ class SpineOnlyAnalysis:
         else: 
             raise(Exception(f'Something went wrong! No method was assigned...'))
 
-    def k_axial_distribution(self, data_name, k_range=None, vox_percentage=70, save_results=True, verbose=True):
+    def k_axial_distribution(self, data_name, k_range=None, thresh=None, vox_percentage=70, save_results=True, verbose=True):
         '''
         Compares the axial distribution of components for different Ks
         Categories:
@@ -156,8 +174,9 @@ class SpineOnlyAnalysis:
             Name of the set of components to analyze
         k_range : array
             Range of k values to considered (default = the one set in class attributes for the dataset defined using 'data')
-        thresh : float
-            Lower threshold value to binarize components (default = 2)
+        thresh : float, int
+            Lower threshold value to binarize components (default = None)
+            /!\ If set to None, the threshold values of the config files are used!
         vox_percentage : int
             Defines the percentage of voxels that need to be in a region to consider it matched (default = 70)
         save_results : str
@@ -173,8 +192,13 @@ class SpineOnlyAnalysis:
         # Set range of K
         k_range = self.k_range[data_name] if k_range == None else k_range
 
-        print(f'COMPUTING AXIAL DISTRIBUTION \n ––– Set: {data_name} \n ––– Range: {k_range} \n ––– % for matching: {vox_percentage}')
-
+        if thresh is None:
+            print(f'COMPUTING AXIAL DISTRIBUTION \n ––– Set: {data_name} \n ––– Range: {k_range} \n ––– % for matching: {vox_percentage}  \n ––– Z threshold: from config file')
+        elif type(thresh) is float or int:
+            print(f'COMPUTING AXIAL DISTRIBUTION \n ––– Set: {data_name} \n ––– Range: {k_range} \n ––– % for matching: {vox_percentage}  \n ––– Z threshold: {thresh}')
+        else:
+            raise(Exception(f'Threshold should be a number and it is a {type(thresh)}'))
+     
         print(f'...Loading data for the different spinal masks')
 
         # Create a dictionary containing the different template masks use to define axial locations 
@@ -198,7 +222,10 @@ class SpineOnlyAnalysis:
 
             # Look through each component for a particular k
             for k in range(0,k_tot):
-                data_bin = np.where(data[:,:,:,k] >= self.config['z_thresh'][self.dataset[data_name]][(k-1)//10], 1, 0)
+                if thresh is None: # Binarize using values from config files if no other value has been provided
+                    data_bin = np.where(data[:,:,:,k] >= self.config['z_thresh'][self.dataset[data_name]][(k-1)//10], 1, 0)
+                else:
+                    data_bin = np.where(data[:,:,:,k] >= thresh, 1, 0)
                 total_voxels = np.sum(data_bin) # Total number of voxels in this component
                 perc_in_masks = {}
                 for mask in mask_names:

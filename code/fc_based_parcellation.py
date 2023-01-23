@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from kneed import KneeLocator
 from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.metrics import silhouette_score
+from sklearn.feature_selection import mutual_info_regression
 from scipy.spatial.distance import pdist
 from scipy.cluster import hierarchy
 from scipy import stats
@@ -10,6 +11,7 @@ from nilearn.maskers import NiftiMasker
 import nibabel as nib
 import itertools
 import os
+from tqdm import tqdm
 
 class FC_Parcellation:
     '''
@@ -22,6 +24,8 @@ class FC_Parcellation:
     struct_source/data_target : str
         Source (i.e., to parcellate) and target (i.e., the one with wich each voxel of the source is correlated) structures
         Default is struct_source = 'spinalcord', struct_target = 'brain'
+    fc_metric: str
+        Defines metrics to used to compute functional connectivity (e.g., 'corr' or 'mi') (Default = 'corr')
     clusters : dict
         Will contain the labeling results for each subject
     data_source/target : dict of array
@@ -37,10 +41,11 @@ class FC_Parcellation:
         - affinity: metric used to compute the linkage (Default = 'euclidean')
     '''
     
-    def __init__(self, config, struct_source='spinacord', struct_target='brain', params_kmeans={'init':'k-means++', 'n_init':100, 'max_iter':300}, params_agglom={'linkage':'ward', 'affinity':'euclidean'}):
+    def __init__(self, config, struct_source='spinacord', struct_target='brain', fc_metric='corr', params_kmeans={'init':'k-means++', 'n_init':100, 'max_iter':300}, params_agglom={'linkage':'ward', 'affinity':'euclidean'}):
         self.config = config # Load config info
         self.struct_source = struct_source
         self.struct_target = struct_target
+        self.fc_metric=fc_metric
         self.clusters = {}
         # Load data
         self.data_source = {}
@@ -55,9 +60,10 @@ class FC_Parcellation:
         self.linkage = params_agglom.get('linkage')
         self.affinity = params_agglom.get('affinity')
 
-    def compute_voxelwise_correlation(self, sub, mask_source_path, mask_target_path, load_from_file, save_results=True, Fisher=True):
+    def compute_voxelwise_fc(self, sub, mask_source_path, mask_target_path, load_from_file, save_results=True):
         '''
-        To compute Pearson correlation between each voxel of mask_source to all voxels of mask_target
+        To compute functional connectivity between each voxel of mask_source to all voxels of mask_target
+        Can be done using Pearson correlation or Mutual Information
         
         Inputs
         ------------
@@ -66,23 +72,21 @@ class FC_Parcellation:
         mask_source/target_path : str
             paths of masks defining the regions to consider
         load_from_file : boolean
-            if set to True, correlations are loaded from file directly
+            if set to True, fc loaded from file directly
         save_results : boolean
-            if set to True, correlations are saved to .npy file (Default = True)
-        Fisher : boolean
-            to Fisher-transform the correlation (default = True).
+            if set to True, fc saved to .npy file (Default = True)
         njobs: int
             number of jobs for parallelization (Default = 10)
 
         Output
         ------------
-        dict_corr : dict
+        dict_fc : dict
             dictionary containing two fields
             id -> subject tag for saving (e.g., name, 'mean', ...)
-            correlation -> matrix to use as input for the clustering (typically an array with dimensions n_sc_voxels x n_br_voxels)
+            connectivity -> matrix to use as input for the clustering (typically an array with dimensions n_sc_voxels x n_br_voxels)
         '''
         
-        print(f"COMPUTE VOXELWISE CORRELATION")
+        print(f"COMPUTE VOXELWISE FC")
         
         # Read mask data
         self.mask_source_path = mask_source_path
@@ -90,47 +94,56 @@ class FC_Parcellation:
         self.mask_source = nib.load(self.mask_source_path).get_data().astype(bool)
         self.mask_target = nib.load(self.mask_target_path).get_data().astype(bool)
 
-        # Compute correlations
-        # We can load the correlations from file if it exists
-        if load_from_file and os.path.isfile(self.config['main_dir'] + self.config['output_dir'] + '/correlations/' + self.config['output_tag'] + '_' + sub + '_correlations.npy'):
-            print(f"... Load correlations from file")
-            correlations = np.load(self.config['main_dir'] + self.config['output_dir'] + '/correlations/' +  self.config['output_tag'] + '_' + sub + '_correlations.npy')
-        else: # Otherwise we compute the correlations    
-            print(f"... Computing correlations for all possibilities")
+        # Compute FC
+        # We can load it from file if it exists
+        if load_from_file and os.path.isfile(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy'):
+            print(f"... Load FC from file")
+            fc = np.load(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy')
+        else: # Otherwise we compute FC    
+            print(f"... Computing FC for all possibilities")
+            
             # Create empty array
-            correlations = np.zeros((np.count_nonzero(self.mask_source),np.count_nonzero(self.mask_target)))
+            fc = np.zeros((np.count_nonzero(self.mask_source),np.count_nonzero(self.mask_target)))
             data_source_masked = self.data_source[sub][self.mask_source]
             data_target_masked = self.data_target[sub][self.mask_target] 
-            correlations = self._corr2_coeff(data_source_masked,data_target_masked)
-            if Fisher == True:
+    
+            if self.fc_metric == 'corr':
+                print("... Metric: correlation")
+                fc = self._corr2_coeff(data_source_masked,data_target_masked)
                 print(f"... Fisher transforming correlations")
-                correlations = np.arctanh(correlations)
-            if save_results == True:            
-                np.save(self.config['main_dir'] + self.config['output_dir'] + '/correlations/' + self.config['output_tag'] + '_' + sub + '_correlations.npy',correlations)
-            
-        dict_corr = {}
-        dict_corr['id'] = sub
-        dict_corr['correlations'] = correlations
-        
-        return dict_corr
+                fc = np.arctanh(fc)
+            elif self.fc_metric == 'mi':
+                print("... Metric: mutual information")
+                for vox_source in tqdm(range(np.shape(data_source_masked)[0])):
+                    fc[vox_source,:] = mutual_info_regression(data_target_masked.T, data_source_masked[vox_source,:].T, n_neighbors=8) 
+                    fc[vox_source,:] = np.max(fc[vox_source,:])
 
-    def run_clustering(self, dict_corr, k, algorithm, load_from_file, save_results=True):
+            if save_results == True:            
+                np.save(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '_' + self.fc_metric + '.npy',fc)
+            
+        dict_fc = {}
+        dict_fc['id'] = sub
+        dict_fc['connectivity'] = fc
+        
+        return dict_fc
+
+    def run_clustering(self, dict_fc, k, algorithm, load_from_file, save_results=True):
         '''  
         Run clustering for a specific number of clusters
         (See define_n_clusters to help pick this)
         
         Inputs
         ------------
-        dict_corr : dict
+        dict_fc: dict
             dictionary containing two fields
             id -> subject tag for saving (e.g., name, 'mean', ...)
-            correlations -> matrix to use as input for the clustering (typically an array with dimensions n_sc_voxels x n_br_voxels)
+            connectivity -> matrix to use as input for the clustering (typically an array with dimensions n_sc_voxels x n_br_voxels)
         k : int
             number of clusters  
         algorithm : str
             defines which algorithm to use ('kmeans' or 'agglom')
         load_from_file : boolean
-            if set to True, correlations are loaded from file directly
+            if set to True, labels loaded from file directly
         save_results : boolean
             if set to True, cluster labels are saved to .npy file (Default = True)
         
@@ -143,9 +156,9 @@ class FC_Parcellation:
         self.k = k 
         self.algorithm = algorithm # So that the algorithm is defined based on last run of clustering
 
-        if load_from_file and os.path.isfile(self.config['main_dir'] + self.config['output_dir'] + '/labels/arrays/' + self.config['output_tag'] + '_' + dict_corr['id'] + '_' + algorithm + '_labels_k' + str(self.k) + '.npy'):
+        if load_from_file and os.path.isfile(self.config['main_dir'] + self.config['output_dir'] + '/labels/arrays/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_labels_k' + str(self.k) + '.npy'):
             print(f"... Load labels from file")
-            labels = np.load(self.config['main_dir'] + self.config['output_dir'] + '/labels/arrays/' + self.config['output_tag'] + '_' + dict_corr['id'] + '_' + algorithm + '_labels_k' + str(self.k) + '.npy')
+            labels = np.load(self.config['main_dir'] + self.config['output_dir'] + '/labels/arrays/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_labels_k' + str(self.k) + '.npy')
         
         else:
             if algorithm == 'kmeans':
@@ -155,7 +168,7 @@ class FC_Parcellation:
                 kmeans_kwargs = {'n_clusters': self.k, 'init': self.init, 'max_iter': self.max_iter, 'n_init': self.n_init}
 
                 kmeans_clusters = KMeans(**kmeans_kwargs)
-                kmeans_clusters.fit(dict_corr['correlations'])
+                kmeans_clusters.fit(dict_fc['connectivity'])
 
                 labels = kmeans_clusters.labels_
 
@@ -165,7 +178,7 @@ class FC_Parcellation:
                 agglom_kwargs = {'n_clusters': self.k, 'linkage': self.linkage, 'affinity': self.affinity}
 
                 agglom_clusters = AgglomerativeClustering(**agglom_kwargs)
-                agglom_clusters.fit(dict_corr['correlations'])
+                agglom_clusters.fit(dict_fc['connectivity'])
 
                 labels = agglom_clusters.labels_
 
@@ -174,7 +187,7 @@ class FC_Parcellation:
 
             if save_results == True:
                 # Save arrays
-                np.save(self.config['main_dir'] + self.config['output_dir'] + '/labels/arrays/' + self.config['output_tag'] + '_' + dict_corr['id'] + '_' + algorithm + '_labels_k' + str(self.k) + '.npy', labels)
+                np.save(self.config['main_dir'] + self.config['output_dir'] + '/labels/arrays/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_labels_k' + str(self.k) + '.npy', labels)
                 
         return labels
 
@@ -223,7 +236,7 @@ class FC_Parcellation:
         print("DONE")
         return group_labels, indiv_labels_relabeled
 
-    def define_n_clusters(self, dict_corr, k_range, algorithm='kmeans', save_results=True):
+    def define_n_clusters(self, dict_fc, k_range, algorithm='kmeans', save_results=True):
         '''  
         Probe different number of clusters to define best option
         Two methods are used:
@@ -232,10 +245,10 @@ class FC_Parcellation:
         
         Inputs
         ------------
-        dict_corr : dict
+        dict_fc : dict
             dictionary containing two fields
             id -> subject tag for saving (e.g., name, 'mean', ...)
-            correlation -> matrix to use as input for the clustering (typically an array with dimensions n_sc_voxels x n_br_voxels)
+            connectivity -> matrix to use as input for the clustering (typically an array with dimensions n_sc_voxels x n_br_voxels)
         k_range : array
             Number of clusters to include in the comparison
         algorithm: str
@@ -267,13 +280,13 @@ class FC_Parcellation:
 
             if algorithm == 'kmeans':
                 clusters = KMeans(n_clusters=k,**kwargs)
-                clusters.fit(dict_corr['correlations'])
+                clusters.fit(dict_fc['connectivity'])
                 sse.append(clusters.inertia_)
             elif algorithm == 'agglom':
                 clusters = AgglomerativeClustering(n_clusters=k,**kwargs)
-                clusters.fit(dict_corr['correlations'])
+                clusters.fit(dict_fc['connectivity'])
                 sse = np.zeros(len(k_range)) # SSE not relevant here 
-            score = silhouette_score(dict_corr['correlations'], clusters.labels_)
+            score = silhouette_score(dict_fc['connectivity'], clusters.labels_)
             silhouette_coefficients.append(score)
 
         # Find knee point of SSE
@@ -294,10 +307,10 @@ class FC_Parcellation:
 
         if save_results == True:
             # Save arrays
-            np.save(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + dict_corr['id'] + '_' + algorithm + '_define_K_SSE.npy',sse)
-            np.save(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + dict_corr['id'] + '_' + algorithm + '_define_K_silhouette.npy',silhouette_coefficients)
+            np.save(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_define_K_SSE.npy',sse)
+            np.save(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_define_K_silhouette.npy',silhouette_coefficients)
             # Save figure
-            plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + dict_corr['id'] + '_' + algorithm + '_define_K.png')
+            plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_define_K.png')
 
         print("DONE")
 
@@ -338,9 +351,9 @@ class FC_Parcellation:
             Labels (source) to use to define connectivity patterns (target) (nb_subjects x nb_vox_source)
             Normally, relabeled labelled of each subject
         load_from_file : boolean
-            if set to True, correlations are loaded from file directly
+            if set to True, maps loaded from file directly
         save_results : boolean
-            if set to True, cluster labels are saved to .npy file (Default = True)
+            if set to True, maps are saved to .npy file (Default = True)
         
         Outputs
         ------------
@@ -362,11 +375,11 @@ class FC_Parcellation:
             brain_maps = np.zeros((labels.shape[0],len(np.unique(labels)),np.count_nonzero(self.mask_target)))
             for sub in range(0,labels.shape[0]):
                 print(f"Subject {self.config['list_subjects'][sub]}")
-                print(f"... Load correlations")
-                correlations = np.load(self.config['main_dir'] + self.config['output_dir'] + '/correlations/' +  self.config['output_tag'] + '_' + self.config['list_subjects'][sub] + '_correlations.npy')
+                print(f"... Load FC")
+                fc = np.load(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' +  self.config['output_tag'] + '_' + self.config['list_subjects'][sub] + '_' + self.fc_metric + '.npy')
                 print(f"... Compute mean map per label")
                 for label in np.unique(labels):
-                    brain_maps[sub,label,:] = np.mean(correlations[np.where(labels[sub,:]==label),:],axis=1)
+                    brain_maps[sub,label,:] = np.mean(fc[np.where(labels[sub,:]==label),:],axis=1)
                     
                 print("... Save as nifti files")
                 brain_mask = NiftiMasker(self.mask_target_path).fit()

@@ -72,7 +72,7 @@ class Plotting:
 
     # ======= SPINAL CORD ========
     
-    def sc_plot(self, k_per_line=None, lthresh=2, uthresh=4.0, auto_thresh=False, perc_thresh=90, centering_method='max', show_spinal_levels=False, colormap='autumn', save_results=False):
+    def sc_plot(self, k_per_line=None, lthresh=2, uthresh=4.0, auto_thresh=False, perc_thresh=90, centering_method='max', similarity_method='Dice', show_spinal_levels=False, colormap='autumn', save_results=False):
         ''' Plot components overlaid on PAM50 template (coronal and axial views are shown)
         
         Inputs
@@ -90,6 +90,8 @@ class Plotting:
             Method to center display in the anterio-posterior direction (default = 'max')
                 'max' to center based on voxel with maximum activity
                 'middle' to center in the middle of the volume
+        similarity_method : str
+            Method to compute similarity if there are two datasets (default = Dice)
         show_spinal_levels : boolean
             Defines whether spinal levels are displayed or not (default = False)
         colormap : str
@@ -124,8 +126,8 @@ class Plotting:
         
         # Order the second dataset
         if len(self.k.keys())==2:
-            # Calculate the dice coefficient between the two datasets
-            _ , _, order2 = compute_similarity(self.config, self.data_sorted[secondary_dataset], self.data_sorted[main_dataset], thresh1=lthresh, thresh2=lthresh, method='Dice', match_compo=True, plot_results=False, save_results=False)
+            # Compute similarity between datasets & match them            
+            _ , _, order2 = compute_similarity(self.config, self.data_sorted[secondary_dataset], self.data_sorted[main_dataset], thresh1=lthresh, thresh2=lthresh, method=similarity_method, match_compo=True, plot_results=False, save_results=False)
             self.data_matched[main_dataset] = self.data_sorted[main_dataset][:,:,:,order2] # We reorder the dataset based on similarity
             self.spinal_levels_matched[main_dataset] = self.spinal_levels_sorted[main_dataset][order2] # Also reorder spinal levels accordingly (just in case the two datasets have different sizes)
         max_k = self.k[main_dataset]
