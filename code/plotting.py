@@ -46,11 +46,18 @@ class Plotting:
         self.dataset[self.name1] = params1.get('dataset') 
         self.analysis = {}
         self.analysis[self.name1] = params1.get('analysis')
+        self.duration = {}
+        self.duration[self.name1] = params1.get('duration') # precise the duration analysis you want to plot
+        
         if params2 is not None: # We will look into a second set of components (if params2=None, we just have one)
             self.name2 = params2.get('dataset')+'_'+params2.get('analysis')+'_'+str(params2.get('k'))
+            if self.name1==self.name2:
+                self.name2=self.name2 + "2"
             self.k[self.name2] = params2.get('k')
             self.dataset[self.name2] = params2.get('dataset')
             self.analysis[self.name2] = params2.get('analysis')
+            self.duration[self.name2] = params2.get('duration')
+            
         
         self.sorting_method = sorting_method
         self.data = {} # To store the data with their initial order (i.e., as in the related nifti files)
@@ -63,8 +70,11 @@ class Plotting:
         self.spinal_levels_matched={}
          
         # Load components
-        for set in self.k.keys():       
-            self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
+        for set in self.k.keys():
+            if self.duration[set] != None:
+                self.data[set] =nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + self.duration[set]  + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
+            else:                
+                self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
             self.map_order[set] = sort_maps(self.data[set], self.sorting_method)
             self.data_sorted[set] = self.data[set][:,:,:,self.map_order[set]]  
             self.spinal_levels[set] = match_levels(self.config, self.data[set],method="max intensity")

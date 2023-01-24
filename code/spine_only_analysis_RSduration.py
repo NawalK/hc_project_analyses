@@ -28,9 +28,12 @@ class SpineOnlyAnalysis:
         self.config = config # Load config info
 
         # Define names for the two sets of interest
+        
         self.name1=params1.get('dataset')+'_'+params1.get('analysis')
         self.name2=params2.get('dataset')+'_'+params2.get('analysis')
-
+        if self.name1 == self.name2:
+            self.name1=self.name1 + "2" # rename in case the two analysis had the same name
+            
         # Define k range, dataset and analysis from given parameters
         self.k_range = {}
         self.k_range[self.name1] = params1.get('k_range')
@@ -51,12 +54,14 @@ class SpineOnlyAnalysis:
         for set in self.k_range.keys(): # For each set
             self.data[set] = {}
             if self.t_range[set]==None:
+
                 for k_ind,k in enumerate(self.k_range[set]): # For each k
                     self.data[set][k] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
             
             elif self.t_range[set]!=None:
                 for k_ind,k in enumerate(self.k_range[set]): 
                     for t in self.t_range[set]:
+                        print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + str(t) + 'min/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')
                         self.data[set][t] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + str(t) + 'min/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
 
                 
@@ -103,7 +108,7 @@ class SpineOnlyAnalysis:
         elif k_range != None and k1 == None and k2 == None and t_range2 == None: 
             method = 2
             
-        elif k1 != None and t_range2 != None :
+        elif k1 != None and t_range1 != None and t_range2 != None :
             method = 3
             
         
@@ -162,7 +167,7 @@ class SpineOnlyAnalysis:
                 if verbose == True:
                     print(f'... Computing similarity for K={k1} between t={t} min and t={t_range1} min')
                 
-                similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k1], self.data[self.name2][t], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k1-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k1-1)//10], method=similarity_method, match_compo=True, verbose=False)
+                similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][t_range1], self.data[self.name2][t], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k1-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k1-1)//10], method=similarity_method, match_compo=True, verbose=False)
                 mean_similarity[t_ind] = np.mean(np.diagonal(similarity_matrix))
             fig, ax = plt.subplots(figsize=(10,4))
             ax.plot(range(1,len(t_range2)+1), mean_similarity, linewidth=2, markersize=10, marker='.')

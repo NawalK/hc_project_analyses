@@ -1,0 +1,24 @@
+4
+Analyse will be run on spinalcord structure
+Mask: /cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//templates/PAM50/template/PAM50_cord_C5toC8.nii.gz
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
