@@ -209,7 +209,7 @@ class ICA:
 
         '''
         if self.config["ica_ana"]["n_comp"]<10:
-            n_comp_pca=40
+            n_comp_pca=20
             
         elif self.config["ica_ana"]["n_comp"]>=10 and self.config["ica_ana"]["n_comp"]< 20:
             n_comp_pca=40

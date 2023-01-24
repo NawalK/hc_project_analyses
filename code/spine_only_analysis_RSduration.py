@@ -41,19 +41,27 @@ class SpineOnlyAnalysis:
         self.analysis = {}
         self.analysis[self.name1] = params1.get('analysis')
         self.analysis[self.name2] = params2.get('analysis')
-        
-        self.analysis[self.name1] = params1.get('input_dir')
-        self.analysis[self.name2] = params2.get('input_dir')
+        self.t_range = {}
+        self.t_range[self.name1] = params1.get('t_range')
+        self.t_range[self.name2] = params2.get('t_range')
         
         self.data = {} # To store the data with their initial order (i.e., as in the related nifti files)
 
         # Load components
         for set in self.k_range.keys(): # For each set
             self.data[set] = {}
-            for k_ind,k in enumerate(self.k_range[set]): # For each k
-                self.data[set][k] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
+            if self.t_range[set]==None:
+                for k_ind,k in enumerate(self.k_range[set]): # For each k
+                    self.data[set][k] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
             
-    def spatial_similarity(self, k1=None, k2=None, k_range=None, similarity_method='Dice', sorting_method='rostrocaudal', save_results=True, verbose=True):
+            elif self.t_range[set]!=None:
+                for k_ind,k in enumerate(self.k_range[set]): 
+                    for t in self.t_range[set]:
+                        self.data[set][t] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + str(t) + 'min/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
+
+                
+                
+    def spatial_similarity(self, k1=None, k2=None, k_range=None, t_range1=None, t_range2=None, similarity_method='Dice', sorting_method='rostrocaudal', save_results=True, verbose=True):
         '''
         Compares spatial similarity for different sets of components.
         Can be used for different purposes:
@@ -84,16 +92,21 @@ class SpineOnlyAnalysis:
         '''
 
         # Check if k values are provided & choose method accordingly
-        if k_range == None and k1 == None and k2 == None: 
+        if k_range == None and k1 == None and k2 == None and t_range2 == None: 
             raise(Exception(f'Either k_range or k1/k2 needs to be specified!'))
-        elif k_range != None and (k1 != None or k2 != None):
+        elif k_range != None and (k1 != None or k2 != None) and t_range2 == None: 
             raise(Exception(f'k_range *or* k1/k2 should be specified, not both!'))
-        elif k_range == None and k1 != None:
+        elif k_range == None and k1 != None and t_range2 == None:
             method = 1
             if k2 == None: # If just one k is provided, we assume the same should be taken for other set
                 k2 = k1
-        elif k_range != None and k1 == None and k2 == None:
+        elif k_range != None and k1 == None and k2 == None and t_range2 == None: 
             method = 2
+            
+        elif k1 != None and t_range2 != None :
+            method = 3
+            
+        
         
         # For method 1, we focus on one similarity matrix
         if method == 1:
@@ -130,6 +143,7 @@ class SpineOnlyAnalysis:
                     mask2 = nib.load(self.config['main_dir']+self.config['masks'][self.dataset[self.name2]]['spinalcord']).get_fdata()
                     similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], mask1=mask1, mask2=mask2, method=similarity_method, match_compo=True, verbose=False)
                 else:
+                    
                     similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k-1)//10], method=similarity_method, match_compo=True, verbose=False)
                 mean_similarity[k_ind] = np.mean(np.diagonal(similarity_matrix)) 
             fig, ax = plt.subplots(figsize=(10,4))
@@ -141,6 +155,22 @@ class SpineOnlyAnalysis:
                 # Save figure
                 plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_similarity_across_K.png')
 
+        elif method == 3:
+            print('METHOD 3: Comparing different sets of components at specific K values')
+            mean_similarity = np.empty(len(t_range2), dtype=object)
+            for t_ind, t in enumerate(t_range2):
+                if verbose == True:
+                    print(f'... Computing similarity for K={k1} between t={t} min and t={t_range1} min')
+                
+                similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k1], self.data[self.name2][t], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k1-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k1-1)//10], method=similarity_method, match_compo=True, verbose=False)
+                mean_similarity[t_ind] = np.mean(np.diagonal(similarity_matrix))
+            fig, ax = plt.subplots(figsize=(10,4))
+            ax.plot(range(1,len(t_range2)+1), mean_similarity, linewidth=2, markersize=10, marker='.')
+            ax.set_xticks(range(1,len(t_range2)+1))
+            ax.set_xticklabels(t_range2)
+            plt.title('Spatial similarity for different resting-state duration '); plt.xlabel('Duration (minutes)'); plt.ylabel('Mean similarity');
+
+    
         else: 
             raise(Exception(f'Something went wrong! No method was assigned...'))
 
