@@ -208,7 +208,10 @@ class ICA:
         [1] Nilearn toolbox: https://github.com/nilearn/nilearn/blob/9ddfa7259de3053a5ed6655cd662e115926cf6a5/nilearn/decomposition/base.py#L85*
 
         '''
-        if self.config["ica_ana"]["n_comp"]<10:
+        if self.config["ica_ana"]["n_comp"]<5:
+            n_comp_pca=10
+        
+        elif self.config["ica_ana"]["n_comp"]>=5 and self.config["ica_ana"]["n_comp"]< 10:
             n_comp_pca=20
             
         elif self.config["ica_ana"]["n_comp"]>=10 and self.config["ica_ana"]["n_comp"]< 20:

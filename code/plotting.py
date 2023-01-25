@@ -74,14 +74,14 @@ class Plotting:
          
         # Load components
         for set in self.k.keys():
-            if self.analysis[set]==("icap_duration" or "ica_duration") and self.duration[set] != None and self.subject[set] == None:
+            if self.analysis[set]=="icap_duration" or self.analysis[set]=="ica_duration" and self.duration[set] != None and self.subject[set] == None:
                 self.data[set] =nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + self.duration[set]  + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
             elif self.duration[set] == None and self.subject[set] != None:
                 self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_indiv/' + self.subject[set] + '_*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
             elif self.duration[set] == None and self.subject[set] == None:                
                 self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
             else:
-                raise(Exception(f'"You should define subject *or* duration, or none. If duration is chose, please choose "ica/p_duration" as analysis.'))
+                raise(Exception(f'"You should define subject *or* duration, or none. If duration is chose, please choose "ica_duration" or "icap_duration" as analysis.'))
             
             self.map_order[set] = sort_maps(self.data[set], self.sorting_method)
             self.data_sorted[set] = self.data[set][:,:,:,self.map_order[set]]  

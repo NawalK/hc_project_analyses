@@ -28,7 +28,7 @@
                     "tag_filename_brain-spinalcord":"moco_BP_brsc_reg_SPM_inTemplate_s.nii.gz"}},
                "ica":
                {"spinalcord":
-                    {"dir":"/ICA/mtl/spinalcord/indiv_canICA/sub-P030/",
+                    {"dir":"/ICA/mtl/spinalcord/",
                     "tag_filename":"4D_K"},
                "brain":
                     {"dir":"/ICA/",
@@ -45,16 +45,15 @@
                     {"dir":"/ICA/brain/",
                     "tag_filename":"4D_K"}}},
        "gva":{"inputs_ica":
-               {"dir1":"/cerebro/cerebro1/dataset/caroline/2022_SPiCiCAP_NK_CL/CL_analyses/denoising/3_func_smoothed/",
-                "dir":"/cerebro/cerebro1/dataset/caroline/2022_SPiCiCAP_NK_CL/CL_analyses/denoising/Denoised_CL_DCT_NK/",
+               {"dir":"/cerebro/cerebro1/dataset/caroline/2022_SPiCiCAP_NK_CL/CL_analyses/denoising/3_func_smoothed/",
                 "spinalcord":
-                {"tag_filename_spinalcord":"_allvol.nii.gz",
-                 "tag_filename_spinalcord1":"moco_HP_sc_inTemplate_s.nii.gz",
+                {
+                 "tag_filename_spinalcord":"moco_HP_sc_inTemplate_144vol_s.nii.gz",
                  "tag_filename_brain-spinalcord":"moco_BP_brsc_inTemplate_s.nii.gz"}},
                 "ica":
                {"spinalcord":
                 {
-                 "dir":"/ICA/gva/spinalcord/",
+                 "dir":"/ICA/gva/spinalcord/temporal_cropping/6min/",
                 "tag_filename":"4D_K"}},
               "ica_duration":
                {"spinalcord":
