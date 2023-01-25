@@ -72,9 +72,11 @@ class SpineOnlyAnalysis:
         Can be used for different purposes:
         1 – To obtain a similarity matrix for a particular K per condition
         2 – To look at the evolution of the mean similarity across different Ks
+        3 – To look at the evolution of the mean similarity across time 
 
         If single K values are specified => Method 1 is used
-        If a range is given => Method 2 is used
+        If a K range is given => Method 2 is used
+        If a K range is given => Method 3 is used
 
         Inputs
         ----------
@@ -97,21 +99,25 @@ class SpineOnlyAnalysis:
         '''
 
         # Check if k values are provided & choose method accordingly
-        if k_range == None and k1 == None and k2 == None and t_range2 == None: 
-            raise(Exception(f'Either k_range or k1/k2 needs to be specified!'))
-        elif k_range != None and (k1 != None or k2 != None) and t_range2 == None: 
+        if k_range == None and k1 == None and k2 == None and t_range1 == None and t_range2 == None: 
+            raise(Exception(f'Either k_range, k1/k2, or k1/t_range needs to be specified!'))
+        elif k_range != None and (k1 != None or k2 != None): 
             raise(Exception(f'k_range *or* k1/k2 should be specified, not both!'))
-        elif k_range == None and k1 != None and t_range2 == None:
+        elif k_range != None and (t_range1 != None or t_range2 != None): 
+            raise(Exception(f'k_range *or* t_range should be specified, not both!'))
+        elif (t_range1 != None and t_range2 == None) or (t_range1 == None and t_range2 != None): 
+            raise(Exception(f'Both t_range should be provided!'))
+        elif (t_range1 != None and t_range2 != None) and k1 == None: 
+            raise(Exception(f'A K value should also be given when t_ranges are provided!'))
+        elif k_range == None and k1 != None and t_range1 == None and t_range2 == None:
             method = 1
             if k2 == None: # If just one k is provided, we assume the same should be taken for other set
                 k2 = k1
-        elif k_range != None and k1 == None and k2 == None and t_range2 == None: 
+        elif k_range != None and k1 == None and k2 == None and t_range1 == None and t_range2 == None: 
             method = 2
-            
-        elif k1 != None and t_range1 != None and t_range2 != None :
+        elif k1 != None and t_range1 != None and t_range2 != None:
             method = 3
-            
-        
+
         
         # For method 1, we focus on one similarity matrix
         if method == 1:
@@ -161,7 +167,7 @@ class SpineOnlyAnalysis:
                 plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_similarity_across_K.png')
 
         elif method == 3:
-            print('METHOD 3: Comparing different sets of components at specific K values')
+            print('METHOD 3: Comparing sets of components across durations')
             mean_similarity = np.empty(len(t_range2), dtype=object)
             for t_ind, t in enumerate(t_range2):
                 if verbose == True:
@@ -173,8 +179,7 @@ class SpineOnlyAnalysis:
             ax.plot(range(1,len(t_range2)+1), mean_similarity, linewidth=2, markersize=10, marker='.')
             ax.set_xticks(range(1,len(t_range2)+1))
             ax.set_xticklabels(t_range2)
-            plt.title('Spatial similarity for different resting-state duration '); plt.xlabel('Duration (minutes)'); plt.ylabel('Mean similarity');
-
+            plt.title('Spatial similarity for different resting-state durations'); plt.xlabel('Duration (minutes)'); plt.ylabel('Mean similarity');
     
         else: 
             raise(Exception(f'Something went wrong! No method was assigned...'))

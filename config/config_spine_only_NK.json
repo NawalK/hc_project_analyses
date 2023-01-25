@@ -2,6 +2,13 @@
 
 "main_dir":"/media/miplab-nas2/Data3/BMPD/hc_project/",
 
+"acq_params":{"mtl":
+                {"TR":1.55,
+                "physio_frq":400},
+            "gva":
+                {"TR":2.5,
+                "physio_frq":100}},
+
 "output_dir": "/spine_only/results/",
 "output_tag": "tests_paper_z2",
     
@@ -25,8 +32,16 @@
             "icap":
                 {"spinalcord": {
                 "dir":"/spine_only/mtl/icap/",
+                "tag_filename":"iCAPs"}},
+            "ica_duration":
+                {"spinalcord": {
+                "dir":"/spine_only/mtl/ica/temporal_cropping/",
+                "tag_filename":"4D_K"}},
+            "icap_duration":
+                {"spinalcord": {
+                "dir":"/spine_only/mtl/ica/temporal_cropping/",
                 "tag_filename":"iCAPs"}}},
-        "gva":
+       "gva":
             {"ica":
                 {"spinalcord": {
                 "dir":"/spine_only/gva/ica/",
@@ -34,8 +49,17 @@
             "icap":
                 {"spinalcord": {
                 "dir":"/spine_only/gva/icap/",
-                "tag_filename":"iCAPs"}}}
+                "tag_filename":"iCAPs"}},
+            "ica_duration":
+                {"spinalcord": {
+                "dir":"/spine_only/mtl/ica/temporal_cropping/",
+                "tag_filename":"4D_K"}},
+            "icap_duration":
+                {"spinalcord": {
+                "dir":"/spine_only/mtl/ica/temporal_cropping/",
+                "tag_filename":"iCAPs"}}}          
         },
+
 
 "z_thresh": {"mtl": [2, 2, 2, 2, 2, 2],
              "gva": [2, 2, 2, 2, 2, 2]}
