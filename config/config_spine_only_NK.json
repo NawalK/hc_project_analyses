@@ -35,11 +35,11 @@
                 "tag_filename":"iCAPs"}},
             "ica_duration":
                 {"spinalcord": {
-                "dir":"/spine_only/mtl/ica/temporal_cropping/",
+                "dir":"/spine_only/mtl/ica_duration/",
                 "tag_filename":"4D_K"}},
             "icap_duration":
                 {"spinalcord": {
-                "dir":"/spine_only/mtl/ica/temporal_cropping/",
+                "dir":"/spine_only/mtl/icap_duration/",
                 "tag_filename":"iCAPs"}}},
        "gva":
             {"ica":
@@ -52,11 +52,11 @@
                 "tag_filename":"iCAPs"}},
             "ica_duration":
                 {"spinalcord": {
-                "dir":"/spine_only/mtl/ica/temporal_cropping/",
+                "dir":"/spine_only/gva/ica_duration/",
                 "tag_filename":"4D_K"}},
             "icap_duration":
                 {"spinalcord": {
-                "dir":"/spine_only/mtl/ica/temporal_cropping/",
+                "dir":"/spine_only/gva/icap_duration/",
                 "tag_filename":"iCAPs"}}}          
         },
 

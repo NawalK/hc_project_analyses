@@ -21,7 +21,9 @@ class Plotting:
         Parameters for the clustering
         - k: # of clusters
         - dataset: selected dataset (e.g., 'gva' or 'mtl')
-        - analysis: analysis method (e.g., 'ica' or 'icap')
+        - analysis: analysis method (e.g., 'ica', 'icap', 'ica_duration', 'icap_duration')
+        - duration: if analysis is ica/p_duration, you need to specify duration of interest (e.g., '1min')
+        - subject: to plot only a specific subject of interest (e.g., 'sub-01')
         Note: by default, param2=None, which means only one dataset is plotted
     name1, name2: str
         Names to identify the sets (built as dataset+analysis+k)
@@ -48,7 +50,8 @@ class Plotting:
         self.analysis[self.name1] = params1.get('analysis')
         self.duration = {}
         self.duration[self.name1] = params1.get('duration') # precise the duration analysis you want to plot
-        
+        self.subject = {}
+        self.subject[self.name1] = params1.get('subject') # precise the subject you want to plot
         if params2 is not None: # We will look into a second set of components (if params2=None, we just have one)
             self.name2 = params2.get('dataset')+'_'+params2.get('analysis')+'_'+str(params2.get('k'))
             if self.name1==self.name2:
@@ -57,7 +60,7 @@ class Plotting:
             self.dataset[self.name2] = params2.get('dataset')
             self.analysis[self.name2] = params2.get('analysis')
             self.duration[self.name2] = params2.get('duration')
-            
+            self.subject[self.name2] = params2.get('subject')
         
         self.sorting_method = sorting_method
         self.data = {} # To store the data with their initial order (i.e., as in the related nifti files)
@@ -71,10 +74,15 @@ class Plotting:
          
         # Load components
         for set in self.k.keys():
-            if self.duration[set] != None:
+            if self.analysis[set]==("icap_duration" or "ica_duration") and self.duration[set] != None and self.subject[set] == None:
                 self.data[set] =nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + self.duration[set]  + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
-            else:                
+            elif self.duration[set] == None and self.subject[set] != None:
+                self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_indiv/' + self.subject[set] + '_*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
+            elif self.duration[set] == None and self.subject[set] == None:                
                 self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
+            else:
+                raise(Exception(f'"You should define subject *or* duration, or none. If duration is chose, please choose "ica/p_duration" as analysis.'))
+            
             self.map_order[set] = sort_maps(self.data[set], self.sorting_method)
             self.data_sorted[set] = self.data[set][:,:,:,self.map_order[set]]  
             self.spinal_levels[set] = match_levels(self.config, self.data[set],method="max intensity")
@@ -252,9 +260,9 @@ class Plotting:
         # If option is set, save results as a png
         if save_results == True:
             if len(self.k.keys())==2:
-                plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.region + '_k_' + main_dataset + '_vs_' + secondary_dataset + '_thr' + str(lthresh)+ 'to' + str(uthresh) + '.png')
+                plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.region + main_dataset + '_' + (self.subject[self.name1] if self.subject[self.name1] != None else 'group') + ('_' + self.duration[self.name1] if self.duration[self.name1] != None else '') + '_vs_' + secondary_dataset + '_' + (self.subject[self.name2] if self.subject[self.name2] != None else 'group') + ('_' + self.duration[self.name2] if self.duration[self.name2] != None else '') + '_thr' + str(lthresh)+ 'to' + str(uthresh) + '.png')
             elif len(self.k.keys())==1:
-                plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.region + '_k_' + main_dataset + '_thr' + str(lthresh)+ 'to' + str(uthresh) + '.png')
+                plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.region + main_dataset + '_' + (self.subject[self.name1] if self.subject[self.name1] != None else 'group') + ('_' + self.duration[self.name1] if self.duration[self.name1] != None else '') + '_thr' + str(lthresh)+ 'to' + str(uthresh) + '.png')
     
     
     # ======= BRAIN ========
