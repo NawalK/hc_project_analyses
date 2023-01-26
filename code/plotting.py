@@ -76,9 +76,9 @@ class Plotting:
         for set in self.k.keys():
             if self.analysis[set]==("icap_duration" or "ica_duration") and self.duration[set] != None and self.subject[set] == None:
                 self.data[set] =nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + self.duration[set]  + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
-            elif self.duration[set] == None and self.subject[set] != None:
+            elif self.duration[set] == None and self.subject[set] != None and self.analysis[set]!=("icap_duration" or "ica_duration"):
                 self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_indiv/' + self.subject[set] + '_*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
-            elif self.duration[set] == None and self.subject[set] == None:                
+            elif self.duration[set] == None and self.subject[set] == None and self.analysis[set]!=("icap_duration" or "ica_duration"):                
                 self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
             else:
                 raise(Exception(f'"You should define subject *or* duration, or none. If duration is chose, please choose "ica/p_duration" as analysis.'))
