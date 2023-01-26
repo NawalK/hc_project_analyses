@@ -61,7 +61,6 @@ class SpineOnlyAnalysis:
             elif self.t_range[set]!=None:
                 for k_ind,k in enumerate(self.k_range[set]): 
                     for t in self.t_range[set]:
-                        print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + str(t) + 'min/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')
                         self.data[set][t] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + str(t) + 'min/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
 
                 
@@ -76,7 +75,7 @@ class SpineOnlyAnalysis:
 
         If single K values are specified => Method 1 is used
         If a K range is given => Method 2 is used
-        If a K range is given => Method 3 is used
+        If a t range is given => Method 3 is used
 
         Inputs
         ----------
@@ -141,7 +140,7 @@ class SpineOnlyAnalysis:
 
             if save_results == True:
                 # Save figure
-                plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_mean_similarity_' + '{:.2f}'.format(mean_similarity) + '.png')
+                plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_mean_similarity_durations_' + '{:.2f}'.format(mean_similarity) + '.png')
 
         elif method == 2:
             print('METHOD 2: Comparing two sets of components across K values')
@@ -180,7 +179,10 @@ class SpineOnlyAnalysis:
             ax.set_xticks(range(1,len(t_range2)+1))
             ax.set_xticklabels(t_range2)
             plt.title('Spatial similarity for different resting-state durations'); plt.xlabel('Duration (minutes)'); plt.ylabel('Mean similarity');
-    
+            if save_results == True:
+                # Save figure
+                plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_similarity_across_K.png')
+
         else: 
             raise(Exception(f'Something went wrong! No method was assigned...'))
 
