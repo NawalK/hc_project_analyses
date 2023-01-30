@@ -65,7 +65,7 @@ class SpineOnlyAnalysis:
 
                 
                 
-    def spatial_similarity(self, k1=None, k2=None, k_range=None, t_range1=None, t_range2=None, similarity_method='Dice', sorting_method='rostrocaudal', save_results=True, verbose=True):
+    def spatial_similarity(self, k1=None, k2=None, k_range=None, t_range1=None, t_range2=None, similarity_method='Dice', sorting_method='rostrocaudal', save_results=False,save_figure= False, verbose=True):
         '''
         Compares spatial similarity for different sets of components.
         Can be used for different purposes:
@@ -110,14 +110,21 @@ class SpineOnlyAnalysis:
             raise(Exception(f'A K value should also be given when t_ranges are provided!'))
         elif k_range == None and k1 != None and t_range1 == None and t_range2 == None:
             method = 1
+            output_fname=self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_similarity_across_K'
             if k2 == None: # If just one k is provided, we assume the same should be taken for other set
                 k2 = k1
+                
         elif k_range != None and k1 == None and k2 == None and t_range1 == None and t_range2 == None: 
             method = 2
+            output_fname=self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] +  self.name1 + '_vs_' + self.name2 + '_similarity_across_K'
+       
         elif k1 != None and t_range1 != None and t_range2 != None:
             method = 3
-
-        
+            output_fname=self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + self.name1 + '_vs_' + self.name2 + '_similarity_across_duration'
+       
+            
+        # file name of the outputs:
+            
         # For method 1, we focus on one similarity matrix
         if method == 1:
             print(f'METHOD 1: Comparing two sets of components at specific K values \n{self.name1} at K = {k1} vs {self.name2} at K = {k2} \n')
@@ -139,8 +146,10 @@ class SpineOnlyAnalysis:
             print(f'The mean similarity is {mean_similarity:.2f}')
 
             if save_results == True:
-                # Save figure
-                plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_mean_similarity_durations_' + '{:.2f}'.format(mean_similarity) + '.png')
+                np.savetxt(output_fname +'.txt',mean_similarity )
+              
+            if save_figure == True:
+                plt.savefig(output_fname )# Save figure
 
         elif method == 2:
             print('METHOD 2: Comparing two sets of components across K values')
@@ -153,7 +162,6 @@ class SpineOnlyAnalysis:
                     mask2 = nib.load(self.config['main_dir']+self.config['masks'][self.dataset[self.name2]]['spinalcord']).get_fdata()
                     similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], mask1=mask1, mask2=mask2, method=similarity_method, match_compo=True, verbose=False)
                 else:
-                    
                     similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k-1)//10], method=similarity_method, match_compo=True, verbose=False)
                 mean_similarity[k_ind] = np.mean(np.diagonal(similarity_matrix)) 
             fig, ax = plt.subplots(figsize=(10,4))
@@ -161,9 +169,12 @@ class SpineOnlyAnalysis:
             ax.set_xticks(range(1,len(k_range)+1))
             ax.set_xticklabels(k_range)
             plt.title('Spatial similarity for different granularity levels'); plt.xlabel('K value'); plt.ylabel('Mean similarity');
+            
             if save_results == True:
-                # Save figure
-                plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_similarity_across_K.png')
+                np.savetxt(output_fname + ".txt",mean_similarity)
+                              
+            if save_figure == True:
+                plt.savefig(output_fname ) #Save figure
 
         elif method == 3:
             print('METHOD 3: Comparing sets of components across durations')
@@ -180,8 +191,12 @@ class SpineOnlyAnalysis:
             ax.set_xticklabels(t_range2)
             plt.title('Spatial similarity for different resting-state durations'); plt.xlabel('Duration (minutes)'); plt.ylabel('Mean similarity');
             if save_results == True:
-                # Save figure
-                plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_similarity_across_K.png')
+                
+                save_mean_similarity=np.concatenate((np.array(t_range2).reshape((len(t_range2), 1)),np.array(mean_similarity).reshape((len(mean_similarity), 1))),axis=1)
+                np.savetxt(output_fname +'.txt',save_mean_similarity)
+              
+            if save_figure == True:
+                plt.savefig(output_fname )# Save figure
 
         else: 
             raise(Exception(f'Something went wrong! No method was assigned...'))

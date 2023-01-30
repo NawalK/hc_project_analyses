@@ -52,7 +52,7 @@ from canICA_analyses import ICA
 #config_spine_only_CL.json #../config/config_brsc_CL.json
 with open('../config/config_spine_only_CL.json') as config_file:
     config = json.load(config_file)
-dataset="gva" 
+dataset="mtl" 
 structures=["spinalcord"] # ["spinalcord"] or ["brain","spinalcord"] . double check the script for brainsc
 
 
