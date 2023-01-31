@@ -1,3 +1,4 @@
+import os
 import nibabel as nib
 import glob
 import seaborn as sns
@@ -10,25 +11,31 @@ from statistics import mean
 
 class SpineOnlyAnalysis:
     '''
-    The SpineOnlyAnalysis class is used to investigate components extracted in the spinal cord using different resting state duration
+    The SpineOnlyAnalysis class is used to investigate components extracted in the spinal cord
 
     Attributes
     ----------
     config : dict
     params1,params2 : dict
         Parameters for the clustering
-        - k_range: # of duration to consider
+        - k_range: # of components to consider
+        - t_range: different durations to consider (if the analysis is ica_duration or icap_duration)
         - dataset: selected dataset (e.g., 'gva' or 'mtl')
-        - analysis: analysis method (e.g., 'ica' or 'icap')
-    name1,name2: str
-        Names to identify the sets (built as dataset+analysis{})    
+        - analysis: analysis method (e.g., 'ica', 'icap', 'ica_duration' or 'icap_duration')
+    name1,name2 : str
+        Names to identify the sets (built as dataset+analysis)   
+    load_subjects : boolean
+        Defines whether subjects have been loaded or not 
     '''
     
-    def __init__(self, config, params1, params2):
+    def __init__(self, config, params1, params2, load_subjects=False):
+        '''
+        Note: load_subjects can be toggle to decide whether or not to load the data from individual subjects (to save time in case it is not needed)
+        '''
         self.config = config # Load config info
+        self.load_subjects = load_subjects
 
         # Define names for the two sets of interest
-        
         self.name1=params1.get('dataset')+'_'+params1.get('analysis')
         self.name2=params2.get('dataset')+'_'+params2.get('analysis')
         if self.name1 == self.name2:
@@ -49,23 +56,29 @@ class SpineOnlyAnalysis:
         self.t_range[self.name2] = params2.get('t_range')
         
         self.data = {} # To store the data with their initial order (i.e., as in the related nifti files)
+        self.data_indiv = {}
 
         # Load components
         for set in self.k_range.keys(): # For each set
             self.data[set] = {}
-            if self.t_range[set]==None:
-
+            self.data_indiv[set] = {}
+            if self.t_range[set] == None:
                 for k_ind,k in enumerate(self.k_range[set]): # For each k
                     self.data[set][k] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
+                    
+                    # Here it is assumed that we do not explore subject-specific components for different durations
+                    if self.load_subjects == True:
+                        self.data_indiv[set][k] = {}
+                        for sub in self.config['list_subjects'][self.dataset[set]]:
+                            self.data_indiv[set][k][sub] = {}
+                            self.data_indiv[set][k][sub] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_indiv/sub-' + sub + '*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata() 
             
-            elif self.t_range[set]!=None:
+            elif self.t_range[set] != None:
                 for k_ind,k in enumerate(self.k_range[set]): 
                     for t in self.t_range[set]:
                         self.data[set][t] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + str(t) + 'min/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
 
-                
-                
-    def spatial_similarity(self, k1=None, k2=None, k_range=None, t_range1=None, t_range2=None, similarity_method='Dice', sorting_method='rostrocaudal', save_results=False,save_figure= False, verbose=True):
+    def spatial_similarity(self, k1=None, k2=None, k_range=None, t_range1=None, t_range2=None, similarity_method='Dice', sorting_method='rostrocaudal', save_results=False,save_figure=False, verbose=True):
         '''
         Compares spatial similarity for different sets of components.
         Can be used for different purposes:
@@ -203,7 +216,7 @@ class SpineOnlyAnalysis:
         else: 
             raise(Exception(f'Something went wrong! No method was assigned...'))
 
-    def k_axial_distribution(self, data_name, k_range=None, vox_percentage=70, save_results=True, verbose=True):
+    def k_axial_distribution(self, data_name, k_range=None, vox_percentage=70, save_results=False, verbose=True):
         '''
         Compares the axial distribution of components for different Ks
         Categories:
@@ -222,7 +235,7 @@ class SpineOnlyAnalysis:
             Lower threshold value to binarize components (default = 2)
         vox_percentage : int
             Defines the percentage of voxels that need to be in a region to consider it matched (default = 70)
-        save_results : str
+        save_results : boolean
             Defines whether results are saved or not (default = False)
         verbose : bool
             If True, print progress for each K (default = True)
@@ -303,4 +316,63 @@ class SpineOnlyAnalysis:
         
         return axial_distribution_counts
 
-                
+    def subject_distribution(self, data_name, k, thresh=2, overwrite_bin=False, save_results=False):
+        '''
+        Create maps of the distribution of subject level components
+        
+        Inputs
+        ----------
+        data_name : str
+            Name of the set of components to analyze
+        k : int
+            # of components to consider
+        thresh : float
+            Lower threshold value to binarize components (default = 2)
+        overwrite_bin : boolean
+            Defines whether binarized maps should be overwritten (default = False)
+        save_results : boolean
+            Defines whether results are saved or not (default = False)
+
+        print(f'COMPUTING INDIVIDUAL MAPS FOR \n ––– Set: {data_name} \n ––– K: {k} \n ––– Overwriting binarized maps: {overwrite_bin}')
+        
+        # Saving common data path for simplicity
+        datapath = self.config['main_dir'] + self.config['data'][self.dataset[data_name]][self.analysis[data_name]]['spinalcord']['dir'] + 'K_' + str(k)
+        print(f'...Binarize maps')
+        for sub in self.config['list_subjects'][self.dataset[data_name]]:
+            if overwrite_bin==True or not glob.glob(datapath + '/comp_indiv/sub-' + sub + '*' + self.config['data'][self.dataset[data_name]][self.analysis[data_name]]['spinalcord']['tag_filename'] + '*_bin.nii*'):
+                print(f'......Running on sub-' + sub)
+                # Take basename for this subject
+                base_sub = glob.glob(datapath + '/comp_indiv/sub-' + sub + '*' + self.config['data'][self.dataset[data_name]][self.analysis[data_name]]['spinalcord']['tag_filename'] + '*.nii*')[0].split('.')[0]
+                run_string = 'fslmaths ' + base_sub + ' -thr ' + str(thresh) + ' -bin ' +  base_sub + '_bin'                   
+                os.system(run_string)
+            elif overwrite_bin==False and os.path.isfile(glob.glob(datapath + '/comp_indiv/sub-' + sub + '*' + self.config['data'][self.dataset[data_name]][self.analysis[data_name]]['spinalcord']['tag_filename'] + '*_bin.nii*')):
+                print(f'......Already done for sub-' + sub)
+        '''
+
+        print(f'SUBJECT DISTRIBUTION FOR \n ––– Set: {data_name} \n ––– K: {k}')
+        
+        print('...Sorting and binarize individual maps')
+        #n_sub = (len(self.config['list_subjects'][self.dataset[data_name]]),)
+        #data_sorted_bin = np.zeros(n_sub+self.data_indiv[data_name][k][self.config['list_subjects'][self.dataset[data_name]][0]].shape)
+        #data_sorted_bin = np.empty((1,)+self.data_indiv[data_name][k][self.config['list_subjects'][self.dataset[data_name]][0]].shape)
+        for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[data_name]]):
+            map_order = sort_maps(self.data_indiv[data_name][k][sub], sorting_method='rostrocaudal') # We sort each subject maps rostrocaudally
+            data_sorted = self.data_indiv[data_name][k][sub][:,:,:,map_order]
+            #data_sorted_bin(sub,:,:,:,:) = np.where(data_sorted >= thresh, 1, 0) # Sorted maps are then binarized
+            if sub_ind == 0:
+                data_sorted_bin = [np.where(data_sorted >= thresh, 1, 0)]
+            else:
+                data_sorted_bin = np.append(data_sorted_bin,[np.where(data_sorted >= thresh, 1, 0)],axis=0)
+
+
+        print('...Computing overlap')
+        data_sorted_bin_sum = np.sum(data_sorted_bin, axis=0)
+ 
+        print('...Saving distribution nifti')
+        
+        # Load affine fron template
+        template_img = nib.load(self.config['main_dir'] + self.config['templates']['spinalcord'])
+        dist_4d_img = nib.Nifti2Image(data_sorted_bin_sum,affine=template_img.affine)
+        nib.save(dist_4d_img, self.config['main_dir']+self.config['data'][self.dataset[data_name]][self.analysis[data_name]]['spinalcord']['dir'] + '/K_' + str(k) + '/comp_indiv/distribution.nii.gz')
+
+        print('Done!')
