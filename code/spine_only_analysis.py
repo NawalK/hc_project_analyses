@@ -92,7 +92,9 @@ class SpineOnlyAnalysis:
             Method used to sort maps (default = 'rostrocaudal')
             Note: only used for method 1
         save_results : boolean
-            Results are saved as npy and png if set to True (Default = True)
+            Results are saved as npy or txt if set to True (Default = False)
+        save_figure : boolean
+            Figures are saved if set to True (Default = False)
         verbose : bool
             If True, print progress for each K (default=True)
         '''
@@ -116,11 +118,11 @@ class SpineOnlyAnalysis:
                 
         elif k_range != None and k1 == None and k2 == None and t_range1 == None and t_range2 == None: 
             method = 2
-            output_fname=self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] +  self.name1 + '_vs_' + self.name2 + '_similarity_across_K'
+            output_fname=self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' +  self.name1 + '_vs_' + self.name2 + '_similarity_across_K'
        
         elif k1 != None and t_range1 != None and t_range2 != None:
             method = 3
-            output_fname=self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + self.name1 + '_vs_' + self.name2 + '_similarity_across_duration'
+            output_fname=self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_similarity_across_duration'
        
             
         # file name of the outputs:
