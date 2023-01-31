@@ -88,6 +88,7 @@ class ICA:
                 os.mkdir(self.analyse_dir +'/comp_raw/')
                 os.mkdir(self.analyse_dir + '/comp_zscored/')
                 os.mkdir(self.analyse_dir + '/comp_bin/')
+                os.mkdir(self.analyse_dir + '/pca_indiv/')
                 os.mkdir(self.analyse_dir + '/comp_indiv/')  
                 if not os.path.exists(self.config["main_dir"] + self.config["data"][self.dataset]["ica"][self.structures_ana[0]+'_'+self.structures_ana[1]]["dir"] +'/'+  '/subject_data/'):
                         os.mkdir(self.config["main_dir"] + self.config["data"][self.dataset]["ica"][self.structures_ana[0]+'_'+self.structures_ana[1]]["dir"] +'/'+  '/subject_data/')
@@ -253,6 +254,8 @@ class ICA:
                    
                     components_img = self.nifti_masker[structure].inverse_transform(reducedata_all[j-n_comp_pca:j]) # transform the components in nifti
                     components_img.to_filename(self.analyse_dir + '/comp_indiv/sub-' + subject_name +'_comp_ICA.nii.gz') #save the n principal components for each subjects
+                    #components_img.to_filename(self.analyse_dir + '/pca_indiv/sub-' + subject_name +'_comp_ICA.nii.gz') #save the n principal components for each subject
+                    
                     print("- 4D image create for sbj  " +subject_name)
         print(">> Individual PCA done <<")
         return reducedata_all

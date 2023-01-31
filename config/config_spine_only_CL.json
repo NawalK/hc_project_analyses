@@ -64,8 +64,8 @@
               
                  "icap":
                 {"spinalcord":
-                {"dir":"/iCAP/spinalcord/",
-                "tag_filename":"4D"}}}},
+                {"dir":"/iCAP/results_spine_only/gva/spinalcord/",
+                "tag_filename":"_z"}}}},
          
 
  "ica_ana":{"iter": 500,
