@@ -74,6 +74,7 @@ class ICA:
             self.files_func[self.structures]={};self.func_allsbj[self.structures]=[]
             for sbj_nb in range(0,len(self.config["list_subjects"][dataset])):
                 subject_name=self.config["list_subjects"][dataset][sbj_nb]
+                print(inputs_strct1[sbj_nb])
                 self.files_func[self.structures][subject_name]=inputs_strct1[sbj_nb]
        
                 
@@ -87,6 +88,7 @@ class ICA:
                 os.mkdir(self.analyse_dir +'/comp_raw/')
                 os.mkdir(self.analyse_dir + '/comp_zscored/')
                 os.mkdir(self.analyse_dir + '/comp_bin/')
+                os.mkdir(self.analyse_dir + '/pca_indiv/')
                 os.mkdir(self.analyse_dir + '/comp_indiv/')  
                 if not os.path.exists(self.config["main_dir"] + self.config["data"][self.dataset]["ica"][self.structures_ana[0]+'_'+self.structures_ana[1]]["dir"] +'/'+  '/subject_data/'):
                         os.mkdir(self.config["main_dir"] + self.config["data"][self.dataset]["ica"][self.structures_ana[0]+'_'+self.structures_ana[1]]["dir"] +'/'+  '/subject_data/')
@@ -252,6 +254,8 @@ class ICA:
                    
                     components_img = self.nifti_masker[structure].inverse_transform(reducedata_all[j-n_comp_pca:j]) # transform the components in nifti
                     components_img.to_filename(self.analyse_dir + '/comp_indiv/sub-' + subject_name +'_comp_ICA.nii.gz') #save the n principal components for each subjects
+                    #components_img.to_filename(self.analyse_dir + '/pca_indiv/sub-' + subject_name +'_comp_ICA.nii.gz') #save the n principal components for each subject
+                    
                     print("- 4D image create for sbj  " +subject_name)
         print(">> Individual PCA done <<")
         return reducedata_all
@@ -283,7 +287,7 @@ class ICA:
 
         return components_
 
-    def get_ICA(self,components_):
+    def get_ICA(self,components_,k=None):
     
         '''
         source separation using spatial ICA on subspace
@@ -310,11 +314,19 @@ class ICA:
         random_state = check_random_state(random_state)
         seeds = random_state.randint(np.iinfo(np.int32).max, size=self.iter)
         components_.astype(np.float64) # to avoid NaN and inf values
+        
+        if k == None:
+            results = (fastica(components_, whiten=True, fun='cube',random_state=seed)
+            for seed in seeds)
+        
+        else :
+            results = (fastica(components_,n_components=k,whiten=True, fun='cube',random_state=seed)
+                       for seed in seeds)
+            #results = transformer.fit_transform(components_)
+        
 
-        results = (fastica(components_, whiten=True, fun='cube',random_state=seed)
-        for seed in seeds)
              
- 
+
         ica_maps_gen_ = (result[2] for result in results)
         ica_maps_and_sparsities = ((ica_map,
                                     np.sum(np.abs(ica_map), axis=1).max())
@@ -362,7 +374,7 @@ class ICA:
         print(">> Group ICA done <<")
         return  components_final, components_final_z
     
-    def save_components(self,components_final,components_final_z):
+    def save_components(self,components_final,components_final_z,output_dir=None):
         '''
         The iCA class is used to calculate CanICA in different structures (brain and/or spinalcord)
         Attributes
@@ -385,10 +397,13 @@ class ICA:
 
             zimg=[]
         # Define output folders -----------------------------------------------------------------
-            if not '_' in self.structures_ana:
-                outputdir=self.analyse_dir  
+            if output_dir is None: # use default name
+                if not '_' in self.structures_ana:
+                    outputdir=self.analyse_dir  
+                else:
+                    outputdir=self.analyse_dir +'/'+structure +'/'
             else:
-                outputdir=self.analyse_dir +'/'+structure +'/'
+                outputdir=output_dir
                                                              
         # 1. Transform matrice of data into image nifti
         #-----------------------------------------------------------------

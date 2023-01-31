@@ -55,6 +55,10 @@ class SpineOnlyAnalysis:
         self.t_range[self.name1] = params1.get('t_range')
         self.t_range[self.name2] = params2.get('t_range')
         
+        self.subject = {}
+        self.subject[self.name1] = params1.get('subject')
+        self.subject[self.name2] = params2.get('subject')
+        
         self.data = {} # To store the data with their initial order (i.e., as in the related nifti files)
         self.data_indiv = {}
 
@@ -64,18 +68,27 @@ class SpineOnlyAnalysis:
             self.data_indiv[set] = {}
             if self.t_range[set] == None:
                 for k_ind,k in enumerate(self.k_range[set]): # For each k
-                    self.data[set][k] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
+                    if self.subject[set] == None:
+                        self.data[set][k] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
+                       # Here it is assumed that we do not explore subject-specific components for different durations
+                        if self.load_subjects == True:
+                            self.data_indiv[set][k] = {}
+                            for sub in self.config['list_subjects'][self.dataset[set]]:
+                                print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_indiv/sub-' + sub + '*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')
+                                self.data_indiv[set][k][sub] = {}
+                                self.data_indiv[set][k][sub] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_indiv/sub-' + sub + '*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata() 
+    
                     
-                    # Here it is assumed that we do not explore subject-specific components for different durations
-                    if self.load_subjects == True:
-                        self.data_indiv[set][k] = {}
-                        for sub in self.config['list_subjects'][self.dataset[set]]:
-                            self.data_indiv[set][k][sub] = {}
-                            self.data_indiv[set][k][sub] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_indiv/sub-' + sub + '*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata() 
-            
+                        # Here we will use data from on define participant
+                    elif self.subject[set] != None:
+                        
+                        self.data[set][k] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_indiv/*' + self.subject[set]  + '*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata() 
+                        
+                            
             elif self.t_range[set] != None:
                 for k_ind,k in enumerate(self.k_range[set]): 
                     for t in self.t_range[set]:
+                        print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + str(t) + 'min/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')
                         self.data[set][t] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + str(t) + 'min/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
 
     def spatial_similarity(self, k1=None, k2=None, k_range=None, t_range1=None, t_range2=None, similarity_method='Dice', sorting_method='rostrocaudal', save_results=False,save_figure=False, verbose=True):
