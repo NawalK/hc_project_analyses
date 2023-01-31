@@ -10,14 +10,14 @@ from statistics import mean
 
 class SpineOnlyAnalysis:
     '''
-    The SpineOnlyAnalysis class is used to investigate components extracted in the spinal cord using different methods and/or datasets
+    The SpineOnlyAnalysis class is used to investigate components extracted in the spinal cord using different resting state duration
 
     Attributes
     ----------
     config : dict
     params1,params2 : dict
         Parameters for the clustering
-        - k_range: # of clusters to consider
+        - k_range: # of duration to consider
         - dataset: selected dataset (e.g., 'gva' or 'mtl')
         - analysis: analysis method (e.g., 'ica' or 'icap')
     name1,name2: str
@@ -28,9 +28,12 @@ class SpineOnlyAnalysis:
         self.config = config # Load config info
 
         # Define names for the two sets of interest
+        
         self.name1=params1.get('dataset')+'_'+params1.get('analysis')
         self.name2=params2.get('dataset')+'_'+params2.get('analysis')
-
+        if self.name1 == self.name2:
+            self.name1=self.name1 + "2" # rename in case the two analysis had the same name
+            
         # Define k range, dataset and analysis from given parameters
         self.k_range = {}
         self.k_range[self.name1] = params1.get('k_range')
@@ -41,24 +44,38 @@ class SpineOnlyAnalysis:
         self.analysis = {}
         self.analysis[self.name1] = params1.get('analysis')
         self.analysis[self.name2] = params2.get('analysis')
+        self.t_range = {}
+        self.t_range[self.name1] = params1.get('t_range')
+        self.t_range[self.name2] = params2.get('t_range')
         
         self.data = {} # To store the data with their initial order (i.e., as in the related nifti files)
 
         # Load components
         for set in self.k_range.keys(): # For each set
             self.data[set] = {}
-            for k_ind,k in enumerate(self.k_range[set]): # For each k
-                self.data[set][k] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
+            if self.t_range[set]==None:
+
+                for k_ind,k in enumerate(self.k_range[set]): # For each k
+                    self.data[set][k] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
             
-    def spatial_similarity(self, k1=None, k2=None, k_range=None, thresh=None, similarity_method='Dice', sorting_method='rostrocaudal', save_results=True, verbose=True):
+            elif self.t_range[set]!=None:
+                for k_ind,k in enumerate(self.k_range[set]): 
+                    for t in self.t_range[set]:
+                        self.data[set][t] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + str(t) + 'min/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
+
+                
+                
+    def spatial_similarity(self, k1=None, k2=None, k_range=None, t_range1=None, t_range2=None, similarity_method='Dice', sorting_method='rostrocaudal', save_results=False,save_figure= False, verbose=True):
         '''
         Compares spatial similarity for different sets of components.
         Can be used for different purposes:
         1 – To obtain a similarity matrix for a particular K per condition
         2 – To look at the evolution of the mean similarity across different Ks
+        3 – To look at the evolution of the mean similarity across time 
 
         If single K values are specified => Method 1 is used
-        If a range is given => Method 2 is used
+        If a K range is given => Method 2 is used
+        If a t range is given => Method 3 is used
 
         Inputs
         ----------
@@ -66,9 +83,6 @@ class SpineOnlyAnalysis:
             K values of interest (default = None) => For method 1
         k_range : array
             Range K values of interest (default = None) => For method 2
-        thresh : float, int
-            Lower threshold value to binarize components (default = None)
-            /!\ If set to None, the threshold values of the config files are used!
         similarity_method : str
             Method to compute similarity (default = 'Dice')
                 'Dice' to compute Dice coefficients (2*|intersection| / nb_el1 + nb_el2)
@@ -84,25 +98,33 @@ class SpineOnlyAnalysis:
         '''
 
         # Check if k values are provided & choose method accordingly
-        if k_range == None and k1 == None and k2 == None: 
-            raise(Exception(f'Either k_range or k1/k2 needs to be specified!'))
-        elif k_range != None and (k1 != None or k2 != None):
+        if k_range == None and k1 == None and k2 == None and t_range1 == None and t_range2 == None: 
+            raise(Exception(f'Either k_range, k1/k2, or k1/t_range needs to be specified!'))
+        elif k_range != None and (k1 != None or k2 != None): 
             raise(Exception(f'k_range *or* k1/k2 should be specified, not both!'))
-        elif k_range == None and k1 != None:
+        elif k_range != None and (t_range1 != None or t_range2 != None): 
+            raise(Exception(f'k_range *or* t_range should be specified, not both!'))
+        elif (t_range1 != None and t_range2 == None) or (t_range1 == None and t_range2 != None): 
+            raise(Exception(f'Both t_range should be provided!'))
+        elif (t_range1 != None and t_range2 != None) and k1 == None: 
+            raise(Exception(f'A K value should also be given when t_ranges are provided!'))
+        elif k_range == None and k1 != None and t_range1 == None and t_range2 == None:
             method = 1
+            output_fname=self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_similarity_across_K'
             if k2 == None: # If just one k is provided, we assume the same should be taken for other set
                 k2 = k1
-        elif k_range != None and k1 == None and k2 == None:
+                
+        elif k_range != None and k1 == None and k2 == None and t_range1 == None and t_range2 == None: 
             method = 2
-
-        if thresh is None:
-            print(f'Z threshold taken from config file.')
-        elif type(thresh) is float or int:
-            print(f'Z threshold: {thresh}')
-        else:
-            raise(Exception(f'Threshold should be a number and it is a {type(thresh)}'))
-     
-        
+            output_fname=self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] +  self.name1 + '_vs_' + self.name2 + '_similarity_across_K'
+       
+        elif k1 != None and t_range1 != None and t_range2 != None:
+            method = 3
+            output_fname=self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + self.name1 + '_vs_' + self.name2 + '_similarity_across_duration'
+       
+            
+        # file name of the outputs:
+            
         # For method 1, we focus on one similarity matrix
         if method == 1:
             print(f'METHOD 1: Comparing two sets of components at specific K values \n{self.name1} at K = {k1} vs {self.name2} at K = {k2} \n')
@@ -114,11 +136,7 @@ class SpineOnlyAnalysis:
                 mask2 = nib.load(self.config['main_dir']+self.config['masks'][self.dataset[self.name2]]['spinalcord']).get_fdata()
                 similarity_matrix,_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2], mask1=mask1, mask2=mask2, thresh1=2, thresh2=2, method=similarity_method, match_compo=True, verbose=False)
             else:
-                if thresh is None:
-                    similarity_matrix,_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k1-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k2-1)//10], method=similarity_method, match_compo=True, verbose=False)
-                else:
-                    similarity_matrix,_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2], thresh1=thresh, thresh2=thresh, method=similarity_method, match_compo=True, verbose=False)
-                
+                similarity_matrix,_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k1-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k2-1)//10], method=similarity_method, match_compo=True, verbose=False)
             plt.figure(figsize=(7,7))
             sns.heatmap(similarity_matrix, linewidths=.5, square=True, cmap='YlOrBr', vmin=0, vmax=1, xticklabels=orderY+1, yticklabels=np.array(range(1,k1+1)),cbar_kws={'shrink' : 0.8, 'label': similarity_method});
             plt.xlabel(self.name2)
@@ -128,8 +146,10 @@ class SpineOnlyAnalysis:
             print(f'The mean similarity is {mean_similarity:.2f}')
 
             if save_results == True:
-                # Save figure
-                plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_mean_similarity_' + '{:.2f}'.format(mean_similarity) + '.png')
+                np.savetxt(output_fname +'.txt',mean_similarity )
+              
+            if save_figure == True:
+                plt.savefig(output_fname )# Save figure
 
         elif method == 2:
             print('METHOD 2: Comparing two sets of components across K values')
@@ -142,24 +162,46 @@ class SpineOnlyAnalysis:
                     mask2 = nib.load(self.config['main_dir']+self.config['masks'][self.dataset[self.name2]]['spinalcord']).get_fdata()
                     similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], mask1=mask1, mask2=mask2, method=similarity_method, match_compo=True, verbose=False)
                 else:
-                    if thresh is None:
-                        similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k-1)//10], method=similarity_method, match_compo=True, verbose=False)
-                    else:
-                        similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], thresh1=thresh, thresh2=thresh, method=similarity_method, match_compo=True, verbose=False)
+                    similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k-1)//10], method=similarity_method, match_compo=True, verbose=False)
                 mean_similarity[k_ind] = np.mean(np.diagonal(similarity_matrix)) 
             fig, ax = plt.subplots(figsize=(10,4))
             ax.plot(range(1,len(k_range)+1), mean_similarity, linewidth=2, markersize=10, marker='.')
             ax.set_xticks(range(1,len(k_range)+1))
             ax.set_xticklabels(k_range)
             plt.title('Spatial similarity for different granularity levels'); plt.xlabel('K value'); plt.ylabel('Mean similarity');
+            
             if save_results == True:
-                # Save figure
-                plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_similarity_across_K.png')
+                np.savetxt(output_fname + ".txt",mean_similarity)
+                              
+            if save_figure == True:
+                plt.savefig(output_fname ) #Save figure
+
+        elif method == 3:
+            print('METHOD 3: Comparing sets of components across durations')
+            mean_similarity = np.empty(len(t_range2), dtype=object)
+            for t_ind, t in enumerate(t_range2):
+                if verbose == True:
+                    print(f'... Computing similarity for K={k1} between t={t} min and t={t_range1} min')
+                
+                similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][t_range1], self.data[self.name2][t], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k1-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k1-1)//10], method=similarity_method, match_compo=True, verbose=False)
+                mean_similarity[t_ind] = np.mean(np.diagonal(similarity_matrix))
+            fig, ax = plt.subplots(figsize=(10,4))
+            ax.plot(range(1,len(t_range2)+1), mean_similarity, linewidth=2, markersize=10, marker='.')
+            ax.set_xticks(range(1,len(t_range2)+1))
+            ax.set_xticklabels(t_range2)
+            plt.title('Spatial similarity for different resting-state durations'); plt.xlabel('Duration (minutes)'); plt.ylabel('Mean similarity');
+            if save_results == True:
+                
+                save_mean_similarity=np.concatenate((np.array(t_range2).reshape((len(t_range2), 1)),np.array(mean_similarity).reshape((len(mean_similarity), 1))),axis=1)
+                np.savetxt(output_fname +'.txt',save_mean_similarity)
+              
+            if save_figure == True:
+                plt.savefig(output_fname )# Save figure
 
         else: 
             raise(Exception(f'Something went wrong! No method was assigned...'))
 
-    def k_axial_distribution(self, data_name, k_range=None, thresh=None, vox_percentage=70, save_results=True, verbose=True):
+    def k_axial_distribution(self, data_name, k_range=None, vox_percentage=70, save_results=True, verbose=True):
         '''
         Compares the axial distribution of components for different Ks
         Categories:
@@ -174,9 +216,8 @@ class SpineOnlyAnalysis:
             Name of the set of components to analyze
         k_range : array
             Range of k values to considered (default = the one set in class attributes for the dataset defined using 'data')
-        thresh : float, int
-            Lower threshold value to binarize components (default = None)
-            /!\ If set to None, the threshold values of the config files are used!
+        thresh : float
+            Lower threshold value to binarize components (default = 2)
         vox_percentage : int
             Defines the percentage of voxels that need to be in a region to consider it matched (default = 70)
         save_results : str
@@ -192,13 +233,8 @@ class SpineOnlyAnalysis:
         # Set range of K
         k_range = self.k_range[data_name] if k_range == None else k_range
 
-        if thresh is None:
-            print(f'COMPUTING AXIAL DISTRIBUTION \n ––– Set: {data_name} \n ––– Range: {k_range} \n ––– % for matching: {vox_percentage}  \n ––– Z threshold: from config file')
-        elif type(thresh) is float or int:
-            print(f'COMPUTING AXIAL DISTRIBUTION \n ––– Set: {data_name} \n ––– Range: {k_range} \n ––– % for matching: {vox_percentage}  \n ––– Z threshold: {thresh}')
-        else:
-            raise(Exception(f'Threshold should be a number and it is a {type(thresh)}'))
-     
+        print(f'COMPUTING AXIAL DISTRIBUTION \n ––– Set: {data_name} \n ––– Range: {k_range} \n ––– % for matching: {vox_percentage}')
+
         print(f'...Loading data for the different spinal masks')
 
         # Create a dictionary containing the different template masks use to define axial locations 
@@ -222,10 +258,7 @@ class SpineOnlyAnalysis:
 
             # Look through each component for a particular k
             for k in range(0,k_tot):
-                if thresh is None: # Binarize using values from config files if no other value has been provided
-                    data_bin = np.where(data[:,:,:,k] >= self.config['z_thresh'][self.dataset[data_name]][(k-1)//10], 1, 0)
-                else:
-                    data_bin = np.where(data[:,:,:,k] >= thresh, 1, 0)
+                data_bin = np.where(data[:,:,:,k] >= self.config['z_thresh'][self.dataset[data_name]][(k-1)//10], 1, 0)
                 total_voxels = np.sum(data_bin) # Total number of voxels in this component
                 perc_in_masks = {}
                 for mask in mask_names:
