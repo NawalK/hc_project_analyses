@@ -49,7 +49,7 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, mask1=None, m
     # Number of components is equal to the max between the two sets
     k = np.max([data1.shape[3],data2.shape[3]]) # Save number of components for later use
     
-    if method == 'Dice' or method == 'Euclidean distance': # Binarize data if needed
+    if method == 'Dice' or method == 'Overlap' or method == 'Euclidean distance': # Binarize data if needed
         data1_bin = np.where(data1 >= thresh1, 1, 0)
         data2_bin = np.where(data2 >= thresh2, 1, 0)
     elif method == 'Cosine': # Prepare structures to save vectorized maps if needed
@@ -74,13 +74,25 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, mask1=None, m
             data1_vec[:,k1] = np.reshape(data1[:,:,:,k1],(data1.shape[0]*data1.shape[1]*data1.shape[2],))
             data1_masked[:,k1] = data1_vec[np.flatnonzero(mask1_vec),k1]
         for k2 in range(0,k):
-            if method == 'Dice':
+            if method == 'Dice' or method == 'Overlap':
                 # For the intersection, we multiply the two binary maps and count the number of elements
                 if k1 < data1.shape[3] and k2 < data2.shape[3]: # If the element exist in both datasets, we compute the similarity
                     nb_el_inters = np.sum(np.multiply(data1_bin[:,:,:,k1], data2_bin[:,:,:,k2])) 
                     nb_el_1 = np.sum(data1_bin[:,:,:,k1])
                     nb_el_2 = np.sum(data2_bin[:,:,:,k2])
-                    similarity_matrix[k1,k2] = 2*nb_el_inters / (nb_el_1+nb_el_2)
+                    if method == 'Dice':
+                        similarity_matrix[k1,k2] = 2*nb_el_inters / (nb_el_1+nb_el_2)
+                    elif method == 'Overlap':
+                        if nb_el_1 > nb_el_2:
+                            similarity_matrix[k1,k2] = nb_el_inters / (nb_el_2)
+                        elif nb_el_2 > nb_el_1:
+                            similarity_matrix[k1,k2] = nb_el_inters / (nb_el_1)
+                        elif nb_el_2 == nb_el_1:
+                            similarity_matrix[k1,k2] = 2*nb_el_inters / (nb_el_1+nb_el_2)
+                            print("the two cluster are equal, 'Dice' methods was applied instead of 'Dice_smaller'")
+                            
+                        
+                        
                 else: # Else, we just set it to -1
                     similarity_matrix[k1,k2] = -1
             elif method == 'Euclidean distance':

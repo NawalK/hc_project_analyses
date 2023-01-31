@@ -74,6 +74,7 @@ class ICA:
             self.files_func[self.structures]={};self.func_allsbj[self.structures]=[]
             for sbj_nb in range(0,len(self.config["list_subjects"][dataset])):
                 subject_name=self.config["list_subjects"][dataset][sbj_nb]
+                print(inputs_strct1[sbj_nb])
                 self.files_func[self.structures][subject_name]=inputs_strct1[sbj_nb]
        
                 
@@ -283,7 +284,7 @@ class ICA:
 
         return components_
 
-    def get_ICA(self,components_):
+    def get_ICA(self,components_,k=None):
     
         '''
         source separation using spatial ICA on subspace
@@ -310,11 +311,19 @@ class ICA:
         random_state = check_random_state(random_state)
         seeds = random_state.randint(np.iinfo(np.int32).max, size=self.iter)
         components_.astype(np.float64) # to avoid NaN and inf values
+        
+        if k == None:
+            results = (fastica(components_, whiten=True, fun='cube',random_state=seed)
+            for seed in seeds)
+        
+        else :
+            results = (fastica(components_,n_components=k,whiten=True, fun='cube',random_state=seed)
+                       for seed in seeds)
+            #results = transformer.fit_transform(components_)
+        
 
-        results = (fastica(components_, whiten=True, fun='cube',random_state=seed)
-        for seed in seeds)
              
- 
+
         ica_maps_gen_ = (result[2] for result in results)
         ica_maps_and_sparsities = ((ica_map,
                                     np.sum(np.abs(ica_map), axis=1).max())
@@ -362,7 +371,7 @@ class ICA:
         print(">> Group ICA done <<")
         return  components_final, components_final_z
     
-    def save_components(self,components_final,components_final_z):
+    def save_components(self,components_final,components_final_z,output_dir=None):
         '''
         The iCA class is used to calculate CanICA in different structures (brain and/or spinalcord)
         Attributes
@@ -385,10 +394,13 @@ class ICA:
 
             zimg=[]
         # Define output folders -----------------------------------------------------------------
-            if not '_' in self.structures_ana:
-                outputdir=self.analyse_dir  
+            if output_dir is None: # use default name
+                if not '_' in self.structures_ana:
+                    outputdir=self.analyse_dir  
+                else:
+                    outputdir=self.analyse_dir +'/'+structure +'/'
             else:
-                outputdir=self.analyse_dir +'/'+structure +'/'
+                outputdir=output_dir
                                                              
         # 1. Transform matrice of data into image nifti
         #-----------------------------------------------------------------
