@@ -24,7 +24,8 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, mask1=None, m
         method : str
             Method to compute similarity (default = 'Dice')
                 'Dice' to compute Dice coefficients (2*|intersection| / nb_el1 + nb_el2)
-                'Euclidean distance' to compute the distance between the centers of mass
+                'Euclidean distance abs' to compute the inverse absolute distance between the centers of mass (unit in voxel)
+                'Euclidean distance' to compute the distance between the centers of mass (unit in voxel)
                 'Cosine' to compute cosine similarity 
         match_compo : boolean
             Match & order components based on max similarity (default = True)
@@ -95,7 +96,7 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, mask1=None, m
                         
                 else: # Else, we just set it to -1
                     similarity_matrix[k1,k2] = -1
-            elif method == 'Euclidean distance':
+            elif method == 'Euclidean distance' or method == 'Euclidean distance abs' :
                 if k1 < data1.shape[3] and k2 < data2.shape[3]: # If the element exist in both datasets, we compute the similarity
                     # Label data to find the different clusters
                     lbl1 = label(data1_bin[:,:,:,k1])[0]
@@ -105,9 +106,13 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, mask1=None, m
                     cm1 = center_of_mass(data1_bin[:,:,:,k1],lbl1,Counter(lbl1.ravel()).most_common()[1][0])
                     cm2 = center_of_mass(data2_bin[:,:,:,k2],lbl2,Counter(lbl2.ravel()).most_common()[1][0])
 
-                    # inverse of the euclidean distance between CoG
-                    #similarity_matrix[k1,k2]=1/(np.mean(np.abs(np.array(cm1)-np.array(cm2)))) 
-                    similarity_matrix[k1,k2] = 1/(np.mean(np.abs([float(cm1[1])-float(cm2[1]),float(cm1[2])-float(cm2[2])])))
+                    if method == 'Euclidean distance abs':
+                        # inverse of the euclidean distance between CoG
+                        #similarity_matrix[k1,k2]=1/(np.mean(np.abs(np.array(cm1)-np.array(cm2)))) 
+                        similarity_matrix[k1,k2] = 1/(np.mean(np.abs([float(cm1[1])-float(cm2[1]),float(cm1[2])-float(cm2[2])])))
+                    
+                    elif method == 'Euclidean distance':
+                        similarity_matrix[k1,k2] = np.mean([float(cm1[1])-float(cm2[1]),float(cm1[2])-float(cm2[2])])
                 else:
                     similarity_matrix[k1,k2] = -1
             elif method == 'Cosine':

@@ -39,7 +39,7 @@ class SpineOnlyAnalysis:
         self.name1=params1.get('dataset')+'_'+params1.get('analysis')
         self.name2=params2.get('dataset')+'_'+params2.get('analysis')
         if self.name1 == self.name2:
-            self.name2=self.name2 + "2" # rename in case the two analysis had the same name
+            self.name1=self.name1 + "2" # rename in case the two analysis had the same name
             
         # Define k range, dataset and analysis from given parameters
         self.k_range = {}
@@ -62,7 +62,6 @@ class SpineOnlyAnalysis:
         self.data = {} # To store the data with their initial order (i.e., as in the related nifti files)
         self.data_indiv = {}
 
-        
         # Load components
         for set in self.k_range.keys(): # For each set
             self.data[set] = {}
@@ -71,15 +70,13 @@ class SpineOnlyAnalysis:
                 for k_ind,k in enumerate(self.k_range[set]): # For each k
                     if self.subject[set] == None:
                         self.data[set][k] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
-                       
-                    # Here it is assumed that we do not explore subject-specific components for different durations
+                       # Here it is assumed that we do not explore subject-specific components for different durations
                         if self.load_subjects == True:
-                            print("subject loading ...")
                             self.data_indiv[set][k] = {}
                             for sub in self.config['list_subjects'][self.dataset[set]]:
+                                print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_indiv/sub-' + sub + '*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')
                                 self.data_indiv[set][k][sub] = {}
-                                self.data_indiv[set][k][sub] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_indiv/sub-' + sub + '*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
-                                #print(self.data_indiv)
+                                self.data_indiv[set][k][sub] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_indiv/sub-' + sub + '*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata() 
     
                     
                         # Here we will use data from on define participant
@@ -152,7 +149,7 @@ class SpineOnlyAnalysis:
         elif k1 != None and t_range1 != None and t_range2 != None:
             method = 3
             output_fname=self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_similarity_across_duration'
-        print(k_range)
+       
             
         # file name of the outputs:
             
@@ -162,92 +159,33 @@ class SpineOnlyAnalysis:
             map_order = sort_maps(self.data[self.name1][k1], sorting_method=sorting_method) # The 1st dataset is sorted
             data_sorted = self.data[self.name1][k1][:,:,:,map_order]
             
-            # Here we add the possibility to compare the group component to each individuals
-            if self.load_subjects == True:
-                if self.subject[self.name1] != None or self.subject[self.name2] == None:
-                    raise(Exception(f'Something went wrong! no subject should be define in the first dataset param'))
-                    
-                self.data[self.name2][k2]={}
-                for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[self.name1]]):
-                    self.data[self.name2][k2][sub]=self.data_indiv[self.name1][k2][sub]
+            if load_subjects == True:
+                for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[data_name]]):
+                    self.data[self.name2][k2]={}self.data_indiv[data_name][k][sub]
           
-            #>>>>>>>>>>>>>>>> Compute the similarity coefficient and its mean for either selected method : 'Cosine', 'Dice' or 'Euclidean distance'
+                
             if similarity_method == 'Cosine': # We need masks
                 mask1 = nib.load(self.config['main_dir']+self.config['masks'][self.dataset[self.name1]]['spinalcord']).get_fdata()
                 mask2 = nib.load(self.config['main_dir']+self.config['masks'][self.dataset[self.name2]]['spinalcord']).get_fdata()
-                if self.load_subjects != True:
-                    similarity_matrix,_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2], mask1=mask1, mask2=mask2, thresh1=2, thresh2=2, method=similarity_method, match_compo=True, verbose=False)
-                    mean_similarity = mean(x for x in np.diagonal(similarity_matrix) if x !=-1) # If ks are different, we avoid taking -1 values (no correspondance)
-                elif self.load_subjects == True:
-                    similarity_matrix={}
-                    for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[self.name1]]):
-                        similarity_matrix[sub],_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2][sub], mask1=mask1, mask2=mask2, thresh1=2, thresh2=2, method=similarity_method, match_compo=True, verbose=False)
-                        mean_similarity[sub] = mean(x for x in np.diagonal(similarity_matrix[sub]) if x !=-1) # If ks are different, we avoid taking -1 values (no correspondance)
-                            
+                similarity_matrix,_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2], mask1=mask1, mask2=mask2, thresh1=2, thresh2=2, method=similarity_method, match_compo=True, verbose=False)
             else:
-                if self.load_subjects != True:
-                    similarity_matrix,_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k1-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k2-1)//10], method=similarity_method, match_compo=True, verbose=False)
-                    mean_similarity = mean(x for x in np.diagonal(similarity_matrix) if x !=-1) # If ks are different, we avoid taking -1 values (no correspondance)
-                elif self.load_subjects == True:
-                    similarity_matrix={}; mean_similarity={}
-                    for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[self.name1]]):
-                        similarity_matrix[sub],_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2][sub], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k1-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k2-1)//10], method=similarity_method, match_compo=True, verbose=False)
-                        #for x in np.diagonal(similarity_matrix[sub]):
-                         #   print(x)
-                        mean_similarity[sub] = mean(x for x in np.diagonal(similarity_matrix[sub]) if x !=-1) # If ks are different, we avoid taking -1 values (no correspondance)
+                similarity_matrix,_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k1-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k2-1)//10], method=similarity_method, match_compo=True, verbose=False)
+            plt.figure(figsize=(7,7))
+            sns.heatmap(similarity_matrix, linewidths=.5, square=True, cmap='YlOrBr', vmin=0, vmax=1, xticklabels=orderY+1, yticklabels=np.array(range(1,k1+1)),cbar_kws={'shrink' : 0.8, 'label': similarity_method});
+            plt.xlabel(self.name2)
+            plt.ylabel(self.name1)
+            
+            mean_similarity = mean(x for x in np.diagonal(similarity_matrix) if x !=-1) # If ks are different, we avoid taking -1 values (no correspondance)
+            print(f'The mean similarity is {mean_similarity:.2f}')
 
-            
-            
-            #>>>>>>>>>>>>>>>> plot similarity matrix or
-            if self.load_subjects != True:
-                plt.figure(figsize=(7,7))
-                sns.heatmap(similarity_matrix, linewidths=.5, square=True, cmap='YlOrBr', vmin=0, vmax=1, xticklabels=orderY+1, yticklabels=np.array(range(1,k1+1)),cbar_kws={'shrink' : 0.8, 'label': similarity_method});
-                plt.xlabel(self.name2)
-                plt.ylabel(self.name1)
-                print(f'The mean similarity is {mean_similarity:.2f}')
-
-            
-            elif self.load_subjects == True:
-                
-                # create a dataframe that will contain similarity index for each individuals
-                mean_similarity_df = pd.DataFrame(columns = ['subj_name', similarity_method],index = range(0,len(self.config['list_subjects'][self.dataset[self.name1]]))) # create dataframe to save the data of each individuals
-                
-                similarity_df = pd.DataFrame(columns = ['subj_name','components', similarity_method],index = range(0,k1*len(self.config['list_subjects'][self.dataset[self.name1]]))) # create dataframe to save the data of each individuals and each components
-                
-                subj_iter=0
-                
-                for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[self.name1]]):
-                    mean_similarity_df['subj_name'][sub_ind]=str("sub-" + sub)
-                    mean_similarity_df[similarity_method][sub_ind]=mean_similarity[sub]
-                    similarity_df['subj_name'][subj_iter:subj_iter+k1]=str("sub-" + sub)
-                    
-                    for i in range(subj_iter,subj_iter+k1):
-                        #print(i)
-                        similarity_df['components'][i]=i - subj_iter
-                        similarity_df[similarity_method][i]=np.diagonal(similarity_matrix[sub])[i-subj_iter]
-                    
-                    subj_iter=k1+subj_iter
-                    
-                     
-                    
-                    
-                print('The mean similarity are: ')
-                
-   
-
-            
-            #>>>>>>>>>>>>>>>> save results
             if save_results == True:
-                if self.load_subjects != True:
-                    np.savetxt(output_fname +'.txt',mean_similarity)
-                elif self.load_subjects == True:
-                    mean_similarity_df.to_csv(output_fname +'_indiv.txt',index=False, sep=' ')
-                    similarity_df.to_csv(output_fname +'_indiv_comp.txt',index=False, sep=' ')
+                print(output_fname)
+                print(mean_similarity)
+                np.savetxt(output_fname +'.txt',mean_similarity)
               
             if save_figure == True:
                 plt.savefig(output_fname )# Save figure
 
-                
         elif method == 2:
             print('METHOD 2: Comparing two sets of components across K values')
             mean_similarity = np.empty(len(k_range), dtype=object)
