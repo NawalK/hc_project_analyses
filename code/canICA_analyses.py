@@ -74,7 +74,6 @@ class ICA:
             self.files_func[self.structures]={};self.func_allsbj[self.structures]=[]
             for sbj_nb in range(0,len(self.config["list_subjects"][dataset])):
                 subject_name=self.config["list_subjects"][dataset][sbj_nb]
-                print(inputs_strct1[sbj_nb])
                 self.files_func[self.structures][subject_name]=inputs_strct1[sbj_nb]
        
                 
@@ -253,8 +252,7 @@ class ICA:
                     j=+i+1
                    
                     components_img = self.nifti_masker[structure].inverse_transform(reducedata_all[j-n_comp_pca:j]) # transform the components in nifti
-                    components_img.to_filename(self.analyse_dir + '/comp_indiv/sub-' + subject_name +'_comp_ICA.nii.gz') #save the n principal components for each subjects
-                    #components_img.to_filename(self.analyse_dir + '/pca_indiv/sub-' + subject_name +'_comp_ICA.nii.gz') #save the n principal components for each subject
+                    components_img.to_filename(self.analyse_dir + '/pca_indiv/sub-' + subject_name +'_comp_PCA.nii.gz') #save the n principal components for each subject
                     
                     print("- 4D image create for sbj  " +subject_name)
         print(">> Individual PCA done <<")
@@ -287,7 +285,7 @@ class ICA:
 
         return components_
 
-    def get_ICA(self,components_,k=None):
+    def get_ICA(self,components_,k=None,one_subject=None):
     
         '''
         source separation using spatial ICA on subspace

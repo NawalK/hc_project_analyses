@@ -59,7 +59,7 @@ os.chdir("/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_
 
 with open('../config/config_spine_only_CL.json') as config_file:
     config = json.load(config_file)
-dataset="mtl" 
+dataset="gva" 
 structures=["spinalcord"] # ["spinalcord"] or ["brain","spinalcord"] . double check the script for brainsc
 config["data"][dataset]["inputs_ica"]["spinalcord"]['tag_filename_spinalcord']='moco_HP_sc_inTemplate_s.nii.gz'
 
@@ -79,15 +79,17 @@ for structure in structures:
 
 
 redo=True
-for iter in [2000,5000]:
-    config["data"][dataset]['ica']["spinalcord"]['dir']='/ICA/results_spine_only/mtl/spinalcord/iterations_tests/' + str(iter) + "/"
-    config['ica_ana']['iter']=iter
-    config["ica_ana"]["k_range"]["spinalcord"]=[9]
+config["data"][dataset]["inputs_ica"]["spinalcord"]['tag_filename_spinalcord']='moco_HP_sc_inTemplate_s.nii.gz'
+for time in [1,2,3,4,5,6,12,9,15]:
+    config["data"][dataset]['ica']["spinalcord"]['dir']='/ICA/results_spine_only/gva/spinalcord/temporal_cropping/' + str(time) + "min/"
+    config['ica_ana']['iter']=500
+    config["ica_ana"]["k_range"]["spinalcord"]=[5]
     for k in config["ica_ana"]["k_range"]["spinalcord"]:
         config["ica_ana"]["n_comp"]=k # usefull if you want to test only on k
         print(config["ica_ana"]["n_comp"])
         icas = ICA(files_func[structure],[''],structures,dataset,config) # "brain_spinalcord" or "brain" or "spinalcord"
-        
+        #icas = ICA(files_func[structures[0]],files_func[structures[1]],structures,dataset,config) # "brain_spinalcord" or "brain" or "spinalcord"
+
         if k==4:
             all_data=icas.get_data(run='extract',t_r=config["acq_params"][dataset]["TR"],n_jobs=1) # load or extract
         if redo==True:
@@ -97,4 +99,3 @@ for iter in [2000,5000]:
             components=icas.get_CCA(reducedata_all)
             components_final,components_final_z=icas.get_ICA(components)
             zcomponents4D_filename=icas.save_components(components_final,components_final_z)
-
