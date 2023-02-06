@@ -78,20 +78,18 @@ class SpineOnlyAnalysis:
                             self.data_indiv[set][k] = {}
                             for sub in self.config['list_subjects'][self.dataset[set]]:
                                 self.data_indiv[set][k][sub] = {}
-                                self.data_indiv[set][k][sub] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_indiv/sub-' + sub + '*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
+                                self.data_indiv[set][k][sub] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_indiv/z*sub-' + sub +'*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
                                 #print(self.data_indiv)
     
                     
                         # Here we will use data from on define participant
                     elif self.subject[set] != None:
-                        
                         self.data[set][k] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_indiv/*' + self.subject[set]  + '*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata() 
                         
                             
             elif self.t_range[set] != None:
                 for k_ind,k in enumerate(self.k_range[set]): 
                     for t in self.t_range[set]:
-                        print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + str(t) + 'min/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')
                         self.data[set][t] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + str(t) + 'min/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
 
     def spatial_similarity(self, k1=None, k2=None, k_range=None, t_range1=None, t_range2=None, similarity_method='Dice', sorting_method='rostrocaudal', save_results=False,save_figure=False, verbose=True):
@@ -193,7 +191,7 @@ class SpineOnlyAnalysis:
                     for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[self.name1]]):
                         similarity_matrix[sub],_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2][sub], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k1-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k2-1)//10], method=similarity_method, match_compo=True, verbose=False)
                         #for x in np.diagonal(similarity_matrix[sub]):
-                         #   print(x)
+                        
                         mean_similarity[sub] = mean(x for x in np.diagonal(similarity_matrix[sub]) if x !=-1) # If ks are different, we avoid taking -1 values (no correspondance)
 
             
@@ -210,20 +208,30 @@ class SpineOnlyAnalysis:
             elif self.load_subjects == True:
                 
                 # create a dataframe that will contain similarity index for each individuals
-                mean_similarity_df = pd.DataFrame(columns = ['subj_name', similarity_method],index = range(0,len(self.config['list_subjects'][self.dataset[self.name1]]))) # create dataframe to save the data of each individuals
+                mean_similarity_df = pd.DataFrame(columns = ['subj_name','dataset', 'analysis',similarity_method],index = range(0,len(self.config['list_subjects'][self.dataset[self.name1]]))) # create dataframe to save the data of each individuals
                 
-                similarity_df = pd.DataFrame(columns = ['subj_name','components', similarity_method],index = range(0,k1*len(self.config['list_subjects'][self.dataset[self.name1]]))) # create dataframe to save the data of each individuals and each components
+                similarity_df = pd.DataFrame(columns = ['subj_name','components','dataset','analysis',similarity_method],index = range(0,k1*len(self.config['list_subjects'][self.dataset[self.name1]]))) # create dataframe to save the data of each individuals and each components
                 
                 subj_iter=0
                 
                 for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[self.name1]]):
                     mean_similarity_df['subj_name'][sub_ind]=str("sub-" + sub)
+                    mean_similarity_df['analysis'][sub_ind]=self.analysis[self.name1]
+                    mean_similarity_df['dataset'][sub_ind]=self.dataset[self.name1]
                     mean_similarity_df[similarity_method][sub_ind]=mean_similarity[sub]
                     similarity_df['subj_name'][subj_iter:subj_iter+k1]=str("sub-" + sub)
                     
                     for i in range(subj_iter,subj_iter+k1):
-                        #print(i)
-                        similarity_df['components'][i]=i - subj_iter
+                        if self.dataset[self.name1] == "gva":
+                            comp_1=5 # thsi dataset start at spinal level 5 
+                        else:
+                            comp_1=1
+                        level=i - subj_iter + comp_1
+                        similarity_df['components'][i]="C" + str(level)
+                        if level>8:
+                            similarity_df['components'][i]="T" + str(level-8)
+                        similarity_df['analysis'][i]=self.analysis[self.name1]
+                        similarity_df['dataset'][i]=self.dataset[self.name1]
                         similarity_df[similarity_method][i]=np.diagonal(similarity_matrix[sub])[i-subj_iter]
                     
                     subj_iter=k1+subj_iter
@@ -234,7 +242,6 @@ class SpineOnlyAnalysis:
                 print('The mean similarity are: ')
                 
    
-
             
             #>>>>>>>>>>>>>>>> save results
             if save_results == True:
@@ -288,7 +295,6 @@ class SpineOnlyAnalysis:
             ax.set_xticklabels(t_range2)
             plt.title('Spatial similarity for different resting-state durations'); plt.xlabel('Duration (minutes)'); plt.ylabel('Mean similarity');
             if save_results == True:
-                
                 save_mean_similarity=np.concatenate((np.array(t_range2).reshape((len(t_range2), 1)),np.array(mean_similarity).reshape((len(mean_similarity), 1))),axis=1)
                 np.savetxt(output_fname +'.txt',save_mean_similarity)
               

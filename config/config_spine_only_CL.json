@@ -18,7 +18,7 @@
          "gva":{"spinalcord": "/templates/PAM50/template/PAM50_cord_C5toC8.nii.gz"}},
 
 "output_dir": "/ICA/results_spine_only/results/",
-"output_tag": "",
+"output_tag": "Indiv",
  
 "data":{"mtl":{"inputs_ica":
                {"dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/",

@@ -82,14 +82,12 @@ config["ica_ana"]["iter"]=500
 for sbj_nb in range(0,len(config["list_subjects"][dataset])):
     subject_name=config["list_subjects"][dataset][sbj_nb]
     print("fast ICA is running for " + subject_name)
-    config["list_subjects"][dataset]=[subject_name]
     config["ica_ana"]["n_comp"]=9
     
-        
-    icas = ICA([files_func[structure][sbj_nb]],[''],structures,dataset,config) 
+    icas = ICA([files_func[structure][sbj_nb]],[''],structures,dataset,config,subject_name) 
     
     # extract individual data
-    components=icas.get_data(run='load',t_r=config["acq_params"][dataset]["TR"],n_jobs=8) # load or extract, if NaN issues put both
-    components_final,components_final_z=icas.get_ICA(components[0].T,k=9) # components (n_voxels,n_volumes)
-    zcomponents4D_filename=icas.save_components(components_final,components_final_z,one_subject=subject_name)
+    components=icas.get_data(run='extract',t_r=config["acq_params"][dataset]["TR"],n_jobs=8) # load or extract, if NaN issues put both
+    components_final,components_final_z=icas.get_ICA(components.T,k=config["ica_ana"]["n_comp"]) # components (n_voxels,n_volumes)
+    zcomponents4D_filename=icas.save_components(components_final,components_final_z)
 

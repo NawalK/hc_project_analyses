@@ -23,7 +23,7 @@ from spinalcordtoolbox.utils.sys import run_proc
 
 class ICA:
     
-    def __init__(self,inputs_strct1,inputs_strct2,structures_ana,dataset,config):
+    def __init__(self,inputs_strct1,inputs_strct2,structures_ana,dataset,config, one_subject=None):
         '''
         inputs_strct1: list
             list of files from the structure to analyse
@@ -37,13 +37,15 @@ class ICA:
             Contains information regarding subjects, paths, etc.
         input_dir: str
             path of the input directory
-
+        one_subject: str
+            If your going to analyse only one participant put subject name (default: None)
 
         '''
     
         self.structures_ana=structures_ana # name of the structure.s to analyze
         self.config = config # load config inf
         self.dataset=dataset # load config inf
+        self.one_subject=one_subject
         if len(self.structures_ana) == 2: # if the string contains '_' then 2 structures will be processed
             self.structures=[self.structures_ana[0],self.structures_ana[1]] #
             print('Analyse will be run on ' + self.structures[0] + ' and ' + self.structures[1] + ' structures simultaneously')
@@ -72,10 +74,14 @@ class ICA:
 
         else:
             self.files_func[self.structures]={};self.func_allsbj[self.structures]=[]
-            for sbj_nb in range(0,len(self.config["list_subjects"][dataset])):
-                subject_name=self.config["list_subjects"][dataset][sbj_nb]
-                self.files_func[self.structures][subject_name]=inputs_strct1[sbj_nb]
-       
+            if self.one_subject == None:
+                for sbj_nb in range(0,len(self.config["list_subjects"][dataset])):
+                    subject_name=self.config["list_subjects"][dataset][sbj_nb]
+                    self.files_func[self.structures][subject_name]=inputs_strct1[sbj_nb]
+            elif self.one_subject != None:
+                subject_name=self.one_subject
+                self.files_func[self.structures][subject_name]=inputs_strct1[0]
+
                 
             
         #output dir--------------------------------------------
@@ -153,15 +159,24 @@ class ICA:
                 else:
                     self.data_txt[subject_name]=self.config["main_dir"] + self.config["data"][self.dataset]["ica"][structure]["dir"] +'/subject_data/' + '/sub-' + subject_name +'_'+structure+'_data.txt'
                 
-        
-            if run=='load':
-                data_sbj[structure]=Parallel(n_jobs=n_jobs)(delayed(np.loadtxt)(self.data_txt[subject_name]) for subject_name in self.config["list_subjects"][self.dataset])
-    
-            if run=='extract':
-                
-                data_sbj[structure]=Parallel(n_jobs=n_jobs)(delayed(self._extract_data)(subject_name,structure)
-                                       for subject_name in self.config["list_subjects"][self.dataset])
-        
+            if self.one_subject==None:
+                if run=='load':
+                    data_sbj[structure]=Parallel(n_jobs=n_jobs)(delayed(np.loadtxt)(self.data_txt[subject_name]) for subject_name in self.config["list_subjects"][self.dataset])
+
+                if run=='extract':
+
+                    data_sbj[structure]=Parallel(n_jobs=n_jobs)(delayed(self._extract_data)(subject_name,structure)
+                                           for subject_name in self.config["list_subjects"][self.dataset])
+                    
+            elif self.one_subject!=None:
+                subject_name=self.one_subject
+                if run=='load':
+                    data_sbj[structure]=np.loadtxt(self.data_txt[subject_name])
+
+                if run=='extract':
+                    data_sbj[structure]=self._extract_data(subject_name,structure)
+                                          
+
         # Group individual data in a main dictionnary
         #---------------------------------------------------------                    
         # if more than one structure concatenate the arrays of the two structures for each individual :
@@ -285,7 +300,7 @@ class ICA:
 
         return components_
 
-    def get_ICA(self,components_,k=None,one_subject=None):
+    def get_ICA(self,components_,k=None):
     
         '''
         source separation using spatial ICA on subspace
@@ -372,7 +387,7 @@ class ICA:
         print(">> Group ICA done <<")
         return  components_final, components_final_z
     
-    def save_components(self,components_final,components_final_z,one_subject=None,output_dir=None):
+    def save_components(self,components_final,components_final_z,output_dir=None):
         '''
         The iCA class is used to calculate CanICA in different structures (brain and/or spinalcord)
         Attributes
@@ -380,9 +395,7 @@ class ICA:
         components_final : dict
             Contains information the ICAs
             
-        one_subject: str
-            If your going to analyse only one participant put subject name (default: None)
-               
+                      
         outputs
         ----------
         components_filename: image
@@ -416,14 +429,14 @@ class ICA:
             components_img = nifti_masker[structure].inverse_transform(components_final[structure].T) #from matrice to nifti
             zcomponents_img = nifti_masker[structure].inverse_transform(components_final_z[structure].T) #check the component
             
-            if one_subject != None:
+            if self.one_subject != None:
                 components4D_filename=outputdir +  '/comp_raw/CanICA_' + str(len(self.config["list_subjects"][self.dataset])) + 'sbj_'+ self.structures_ana[0] +'_'+structure +'_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '.nii.gz' # filename of the 4D image
                 zcomponents4D_filename=outputdir  + '/comp_zscored/zCanICA_' + str(len(self.config["list_subjects"][self.dataset])) + 'sbj_'+ self.structures_ana[0] +'_'+ structure + '_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '.nii.gz'
             
-            if one_subject != None: ## add suject name somewere in the file
-                components4D_filename=outputdir +  '/comp_indiv/CanICA_sub-' + one_subject + '_'+ self.structures_ana[0] +'_'+structure +'_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '.nii.gz' # filename of the 4D image
-                print(outputdir +  '/comp_indiv/CanICA_sub-' + one_subject + '_'+ self.structures_ana[0] +'_'+structure +'_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '.nii.gz')
-                zcomponents4D_filename=outputdir  + '/comp_indiv/zCanICA_' + one_subject+ '_'+ self.structures_ana[0] +'_'+ structure + '_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '.nii.gz'
+            if self.one_subject != None: ## add suject name somewere in the file
+                components4D_filename=outputdir +  '/comp_indiv/CanICA_sub-' + self.one_subject + '_'+ self.structures_ana[0] +'_'+structure +'_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '.nii.gz' # filename of the 4D image
+                print(outputdir +  '/comp_indiv/CanICA_sub-' + self.one_subject + '_'+ self.structures_ana[0] +'_'+structure +'_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '.nii.gz')
+                zcomponents4D_filename=outputdir  + '/comp_indiv/zCanICA_sub-' + self.one_subject+ '_'+ self.structures_ana[0] +'_'+ structure + '_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '.nii.gz'
                 
             components_img.to_filename(components4D_filename)
             zcomponents_img.to_filename(zcomponents4D_filename)
@@ -431,7 +444,7 @@ class ICA:
         
         #3. Save 3D images: only for group analysis
         #----------------------------------------------------------------------
-            if one_subject != True:
+            if self.one_subject != True:
                 for i, cur_img in enumerate(iter_img(components_img)): #extract each composante of the image
                     indiv_comp_img=outputdir + '/comp_raw/CanICA_' + str(len(self.config["list_subjects"][self.dataset])) + 'sbj_'+ self.structures_ana[0] +'_'+structure +'_k_' + str(i+1) + '.nii.gz' #filename
                     cur_img.to_filename(indiv_comp_img) # save the image

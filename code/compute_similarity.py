@@ -48,7 +48,7 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, mask1=None, m
         print(f"COMPUTING SIMILARITY WITH METHOD: {method}")
 
     # Number of components is equal to the max between the two sets
-    k = np.max([data1.shape[3],data2.shape[3]]) # Save number of components for later use
+    k = np.max([data1.shape[3],data2.shape[3]]) # Save number of components for later use, shape 3 = number of components
     
     if method == 'Dice' or method == 'Overlap' or method == 'Euclidean distance': # Binarize data if needed
         data1_bin = np.where(data1 >= thresh1, 1, 0)
@@ -92,7 +92,6 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, mask1=None, m
                             similarity_matrix[k1,k2] = 2*nb_el_inters / (nb_el_1+nb_el_2)
                             print("the two cluster are equal, 'Dice' methods was applied instead of 'Dice_smaller'")
                             
-                        
                         
                 else: # Else, we just set it to -1
                     similarity_matrix[k1,k2] = -1
