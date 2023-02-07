@@ -1,3 +1,4 @@
+
 import shutil, json, glob
 
 from scipy import linalg
@@ -436,7 +437,7 @@ class ICA:
             if self.one_subject != None: ## add suject name somewere in the file
                 components4D_filename=outputdir +  '/comp_indiv/CanICA_sub-' + self.one_subject + '_'+ self.structures_ana[0] +'_'+structure +'_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '.nii.gz' # filename of the 4D image
                 print(outputdir +  '/comp_indiv/CanICA_sub-' + self.one_subject + '_'+ self.structures_ana[0] +'_'+structure +'_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '.nii.gz')
-                zcomponents4D_filename=outputdir  + '/comp_indiv/zCanICA_sub-' + self.one_subject+ '_'+ self.structures_ana[0] +'_'+ structure + '_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '.nii.gz'
+                zcomponents4D_filename=outputdir  + '/comp_indiv/CanICA_sub-' + self.one_subject+ '_'+ self.structures_ana[0] +'_'+ structure + '_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '_z.nii.gz'
                 
             components_img.to_filename(components4D_filename)
             zcomponents_img.to_filename(zcomponents4D_filename)
@@ -450,7 +451,7 @@ class ICA:
                     cur_img.to_filename(indiv_comp_img) # save the image
 
                 for i, zcur_img in enumerate(iter_img(zcomponents_img)):
-                    zindiv_comp_img=outputdir + '/comp_zscored/zCanICA_' + str(len(self.config["list_subjects"][self.dataset])) + 'sbj_'+ self.structures_ana[0] +'_'+structure +'_k_' + str(i+1) + '.nii.gz'
+                    zindiv_comp_img=outputdir + '/comp_zscored/CanICA_' + str(len(self.config["list_subjects"][self.dataset])) + 'sbj_'+ self.structures_ana[0] +'_'+structure +'_k_' + str(i+1) + '_z.nii.gz'
                     zcur_img.to_filename(zindiv_comp_img)
         
         

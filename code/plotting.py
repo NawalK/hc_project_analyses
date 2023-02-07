@@ -28,7 +28,7 @@ class Plotting:
     name1, name2: str
         Names to identify the sets (built as dataset+analysis+k)
     sorting_method: str
-        Method used to sort maps (e.g., 'rostrocaudal')
+        Method used to sort maps (e.g., 'rostrocaudal', 'rostrocaudal_CoM')
     data : array 
         Z-scored spatial maps
     map_order : int
@@ -52,6 +52,9 @@ class Plotting:
         self.duration[self.name1] = params1.get('duration') # precise the duration analysis you want to plot
         self.subject = {}
         self.subject[self.name1] = params1.get('subject') # precise the subject you want to plot
+        self.lthresh = {}
+        self.lthresh[self.name1] = params1.get('lthresh') # precise a threshold for cluster selection (sort_map)
+        
         if params2 is not None: # We will look into a second set of components (if params2=None, we just have one)
             self.name2 = params2.get('dataset')+'_'+params2.get('analysis')+'_'+str(params2.get('k'))
             if self.name1==self.name2:
@@ -61,8 +64,13 @@ class Plotting:
             self.analysis[self.name2] = params2.get('analysis')
             self.duration[self.name2] = params2.get('duration')
             self.subject[self.name2] = params2.get('subject')
+            self.lthresh[self.name2]  = params2.get('lthresh') # precise a threshold for cluster selection (sort_map)
         
         self.sorting_method = sorting_method
+        if self.sorting_method == "rostrocaudal_CoM" and  self.lthresh[self.name1] ==None:
+            raise(Exception(f'"You should predefine a threshold for sorting method rostrocaulda_CoM'))
+            
+            
         self.data = {} # To store the data with their initial order (i.e., as in the related nifti files)
         self.data_sorted = {} # To store the data sorted WITHIN dataset (e.g., rostrocaudally)
         self.data_matched = {} # To store the date then matched BETWEEN datasets
@@ -83,14 +91,14 @@ class Plotting:
             else:
                 raise(Exception(f'"You should define subject *or* duration, or none. If duration is chose, please choose "ica_duration" or "icap_duration" as analysis.'))
             
-            self.map_order[set] = sort_maps(self.data[set], self.sorting_method)
+            self.map_order[set] = sort_maps(self.data[set], self.sorting_method, self.lthresh[self.name1])
             self.data_sorted[set] = self.data[set][:,:,:,self.map_order[set]]  
             self.spinal_levels[set] = match_levels(self.config, self.data[set],method="max intensity")
             self.spinal_levels_sorted[set] = self.spinal_levels[set][self.map_order[set]]
 
     # ======= SPINAL CORD ========
     
-    def sc_plot(self, k_per_line=None, lthresh=2, uthresh=4.0, auto_thresh=False, perc_thresh=90, centering_method='max', similarity_method='Dice', show_spinal_levels=False, colormap='autumn', save_results=False):
+    def sc_plot(self, k_per_line=None, lthresh=None, uthresh=4.0, auto_thresh=False, perc_thresh=90, centering_method='max', similarity_method='Dice', show_spinal_levels=False, colormap='autumn', save_results=False):
         ''' Plot components overlaid on PAM50 template (coronal and axial views are shown)
         
         Inputs
@@ -117,6 +125,11 @@ class Plotting:
             Note: if there are two datasets, colormaps are hardcoded to ease visualization and comparison 
         save_results : boolean
             Set to True to save figure (default = False)'''
+        if lthresh==None:
+            lthresh=self.lthresh[self.name1]
+            
+            if lthresh==None:
+                auto_thresh=True
         
         # Overwrite threshold if automatic thresholding is set to True
         # Now: based on first dataset only

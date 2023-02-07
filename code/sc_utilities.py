@@ -1,9 +1,10 @@
 import glob 
 import numpy as np
 import nibabel as nib
-from scipy.ndimage import center_of_mass
+from scipy.ndimage import center_of_mass,label
+from collections import Counter 
 
-def sort_maps(data, sorting_method):
+def sort_maps(data, sorting_method,threshold):
     ''' Sort maps based on sorting_method (e.g., rostrocaudally)
     
     Inputs
@@ -11,7 +12,7 @@ def sort_maps(data, sorting_method):
     data : array
         4D array containing the k maps to order  
     sorting_method : str
-        Method used to sort maps (e.g., 'rostrocaudal', 'no_sorting')
+        Method used to sort maps (e.g., 'rostrocaudal', 'rostrocaudal_CoM', 'no_sorting')
     
     Output
     ----------
@@ -19,12 +20,29 @@ def sort_maps(data, sorting_method):
         Contains the indices of the sorted maps   
     '''  
     if sorting_method == 'rostrocaudal':
-        max_z = []
+        max_z = []; 
         for i in range(0,data.shape[3]):
             max_z.append(int(np.where(data == np.nanmax(data[:,:,:,i]))[2][0]))  # take the first max in z direction
                 
         sort_index = np.argsort(max_z)
         sort_index= sort_index[::-1] # Invert direction to go from up to low
+    
+    elif sorting_method == 'rostrocaudal_CoM':
+        cm_z=[]
+        data_bin = np.where(data > threshold, 1, 0) # binarize data
+           
+        # We calculate the center of mass of the largest clusters
+        for i in range(0,data.shape[3]):
+            # Label data to find the different clusters
+            lbl1 = label(data_bin[:,:,:,i])[0]
+            cm = center_of_mass(data_bin[:,:,:,i],lbl1,Counter(lbl1.ravel()).most_common()[1][0]) # take the center of mass of the larger cluster
+            cm_z.append(cm[2])
+        
+        sort_index = np.argsort(cm_z)
+        sort_index= sort_index[::-1] # Invert direction to go from up to low
+            
+        
+    
     elif sorting_method == 'no_sorting':
         sort_index = list(range(data.shape[3]))
     else:
