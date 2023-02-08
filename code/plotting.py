@@ -83,10 +83,14 @@ class Plotting:
         # Load components
         for set in self.k.keys():
             if self.analysis[set]=="icap_duration" or self.analysis[set]=="ica_duration" and self.duration[set] != None and self.subject[set] == None:
+                #print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + self.duration[set]  + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')
                 self.data[set] =nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + self.duration[set]  + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
             elif self.duration[set] == None and self.subject[set] != None and self.analysis[set]!=("icap_duration" or "ica_duration"):
+                #print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_indiv/*' + self.subject[set] + '_*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')
                 self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_indiv/*' + self.subject[set] + '_*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
-            elif self.duration[set] == None and self.subject[set] == None and self.analysis[set]!=("icap_duration" or "ica_duration"):                
+                
+            elif self.duration[set] == None and self.subject[set] == None and self.analysis[set]!=("icap_duration" or "ica_duration"):
+                #print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')
                 self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
             else:
                 raise(Exception(f'"You should define subject *or* duration, or none. If duration is chose, please choose "ica_duration" or "icap_duration" as analysis.'))
@@ -205,11 +209,11 @@ class Plotting:
             
             if len(self.k.keys())==2: 
                 if i<self.k[secondary_dataset]:
-                    axs[row_coronal,col].set_title('Main #' + str(self.map_order[main_dataset][order2[i]]+1) + '\n Sec. #' + str(self.map_order[secondary_dataset][i]+1) + '\n Level ' + str(self.spinal_levels_sorted[secondary_dataset][i]+1),fontsize=18,pad=20)
-                else:
-                    axs[row_coronal,col].set_title('Main #' + str(self.map_order[main_dataset][order2[i]]+1) + '\n Level ' + str(self.spinal_levels_matched[main_dataset][i]+1),fontsize=18,pad=20)
-            else:
-                axs[row_coronal,col].set_title('#' + str(self.map_order[main_dataset][i]+1) + '\n Level ' + str(self.spinal_levels_sorted[main_dataset][i]+1),fontsize=18,pad=20)
+                    axs[row_coronal,col].set_title('Main #' + str(self.map_order[main_dataset][order2[i]]+1) + '\n Sec. #' + str(self.map_order[secondary_dataset][i]+1),fontsize=18,pad=20)# + '\n Level ' + str(self.spinal_levels_sorted[secondary_dataset][i]+1),fontsize=18,pad=20)
+                #else:
+                 #   axs[row_coronal,col].set_title('Main #' + str(self.map_order[main_dataset][order2[i]]+1) + '\n Level ' + str(self.spinal_levels_matched[main_dataset][i]+1),fontsize=18,pad=20)
+            #else:
+             #   axs[row_coronal,col].set_title('#' + str(self.map_order[main_dataset][i]+1) + '\n Level ' + str(self.spinal_levels_sorted[main_dataset][i]+1),fontsize=18,pad=20)
 
             if centering_method == 'middle':
                 if len(self.k.keys())==1:

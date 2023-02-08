@@ -74,7 +74,7 @@ class SpineOnlyAnalysis:
             if self.t_range[set] == None:
                 for k_ind,k in enumerate(self.k_range[set]): # For each k
                     if self.subject[set] == None:
-                        print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')
+                        sprint(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')
                         self.data[set][k] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
                        
                     # Here it is assumed that we do not explore subject-specific components for different durations
@@ -95,6 +95,7 @@ class SpineOnlyAnalysis:
             elif self.t_range[set] != None:
                 for k_ind,k in enumerate(self.k_range[set]): 
                     for t in self.t_range[set]:
+                        #print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + str(t) + 'min/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')
                         self.data[set][t] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + str(t) + 'min/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
 
     def spatial_similarity(self, k1=None, k2=None, k_range=None, t_range1=None, t_range2=None, similarity_method='Dice', sorting_method='rostrocaudal', save_results=False,save_figure=False, verbose=True):
@@ -155,7 +156,7 @@ class SpineOnlyAnalysis:
         elif k1 != None and t_range1 != None and t_range2 != None:
             method = 3
             output_fname=self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_similarity_across_duration'
-        print(k_range)
+        
             
         # file name of the outputs:
             
@@ -299,10 +300,20 @@ class SpineOnlyAnalysis:
             ax.set_xticks(range(1,len(t_range2)+1))
             ax.set_xticklabels(t_range2)
             plt.title('Spatial similarity for different resting-state durations'); plt.xlabel('Duration (minutes)'); plt.ylabel('Mean similarity');
+            
             if save_results == True:
-                save_mean_similarity=np.concatenate((np.array(t_range2).reshape((len(t_range2), 1)),np.array(mean_similarity).reshape((len(mean_similarity), 1))),axis=1)
-                np.savetxt(output_fname +'.txt',save_mean_similarity)
-              
+                # create a dataframe that will contain similarity index for duration
+                mean_similarity_df = pd.DataFrame(columns = ['duration','dataset', 'analysis',similarity_method],index = range(0,len(t_range2))) # create dataframe to save the data of each individuals
+                for duration_ind,duration in enumerate(t_range2):
+                    mean_similarity_df['duration'][duration_ind]=duration
+                    mean_similarity_df['analysis'][duration_ind]=self.analysis[self.name1]
+                    mean_similarity_df['dataset'][duration_ind]=self.dataset[self.name1]
+                    mean_similarity_df[similarity_method][duration_ind]=mean_similarity[duration_ind]
+               
+                mean_similarity_df.to_csv(output_fname +'.txt',index=False, sep=' ')
+                         
+                        
+                
             if save_figure == True:
                 plt.savefig(output_fname )# Save figure
 

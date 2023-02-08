@@ -430,14 +430,13 @@ class ICA:
             components_img = nifti_masker[structure].inverse_transform(components_final[structure].T) #from matrice to nifti
             zcomponents_img = nifti_masker[structure].inverse_transform(components_final_z[structure].T) #check the component
             
-            if self.one_subject != None:
-                components4D_filename=outputdir +  '/comp_raw/CanICA_' + str(len(self.config["list_subjects"][self.dataset])) + 'sbj_'+ self.structures_ana[0] +'_'+structure +'_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '.nii.gz' # filename of the 4D image
-                zcomponents4D_filename=outputdir  + '/comp_zscored/zCanICA_' + str(len(self.config["list_subjects"][self.dataset])) + 'sbj_'+ self.structures_ana[0] +'_'+ structure + '_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '.nii.gz'
+            if self.one_subject == None:
+                components4D_filename=outputdir +  '/comp_raw/CanICA_' + str(len(self.config["list_subjects"][self.dataset])) + 'sbj_'+ self.structures_ana[0] +'_'+structure +'_K_'+ str(self.config["ica_ana"]["n_comp"]) + '_4D.nii.gz' # filename of the 4D image
+                zcomponents4D_filename=outputdir  + '/comp_zscored/CanICA_' + str(len(self.config["list_subjects"][self.dataset])) + 'sbj_'+ self.structures_ana[0] +'_'+ structure + '_K_'+ str(self.config["ica_ana"]["n_comp"]) + '_4D_z.nii.gz'
             
             if self.one_subject != None: ## add suject name somewere in the file
-                components4D_filename=outputdir +  '/comp_indiv/CanICA_sub-' + self.one_subject + '_'+ self.structures_ana[0] +'_'+structure +'_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '.nii.gz' # filename of the 4D image
-                print(outputdir +  '/comp_indiv/CanICA_sub-' + self.one_subject + '_'+ self.structures_ana[0] +'_'+structure +'_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '.nii.gz')
-                zcomponents4D_filename=outputdir  + '/comp_indiv/CanICA_sub-' + self.one_subject+ '_'+ self.structures_ana[0] +'_'+ structure + '_4D_K_'+ str(self.config["ica_ana"]["n_comp"]) + '_z.nii.gz'
+                components4D_filename=outputdir +  '/comp_indiv/CanICA_sub-' + self.one_subject + '_'+ self.structures_ana[0] +'_'+structure +'_K_'+ str(self.config["ica_ana"]["n_comp"]) + '_4D.nii.gz' # filename of the 4D image
+                zcomponents4D_filename=outputdir  + '/comp_indiv/CanICA_sub-' + self.one_subject+ '_'+ self.structures_ana[0] +'_'+ structure + '_K_'+ str(self.config["ica_ana"]["n_comp"]) + '_4D_z.nii.gz'
                 
             components_img.to_filename(components4D_filename)
             zcomponents_img.to_filename(zcomponents4D_filename)
@@ -445,7 +444,7 @@ class ICA:
         
         #3. Save 3D images: only for group analysis
         #----------------------------------------------------------------------
-            if self.one_subject != True:
+            if self.one_subject == None:
                 for i, cur_img in enumerate(iter_img(components_img)): #extract each composante of the image
                     indiv_comp_img=outputdir + '/comp_raw/CanICA_' + str(len(self.config["list_subjects"][self.dataset])) + 'sbj_'+ self.structures_ana[0] +'_'+structure +'_k_' + str(i+1) + '.nii.gz' #filename
                     cur_img.to_filename(indiv_comp_img) # save the image

@@ -31,21 +31,27 @@
                "ica":
                {"spinalcord":
                     {"dir":"/ICA/results_spine_only/mtl/spinalcord/",
-                    "tag_filename":"_z.nii.gz"},
+                    "tag_filename":"4D_z"},
                "brain":
                     {"dir":"/ICA/",
-                    "tag_filename":"4D_K"}},
+                    "tag_filename":"4D_z"}},
                "ica_duration":
                {"spinalcord":
                     {"dir":"/ICA/results_spine_only/mtl/spinalcord/temporal_cropping/",
-                    "tag_filename":"4D_K"}},
+                     "durations":[1,2,3,4,5,6],
+                    "tag_filename":"4D_z"}},
+                "icap_duration":
+              {"spinalcord":
+                    {"dir":"/iCAP/results_spine_only/mtl/spinalcord/temporal_cropping/",
+                     "durations":[1,2,3,4,5,6],
+                    "tag_filename":"_z"}},
                "icap":
                 {"spinalcord":
                     {"dir":"/iCAP/results_spine_only/mtl/spinalcord/",
                     "tag_filename":"_z.nii"},
                 "brain":
                     {"dir":"/ICA/brain/",
-                    "tag_filename":"4D_K"}}},
+                    "tag_filename":"4D_z"}}},
        "gva":{"inputs_ica":
                {"dir":"/cerebro/cerebro1/dataset/caroline/2022_SPiCiCAP_NK_CL/CL_analyses/denoising/3_func_smoothed/",
                 "spinalcord":
@@ -56,11 +62,17 @@
                {"spinalcord":
                 {
                  "dir":"/ICA/results_spine_only/gva/spinalcord/",
-                "tag_filename":"_z"}},
+                "tag_filename":"4D_z"}},
               "ica_duration":
                {"spinalcord":
                     {"dir":"/ICA/results_spine_only/gva/spinalcord/temporal_cropping/",
-                    "tag_filename":"_z.nii.gz"}},
+                     "durations":[1,2,3,4,5,6,9,12,15],
+                    "tag_filename":"4D_z"}},
+              "icap_duration":
+              {"spinalcord":
+                    {"dir":"/iCAP/results_spine_only/gva/spinalcord/temporal_cropping/",
+                     "durations":[1,2,3,4,5,6,9,12,15],
+                    "tag_filename":"_z"}},
               
                  "icap":
                 {"spinalcord":
