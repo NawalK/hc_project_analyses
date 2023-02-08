@@ -31,7 +31,7 @@
                "ica":
                {"spinalcord":
                     {"dir":"/ICA/results_spine_only/mtl/spinalcord/",
-                    "tag_filename":"4D_K"},
+                    "tag_filename":"_z.nii.gz"},
                "brain":
                     {"dir":"/ICA/",
                     "tag_filename":"4D_K"}},
@@ -41,8 +41,8 @@
                     "tag_filename":"4D_K"}},
                "icap":
                 {"spinalcord":
-                    {"dir":"/iCAP/spinalcord/",
-                    "tag_filename":"4D"},
+                    {"dir":"/iCAP/results_spine_only/mtl/spinalcord/",
+                    "tag_filename":"_z.nii"},
                 "brain":
                     {"dir":"/ICA/brain/",
                     "tag_filename":"4D_K"}}},
@@ -56,16 +56,16 @@
                {"spinalcord":
                 {
                  "dir":"/ICA/results_spine_only/gva/spinalcord/",
-                "tag_filename":"4D_K"}},
+                "tag_filename":"_z"}},
               "ica_duration":
                {"spinalcord":
                     {"dir":"/ICA/results_spine_only/gva/spinalcord/temporal_cropping/",
-                    "tag_filename":"4D_K"}},
+                    "tag_filename":"_z.nii.gz"}},
               
                  "icap":
                 {"spinalcord":
                 {"dir":"/iCAP/results_spine_only/gva/spinalcord/",
-                "tag_filename":"_z"}}}},
+                "tag_filename":"_z.nii"}}}},
          
 
  "ica_ana":{"iter": 500,

@@ -59,6 +59,10 @@ class SpineOnlyAnalysis:
         self.subject[self.name1] = params1.get('subject')
         self.subject[self.name2] = params2.get('subject')
         
+        self.threshold = {}
+        self.threshold[self.name1] = params1.get('lthresh')
+        self.threshold[self.name2] = params2.get('lthresh')
+        
         self.data = {} # To store the data with their initial order (i.e., as in the related nifti files)
         self.data_indiv = {}
 
@@ -70,6 +74,7 @@ class SpineOnlyAnalysis:
             if self.t_range[set] == None:
                 for k_ind,k in enumerate(self.k_range[set]): # For each k
                     if self.subject[set] == None:
+                        print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')
                         self.data[set][k] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
                        
                     # Here it is assumed that we do not explore subject-specific components for different durations
@@ -78,7 +83,7 @@ class SpineOnlyAnalysis:
                             self.data_indiv[set][k] = {}
                             for sub in self.config['list_subjects'][self.dataset[set]]:
                                 self.data_indiv[set][k][sub] = {}
-                                self.data_indiv[set][k][sub] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_indiv/z*sub-' + sub +'*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
+                                self.data_indiv[set][k][sub] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_indiv/*sub-' + sub +'*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
                                 #print(self.data_indiv)
     
                     
@@ -444,7 +449,7 @@ class SpineOnlyAnalysis:
         #data_sorted_bin = np.zeros(n_sub+self.data_indiv[data_name][k][self.config['list_subjects'][self.dataset[data_name]][0]].shape)
         #data_sorted_bin = np.empty((1,)+self.data_indiv[data_name][k][self.config['list_subjects'][self.dataset[data_name]][0]].shape)
         for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[data_name]]):
-            map_order = sort_maps(self.data_indiv[data_name][k][sub], sorting_method='rostrocaudal') # We sort each subject maps rostrocaudally
+            map_order = sort_maps(self.data_indiv[data_name][k][sub], sorting_method='rostrocaudal')#,threshold=self.threshold[self.name1]) # We sort each subject maps rostrocaudally
             data_sorted = self.data_indiv[data_name][k][sub][:,:,:,map_order]
             #data_sorted_bin(sub,:,:,:,:) = np.where(data_sorted >= thresh, 1, 0) # Sorted maps are then binarized
             if sub_ind == 0:

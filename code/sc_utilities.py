@@ -4,7 +4,7 @@ import nibabel as nib
 from scipy.ndimage import center_of_mass,label
 from collections import Counter 
 
-def sort_maps(data, sorting_method,threshold):
+def sort_maps(data, sorting_method,threshold=None):
     ''' Sort maps based on sorting_method (e.g., rostrocaudally)
     
     Inputs
@@ -13,7 +13,8 @@ def sort_maps(data, sorting_method,threshold):
         4D array containing the k maps to order  
     sorting_method : str
         Method used to sort maps (e.g., 'rostrocaudal', 'rostrocaudal_CoM', 'no_sorting')
-    
+    threshold: str
+        put a threshold if you're using the 'rostrocaudal_CoM' method
     Output
     ----------
     sort_index : list
@@ -22,11 +23,9 @@ def sort_maps(data, sorting_method,threshold):
     if sorting_method == 'rostrocaudal':
         max_z = []; 
         for i in range(0,data.shape[3]):
-            max_z.append(int(np.where(data == np.nanmax(data[:,:,:,i]))[2][0]))  # take the first max in z direction
-                
+            max_z.append(int(np.where(data == np.nanmax(data[:,:,:,i]))[2][0]))  # take the first max in z direction      
         sort_index = np.argsort(max_z)
         sort_index= sort_index[::-1] # Invert direction to go from up to low
-    
     elif sorting_method == 'rostrocaudal_CoM':
         cm_z=[]
         data_bin = np.where(data > threshold, 1, 0) # binarize data
