@@ -75,7 +75,7 @@ def match_levels(config, data, method="CoM"):
     for lvl in range(0,len(levels_list)):
         level_img = nib.load(levels_list[lvl])
         levels_data[:,:,:,lvl] = level_img.get_fdata()
-           
+ 
     if method=="CoM":
         map_masked = np.where(data > 1.5, data, 0) # IMPORTANT NOTE: here, a low threshold at 1.5 is used, as the goal is to have rough maps to match to levels
         CoM = np.zeros(map_masked.shape[3],dtype='int')
@@ -89,8 +89,14 @@ def match_levels(config, data, method="CoM"):
     elif method=="max intensity":
         # For each map, find rostrocaudal position of point with maximum intensity
         max_intensity = np.zeros(data.shape[3],dtype='int')
+        
         for i in range(0,data.shape[3]):
-            max_intensity[i] = np.where(data == np.nanmax(data[:,:,:,i]))[2]
+            max_size=np.where(data == np.nanmax(data[:,:,:,i]))[2].size
+            if max_size>1:
+                max_intensity[i] = np.where(data == np.nanmax(data[:,:,:,i]))[2][int(max_size/2)] # take the middle max if there are mainy
+            else:
+                max_intensity[i] = np.where(data == np.nanmax(data[:,:,:,i]))[2]
+            
             #print(max_intensity)
             # Take this point for each level (we focus on rostrocaudal position and take center of FOV for the other dimensions)
             level_vals = levels_data[levels_data.shape[0]//2,levels_data.shape[1]//2,max_intensity[i],:]

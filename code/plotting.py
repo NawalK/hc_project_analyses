@@ -67,7 +67,7 @@ class Plotting:
             self.lthresh[self.name2]  = params2.get('lthresh') # precise a threshold for cluster selection (sort_map)
         
         self.sorting_method = sorting_method
-        if self.sorting_method == "rostrocaudal_CoM" and  self.lthresh[self.name1] ==None:
+        if self.sorting_method == "ocaudal_CoM" and  self.lthresh[self.name1] ==None:
             raise(Exception(f'"You should predefine a threshold for sorting method rostrocaulda_CoM'))
             
             
@@ -86,8 +86,8 @@ class Plotting:
                 #print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + self.duration[set]  + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')
                 self.data[set] =nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + self.duration[set]  + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
             elif self.duration[set] == None and self.subject[set] != None and self.analysis[set]!=("icap_duration" or "ica_duration"):
-                #print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_indiv/*' + self.subject[set] + '_*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')
-                self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_indiv/*' + self.subject[set] + '_*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
+                print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_indiv/*' + self.subject[set] + '*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')
+                self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_indiv/*' + self.subject[set] + '*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
                 
             elif self.duration[set] == None and self.subject[set] == None and self.analysis[set]!=("icap_duration" or "ica_duration"):
                 #print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')
@@ -229,7 +229,11 @@ class Plotting:
                     overlap_map=self._overlap_maps(i,main_dataset,secondary_dataset)  
                     max_y = int(np.where(overlap_map == np.nanmax(overlap_map))[1])
                 else: # Otherwise, pick only based on the main dataset
-                    max_y = int(np.where(map_masked[main_dataset] == np.nanmax(map_masked[main_dataset][:,:,:,i]))[1])
+                    max_size=np.where(map_masked[main_dataset] == np.nanmax(map_masked[main_dataset][:,:,:,i]))[1].size
+                    if max_size>1:
+                        max_y = int(np.where(map_masked[main_dataset] == np.nanmax(map_masked[main_dataset][:,:,:,i]))[1][0]) # take the first max if there are mainy
+                    else:
+                        max_y = int(np.where(map_masked[main_dataset] == np.nanmax(map_masked[main_dataset][:,:,:,i]))[1])
                 
                 # Show template as background
                 axs[row_coronal,col].imshow(np.rot90(template_data[:,max_y,:]),cmap='gray');
@@ -259,7 +263,11 @@ class Plotting:
                 overlap_map=self._overlap_maps(i,main_dataset,secondary_dataset)  
                 max_z =int(np.where(overlap_map == np.nanmax(overlap_map))[2])
             else: # Otherwise, pick only based on the main dataset
-                max_z = int(np.where(map_masked[main_dataset] == np.nanmax(map_masked[main_dataset][:,:,:,i]))[2])
+                max_size=np.where(map_masked[main_dataset] == np.nanmax(map_masked[main_dataset][:,:,:,i]))[2].size
+                if max_size>1:
+                    max_z = int(np.where(map_masked[main_dataset] == np.nanmax(map_masked[main_dataset][:,:,:,i]))[2][int(max_size/2)]) # take the midle max if there are mainy
+                else:
+                    max_z = int(np.where(map_masked[main_dataset] == np.nanmax(map_masked[main_dataset][:,:,:,i]))[2])
             
             # Show template as background
             axs[row_axial,col].imshow(template_data[:,:,max_z].T,cmap='gray');
