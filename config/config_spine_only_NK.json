@@ -10,7 +10,7 @@
                 "physio_frq":100}},
 
 "output_dir": "/spine_only/results/",
-"output_tag": "tests_paper_z2",
+"output_tag": "paper_",
     
 "list_subjects":{"mtl": ["P028","P030","P033","P043","P047","P050","P057","P099","P100","P105","P108","P109","A003","A004","A005","A006","A007","A008","A009","A011","A013"],
                 "gva": ["01","02","03","04","05","06" ,"07","08","09","10","12","11","13","14","15","16" ,"17","18","19"]},
@@ -27,8 +27,8 @@
 "data":{"mtl":
             {"ica":
                 {"spinalcord": {
-                "dir":"/spine_only/mtl/ica/",
-                "tag_filename":"4D_K"}},
+                "dir":"/spine_only/mtl/spinalcord/",
+                "tag_filename":"4D"}},
             "icap":
                 {"spinalcord": {
                 "dir":"/spine_only/mtl/icap/",
@@ -36,7 +36,7 @@
             "ica_duration":
                 {"spinalcord": {
                 "dir":"/spine_only/mtl/ica_duration/",
-                "tag_filename":"4D_K"}},
+                "tag_filename":"4D"}},
             "icap_duration":
                 {"spinalcord": {
                 "dir":"/spine_only/mtl/icap_duration/",
@@ -45,7 +45,7 @@
             {"ica":
                 {"spinalcord": {
                 "dir":"/spine_only/gva/ica/",
-                "tag_filename":"4D_K"}},
+                "tag_filename":"4D"}},
             "icap":
                 {"spinalcord": {
                 "dir":"/spine_only/gva/icap/",
@@ -53,7 +53,7 @@
             "ica_duration":
                 {"spinalcord": {
                 "dir":"/spine_only/gva/ica_duration/",
-                "tag_filename":"4D_K"}},
+                "tag_filename":"4D"}},
             "icap_duration":
                 {"spinalcord": {
                 "dir":"/spine_only/gva/icap_duration/",
