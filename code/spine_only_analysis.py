@@ -292,7 +292,7 @@ class SpineOnlyAnalysis:
                 if verbose == True:
                     print(f'... Computing similarity for K={k1} between t={t} min and t={t_range1} min')
                 
-                similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k1], self.data[self.name2][t], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k1-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k1-1)//10], method=similarity_method, match_compo=True, verbose=False)
+                similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][t_range1], self.data[self.name2][t], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k1-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k1-1)//10], method=similarity_method, match_compo=True, verbose=False)
                 mean_similarity[t_ind] = np.mean(np.diagonal(similarity_matrix))
             fig, ax = plt.subplots(figsize=(10,4))
             ax.plot(range(1,len(t_range2)+1), mean_similarity, linewidth=2, markersize=10, marker='.')

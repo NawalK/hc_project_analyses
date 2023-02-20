@@ -90,7 +90,7 @@ class Plotting:
                 self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_indiv/*' + self.subject[set] + '*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
                 
             elif self.duration[set] == None and self.subject[set] == None and self.analysis[set]!=("icap_duration" or "ica_duration"):
-                #print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')
+                print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')
                 self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
             else:
                 raise(Exception(f'"You should define subject *or* duration, or none. If duration is chose, please choose "ica_duration" or "icap_duration" as analysis.'))
@@ -129,6 +129,7 @@ class Plotting:
             Note: if there are two datasets, colormaps are hardcoded to ease visualization and comparison 
         save_results : boolean
             Set to True to save figure (default = False)'''
+        print("The plotting will be display in flip orientation (Right > left)")
         if lthresh==None:
             lthresh=self.lthresh[self.name1]
             
@@ -217,10 +218,10 @@ class Plotting:
 
             if centering_method == 'middle':
                 if len(self.k.keys())==1:
-                    axs[row_coronal,col].imshow(np.rot90(template_data[:,template_data.shape[1]//2,:]),cmap='gray',origin='lower');
+                    axs[row_coronal,col].imshow(np.rot90(template_data[:,template_data.shape[1]//2,:].T,2),cmap='gray',origin='lower');
                     if show_spinal_levels == True:
-                        axs[row_coronal,col].imshow(np.rot90(levels_data[:,template_data.shape[1]//2,:,self.spinal_levels_sorted[self.name1][i]]),cmap='gray')
-                    axs[row_coronal,col].imshow(np.rot90(map_masked[self.name1][:,template_data.shape[1]//2,:,i]),vmin=lthresh, vmax=uthresh,cmap=colormaps[self.name1])
+                        axs[row_coronal,col].imshow(np.rot90(levels_data[:,template_data.shape[1]//2,:,self.spinal_levels_sorted[self.name1][i]].T,2),cmap='gray')
+                    axs[row_coronal,col].imshow(np.rot90(map_masked[self.name1][:,template_data.shape[1]//2,:,i].T,2),vmin=lthresh, vmax=uthresh,cmap=colormaps[self.name1])
                 else:
                     raise(Exception(f'The centering method "{centering_method}" has not been adapted to display more than one set.'))
 
@@ -236,7 +237,7 @@ class Plotting:
                         max_y = int(np.where(map_masked[main_dataset] == np.nanmax(map_masked[main_dataset][:,:,:,i]))[1])
                 
                 # Show template as background
-                axs[row_coronal,col].imshow(np.rot90(template_data[:,max_y,:]),cmap='gray');
+                axs[row_coronal,col].imshow(np.rot90(template_data[:,max_y,:].T,2),cmap='gray');
                 
                 # Show spinal levels
                 if show_spinal_levels == True:
@@ -248,9 +249,9 @@ class Plotting:
                     else:
                         axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_sorted[main_dataset][i]]),cmap='gray')
                 # Show components
-                axs[row_coronal,col].imshow(np.rot90(map_masked[main_dataset][:,max_y,:,i]),vmin=lthresh, vmax=uthresh,cmap=colormaps[main_dataset],alpha=alpha[main_dataset])
+                axs[row_coronal,col].imshow(np.rot90(map_masked[main_dataset][:,max_y,:,i].T,2),vmin=lthresh, vmax=uthresh,cmap=colormaps[main_dataset],alpha=alpha[main_dataset])
                 if len(self.k.keys())==2 and i<self.k[secondary_dataset]: # If maps present in both
-                    axs[row_coronal,col].imshow(np.rot90(map_masked[secondary_dataset][:,max_y,:,i]),vmin=lthresh, vmax=uthresh,cmap=colormaps[secondary_dataset],alpha=alpha[secondary_dataset])
+                    axs[row_coronal,col].imshow(np.rot90(map_masked[secondary_dataset][:,max_y,:,i].T,2),vmin=lthresh, vmax=uthresh,cmap=colormaps[secondary_dataset],alpha=alpha[secondary_dataset])
                     
             else:
                 raise(Exception(f'"{centering_method}" is not a supported centering method.'))
@@ -274,12 +275,13 @@ class Plotting:
             
             # Show components
             axs[row_axial,col].imshow(map_masked[main_dataset][:,:,max_z,i].T,vmin=lthresh, vmax=uthresh,cmap=colormaps[main_dataset],alpha=alpha[main_dataset])
+            
             if len(self.k.keys())==2 and i<self.k[secondary_dataset]: # If maps present in both                
-                axs[row_axial,col].imshow(map_masked[secondary_dataset][:,:,max_z,i].T,vmin=lthresh, vmax=uthresh,cmap=colormaps[secondary_dataset],alpha=alpha[secondary_dataset])                
+                axs[row_axial,col].imshow(map_masked[secondary_dataset][:,:,max_z,i].T,vmin=lthresh, vmax=uthresh,cmap=colormaps[secondary_dataset],alpha=alpha[secondary_dataset])   
                 
             # To "zoom" on the spinal cord, we adapt the x and y lims
-            axs[row_axial,col].set_xlim([map_masked[main_dataset].shape[0]*0.2,map_masked[main_dataset].shape[0]*0.8])
-            axs[row_axial,col].set_ylim([map_masked[main_dataset].shape[1]*0.2,map_masked[main_dataset].shape[1]*0.8])
+            #axs[row_axial,col].set_xlim([map_masked[main_dataset].shape[0]*0.2,map_masked[main_dataset].shape[0]*0.8])
+            #axs[row_axial,col].set_ylim([map_masked[main_dataset].shape[1]*0.2,map_masked[main_dataset].shape[1]*0.8])
             axs[row_axial,col].set_anchor('N')
 
         # If option is set, save results as a png
