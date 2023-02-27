@@ -153,8 +153,9 @@ class Plotting:
             elif self.k[self.name1] == self.k[self.name2]: # If there are two datasets with the same size
                 main_dataset = self.name1 # We simply assign them based on the order given for the parameters
                 secondary_dataset = self.name2
-            colormaps[main_dataset]='autumn'; colormaps[secondary_dataset]='winter'
-            alpha[main_dataset] = 1; alpha[secondary_dataset] = 0.5     
+            #colormaps[main_dataset]='autumn'; colormaps[secondary_dataset]='winter'
+            colormaps[main_dataset]='winter'; colormaps[secondary_dataset]='autumn'
+            alpha[main_dataset] = 1; alpha[secondary_dataset] = 0.7     
         else:
             main_dataset = self.name1 # If only one dataset, it is for sure the longest :) 
             colormaps[main_dataset ]=colormap
@@ -271,13 +272,13 @@ class Plotting:
                     max_z = int(np.where(map_masked[main_dataset] == np.nanmax(map_masked[main_dataset][:,:,:,i]))[2])
             
             # Show template as background
-            axs[row_axial,col].imshow(template_data[:,:,max_z].T,cmap='gray');
+            axs[row_axial,col].imshow(np.rot90(template_data[:,:,max_z].T,2),cmap='gray');
             
             # Show components
-            axs[row_axial,col].imshow(map_masked[main_dataset][:,:,max_z,i].T,vmin=lthresh, vmax=uthresh,cmap=colormaps[main_dataset],alpha=alpha[main_dataset])
+            axs[row_axial,col].imshow(np.rot90(map_masked[main_dataset][:,:,max_z,i].T,2),vmin=lthresh, vmax=uthresh,cmap=colormaps[main_dataset],alpha=alpha[main_dataset])
             
             if len(self.k.keys())==2 and i<self.k[secondary_dataset]: # If maps present in both                
-                axs[row_axial,col].imshow(map_masked[secondary_dataset][:,:,max_z,i].T,vmin=lthresh, vmax=uthresh,cmap=colormaps[secondary_dataset],alpha=alpha[secondary_dataset])   
+                axs[row_axial,col].imshow(np.rot90(map_masked[secondary_dataset][:,:,max_z,i].T,2),vmin=lthresh, vmax=uthresh,cmap=colormaps[secondary_dataset],alpha=alpha[secondary_dataset])   
                 
             # To "zoom" on the spinal cord, we adapt the x and y lims
             #axs[row_axial,col].set_xlim([map_masked[main_dataset].shape[0]*0.2,map_masked[main_dataset].shape[0]*0.8])
