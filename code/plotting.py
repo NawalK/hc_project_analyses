@@ -102,7 +102,7 @@ class Plotting:
 
     # ======= SPINAL CORD ========
     
-    def sc_plot(self, k_per_line=None, lthresh=None, uthresh=4.0, auto_thresh=False, perc_thresh=90, centering_method='max', similarity_method='Dice', show_spinal_levels=False, colormap='autumn', save_results=False):
+    def sc_plot(self, k_per_line=None, lthresh=None, uthresh=4.0, auto_thresh=False, perc_thresh=90, template=None, centering_method='max', similarity_method='Dice', show_spinal_levels=False, colormap_one='autumn', colormap_two=['winter','autumn'], save_results=False):
         ''' Plot components overlaid on PAM50 template (coronal and axial views are shown)
         
         Inputs
@@ -110,12 +110,15 @@ class Plotting:
         k_per_line: str
             Number of maps to display per line (default = will be set to total number of 4th dimension in the 4D image)
         lthresh : float
-            Lower threshold value to display the maps (default = 2.3)
+            Lower threshold value to display the maps 
             ! is not taken into account if auto_thresh = True
         uthresh : float
             Upper threshold value to display the maps (default = 4.0)
         auto_thresh : boolean / perc_thresh : int
             If sets to True, lower threshold is computed automatically (default = False) based on z distribution (i.e., taking the perc_thres percentile, default = 90)
+        template : str
+            To change the background if needed (default = None)
+            If None, the template image defined in the config file is used
         centering_method : str
             Method to center display in the anterio-posterior direction (default = 'max')
                 'max' to center based on voxel with maximum activity
@@ -124,12 +127,15 @@ class Plotting:
             Method to compute similarity if there are two datasets (default = Dice)
         show_spinal_levels : boolean
             Defines whether spinal levels are displayed or not (default = False)
-        colormap : str
-            Defines colormap used to plot the maps(default = 'autumn')
-            Note: if there are two datasets, colormaps are hardcoded to ease visualization and comparison 
+        colormap_one : str
+            Defines colormap used to plot the maps if one dataset (default = 'autumn')
+        colormap_two : list
+            Defines colormap used to plot the maps if two datasets (default = ['winter','autumn'])
         save_results : boolean
             Set to True to save figure (default = False)'''
-        print("The plotting will be display in flip orientation (Right > left)")
+        
+        print("The plotting will be display in neurological orientation (Left > Right)")
+
         if lthresh==None:
             lthresh=self.lthresh[self.name1]
             
@@ -154,11 +160,11 @@ class Plotting:
                 main_dataset = self.name1 # We simply assign them based on the order given for the parameters
                 secondary_dataset = self.name2
             #colormaps[main_dataset]='autumn'; colormaps[secondary_dataset]='winter'
-            colormaps[main_dataset]='winter'; colormaps[secondary_dataset]='autumn'
-            alpha[main_dataset] = 1; alpha[secondary_dataset] = 0.7     
+            colormaps[main_dataset]=colormap_two[0]; colormaps[secondary_dataset]=colormap_two[1]
+            alpha[main_dataset] = 1; alpha[secondary_dataset] = 0.8     
         else:
             main_dataset = self.name1 # If only one dataset, it is for sure the longest :) 
-            colormaps[main_dataset ]=colormap
+            colormaps[main_dataset ]=colormap_one
             alpha[main_dataset] = 1
         
         # Order the second dataset
@@ -175,7 +181,7 @@ class Plotting:
             raise(Exception('Number of maps per line should be inferior or equal to the total number of maps.'))
         
         # Load template image for background
-        template_img = nib.load(self.config['main_dir'] + self.config['templates']['spinalcord'])
+        template_img = nib.load(self.config['main_dir'] + self.config['templates']['spinalcord']) if template is None else nib.load(template)
         template_data = template_img.get_fdata()
         map_masked = {}
         
@@ -217,45 +223,39 @@ class Plotting:
             #else:
              #   axs[row_coronal,col].set_title('#' + str(self.map_order[main_dataset][i]+1) + '\n Level ' + str(self.spinal_levels_sorted[main_dataset][i]+1),fontsize=18,pad=20)
 
-            if centering_method == 'middle':
-                if len(self.k.keys())==1:
-                    axs[row_coronal,col].imshow(np.rot90(template_data[:,template_data.shape[1]//2,:].T,2),cmap='gray',origin='lower');
-                    if show_spinal_levels == True:
-                        axs[row_coronal,col].imshow(np.rot90(levels_data[:,template_data.shape[1]//2,:,self.spinal_levels_sorted[self.name1][i]].T,2),cmap='gray')
-                    axs[row_coronal,col].imshow(np.rot90(map_masked[self.name1][:,template_data.shape[1]//2,:,i].T,2),vmin=lthresh, vmax=uthresh,cmap=colormaps[self.name1])
-                else:
-                    raise(Exception(f'The centering method "{centering_method}" has not been adapted to display more than one set.'))
-
-            elif centering_method == 'max':
+            if centering_method == 'max':
                 if len(self.k.keys())==2 and i<self.k[secondary_dataset]: # If maps present in both, define max based on the overlap
                     overlap_map=self._overlap_maps(i,main_dataset,secondary_dataset)  
                     max_y = int(np.where(overlap_map == np.nanmax(overlap_map))[1])
+               
                 else: # Otherwise, pick only based on the main dataset
                     max_size=np.where(map_masked[main_dataset] == np.nanmax(map_masked[main_dataset][:,:,:,i]))[1].size
                     if max_size>1:
                         max_y = int(np.where(map_masked[main_dataset] == np.nanmax(map_masked[main_dataset][:,:,:,i]))[1][0]) # take the first max if there are mainy
                     else:
                         max_y = int(np.where(map_masked[main_dataset] == np.nanmax(map_masked[main_dataset][:,:,:,i]))[1])
-                
-                # Show template as background
-                axs[row_coronal,col].imshow(np.rot90(template_data[:,max_y,:].T,2),cmap='gray');
-                
-                # Show spinal levels
-                if show_spinal_levels == True:
-                    if len(self.k.keys())==2:
-                        if i<self.k[secondary_dataset]:
-                            axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_sorted[secondary_dataset][i]]),cmap='gray')
-                        else:
-                            axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_matched[main_dataset][i]]),cmap='gray')
-                    else:
-                        axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_sorted[main_dataset][i]]),cmap='gray')
-                # Show components
-                axs[row_coronal,col].imshow(np.rot90(map_masked[main_dataset][:,max_y,:,i].T,2),vmin=lthresh, vmax=uthresh,cmap=colormaps[main_dataset],alpha=alpha[main_dataset])
-                if len(self.k.keys())==2 and i<self.k[secondary_dataset]: # If maps present in both
-                    axs[row_coronal,col].imshow(np.rot90(map_masked[secondary_dataset][:,max_y,:,i].T,2),vmin=lthresh, vmax=uthresh,cmap=colormaps[secondary_dataset],alpha=alpha[secondary_dataset])
-                    
+            elif centering_method == 'middle':
+                max_y = template_data.shape[1]//2
             else:
                 raise(Exception(f'"{centering_method}" is not a supported centering method.'))
+                    
+            # Show template as background
+            axs[row_coronal,col].imshow(np.rot90(template_data[:,max_y,:].T,2),cmap='gray');
+                
+            # Show spinal levels
+            if show_spinal_levels == True:
+                if len(self.k.keys())==2:
+                    if i<self.k[secondary_dataset]:
+                        axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_sorted[secondary_dataset][i]]),cmap='gray')
+                    else:
+                        axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_matched[main_dataset][i]]),cmap='gray')                    
+                else:
+                    axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_sorted[main_dataset][i]]),cmap='gray')
+            # Show components
+            axs[row_coronal,col].imshow(np.rot90(map_masked[main_dataset][:,max_y,:,i].T,2),vmin=lthresh, vmax=uthresh,cmap=colormaps[main_dataset],alpha=alpha[main_dataset])
+            if len(self.k.keys())==2 and i<self.k[secondary_dataset]: # If maps present in both
+                axs[row_coronal,col].imshow(np.rot90(map_masked[secondary_dataset][:,max_y,:,i].T,2),vmin=lthresh, vmax=uthresh,cmap=colormaps[secondary_dataset],alpha=alpha[secondary_dataset])
+                    
              
             # Draw axial views
             row_axial = 1 if i<k_per_line else (i//k_per_line-1)*2+3
