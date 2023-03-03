@@ -22,6 +22,8 @@ class SpineOnlyAnalysis:
         - t_range: different durations to consider (if the analysis is ica_duration or icap_duration)
         - dataset: selected dataset (e.g., 'gva' or 'mtl')
         - analysis: analysis method (e.g., 'ica', 'icap', 'ica_duration' or 'icap_duration')
+        - subject: subject of interest (e.g., 'S12') if we want to do a single subject analysis (works only for analysis = 'ica' or 'icap')
+        - lthresh: lower Z value to threshold or binarize maps 
     name1,name2 : str
         Names to identify the sets (built as dataset+analysis)   
     load_subjects : boolean
@@ -66,7 +68,6 @@ class SpineOnlyAnalysis:
         self.data = {} # To store the data with their initial order (i.e., as in the related nifti files)
         self.data_indiv = {}
 
-        
         # Load components
         for set in self.k_range.keys(): # For each set
             self.data[set] = {}
@@ -75,21 +76,18 @@ class SpineOnlyAnalysis:
                 for k_ind,k in enumerate(self.k_range[set]): # For each k
                     if self.subject[set] == None:
                         self.data[set][k] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
-                       
-                    # Here it is assumed that we do not explore subject-specific components for different durations
+
                         if self.load_subjects == True:
-                            print("subject loading ...")
+                            print(f"Subject loading for {set}...")
                             self.data_indiv[set][k] = {}
                             for sub in self.config['list_subjects'][self.dataset[set]]:
                                 self.data_indiv[set][k][sub] = {}
                                 self.data_indiv[set][k][sub] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_indiv/*sub-' + sub +'*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
                                 #print(self.data_indiv)
     
-                    
-                        # Here we will use data from on define participant
+                    # Here we will use data from one defined participant
                     elif self.subject[set] != None:
                         self.data[set][k] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_indiv/*' + self.subject[set]  + '*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata() 
-                        
                             
             elif self.t_range[set] != None:
                 for k_ind,k in enumerate(self.k_range[set]): 
@@ -155,10 +153,7 @@ class SpineOnlyAnalysis:
         elif k1 != None and t_range1 != None and t_range2 != None:
             method = 3
             output_fname=self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_similarity_across_duration'
-        
-            
-        # file name of the outputs:
-            
+                    
         # For method 1, we focus on one similarity matrix
         if method == 1:
             print(f'METHOD 1: Comparing two sets of components at specific K values \n{self.name1} at K = {k1} vs {self.name2} at K = {k2} \n')
@@ -174,7 +169,7 @@ class SpineOnlyAnalysis:
                 for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[self.name1]]):
                     self.data[self.name2][k2][sub]=self.data_indiv[self.name1][k2][sub]
           
-            #>>>>>>>>>>>>>>>> Compute the similarity coefficient and its mean for either selected method : 'Cosine', 'Dice' or 'Euclidean distance'
+            # Compute the similarity coefficient and its mean for either selected method : 'Cosine', 'Dice' or 'Euclidean distance'
             if similarity_method == 'Cosine': # We need masks
                 mask1 = nib.load(self.config['main_dir']+self.config['masks'][self.dataset[self.name1]]['spinalcord']).get_fdata()
                 mask2 = nib.load(self.config['main_dir']+self.config['masks'][self.dataset[self.name2]]['spinalcord']).get_fdata()
@@ -189,34 +184,26 @@ class SpineOnlyAnalysis:
                             
             else:
                 if self.load_subjects != True:
-                    similarity_matrix,_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k1-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k2-1)//10], method=similarity_method, match_compo=True, verbose=False)
+                    similarity_matrix,_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2], thresh1=self.threshold[self.name1], thresh2=self.threshold[self.name2], method=similarity_method, match_compo=True, verbose=False)
                     mean_similarity = mean(x for x in np.diagonal(similarity_matrix) if x !=-1) # If ks are different, we avoid taking -1 values (no correspondance)
                 elif self.load_subjects == True:
                     similarity_matrix={}; mean_similarity={}
                     for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[self.name1]]):
-                        similarity_matrix[sub],_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2][sub], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k1-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k2-1)//10], method=similarity_method, match_compo=True, verbose=False)
-                        #for x in np.diagonal(similarity_matrix[sub]):
-                        
+                        similarity_matrix[sub],_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2][sub], thresh1=self.threshold[self.name1], thresh2=self.threshold[self.name2], method=similarity_method, match_compo=True, verbose=False)                        
                         mean_similarity[sub] = mean(x for x in np.diagonal(similarity_matrix[sub]) if x !=-1) # If ks are different, we avoid taking -1 values (no correspondance)
-
-            
-            
-            #>>>>>>>>>>>>>>>> plot similarity matrix or
+        
+            # Plot similarity matrix
             if self.load_subjects != True:
                 plt.figure(figsize=(7,7))
                 sns.heatmap(similarity_matrix, linewidths=.5, square=True, cmap='YlOrBr', vmin=0, vmax=1, xticklabels=orderY+1, yticklabels=np.array(range(1,k1+1)),cbar_kws={'shrink' : 0.8, 'label': similarity_method});
                 plt.xlabel(self.name2)
                 plt.ylabel(self.name1)
                 print(f'The mean similarity is {mean_similarity:.2f}')
-
             
-            elif self.load_subjects == True:
-                
-                # create a dataframe that will contain similarity index for each individuals
+            elif self.load_subjects == True:                
+                # Create a dataframe that will contain similarity index for each individual
                 mean_similarity_df = pd.DataFrame(columns = ['subj_name','dataset', 'analysis',similarity_method],index = range(0,len(self.config['list_subjects'][self.dataset[self.name1]]))) # create dataframe to save the data of each individuals
-                
                 similarity_df = pd.DataFrame(columns = ['subj_name','components','dataset','analysis',similarity_method],index = range(0,k1*len(self.config['list_subjects'][self.dataset[self.name1]]))) # create dataframe to save the data of each individuals and each components
-                
                 subj_iter=0
                 
                 for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[self.name1]]):
@@ -240,25 +227,18 @@ class SpineOnlyAnalysis:
                         similarity_df[similarity_method][i]=np.diagonal(similarity_matrix[sub])[i-subj_iter]
                     
                     subj_iter=k1+subj_iter
-                    
-                     
-                    
-                    
-                print('The mean similarity are: ')
-                
-   
-            
-            #>>>>>>>>>>>>>>>> save results
+                       
+            # Save results
             if save_results == True:
                 if self.load_subjects != True:
                     np.savetxt(output_fname +'.txt',mean_similarity)
                 elif self.load_subjects == True:
                     mean_similarity_df.to_csv(output_fname +'_indiv.txt',index=False, sep=' ')
                     similarity_df.to_csv(output_fname +'_indiv_comp.txt',index=False, sep=' ')
-              
+            
+            # Save figure  
             if save_figure == True:
-                plt.savefig(output_fname )# Save figure
-
+                plt.savefig(output_fname ) 
                 
         elif method == 2:
             print('METHOD 2: Comparing two sets of components across K values')
@@ -271,7 +251,7 @@ class SpineOnlyAnalysis:
                     mask2 = nib.load(self.config['main_dir']+self.config['masks'][self.dataset[self.name2]]['spinalcord']).get_fdata()
                     similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], mask1=mask1, mask2=mask2, method=similarity_method, match_compo=True, verbose=False)
                 else:
-                    similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k-1)//10], method=similarity_method, match_compo=True, verbose=False)
+                    similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], thresh1=self.threshold[self.name1], thresh2=self.threshold[self.name2], method=similarity_method, match_compo=True, verbose=False)
                 mean_similarity[k_ind] = np.mean(np.diagonal(similarity_matrix)) 
             fig, ax = plt.subplots(figsize=(10,4))
             ax.plot(range(1,len(k_range)+1), mean_similarity, linewidth=2, markersize=10, marker='.')
@@ -292,7 +272,7 @@ class SpineOnlyAnalysis:
                 if verbose == True:
                     print(f'... Computing similarity for K={k1} between t={t} min and t={t_range1} min')
                 
-                similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][t_range1], self.data[self.name2][t], thresh1=self.config['z_thresh'][self.dataset[self.name1]][(k1-1)//10], thresh2=self.config['z_thresh'][self.dataset[self.name2]][(k1-1)//10], method=similarity_method, match_compo=True, verbose=False)
+                similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][t_range1], self.data[self.name2][t], thresh1=self.threshold[self.name1], thresh2=self.threshold[self.name2], method=similarity_method, match_compo=True, verbose=False)
                 mean_similarity[t_ind] = np.mean(np.diagonal(similarity_matrix))
             fig, ax = plt.subplots(figsize=(10,4))
             ax.plot(range(1,len(t_range2)+1), mean_similarity, linewidth=2, markersize=10, marker='.')
@@ -310,11 +290,9 @@ class SpineOnlyAnalysis:
                     mean_similarity_df[similarity_method][duration_ind]=mean_similarity[duration_ind]
                
                 mean_similarity_df.to_csv(output_fname +'.txt',index=False, sep=' ')
-                         
-                        
                 
             if save_figure == True:
-                plt.savefig(output_fname )# Save figure
+                plt.savefig(output_fname ) # Save figure
 
         else: 
             raise(Exception(f'Something went wrong! No method was assigned...'))
@@ -376,7 +354,7 @@ class SpineOnlyAnalysis:
 
             # Look through each component for a particular k
             for k in range(0,k_tot):
-                data_bin = np.where(data[:,:,:,k] >= self.config['z_thresh'][self.dataset[data_name]][(k-1)//10], 1, 0)
+                data_bin = np.where(data[:,:,:,k] >= self.threshold[data_name], 1, 0)
                 total_voxels = np.sum(data_bin) # Total number of voxels in this component
                 perc_in_masks = {}
                 for mask in mask_names:
@@ -419,7 +397,7 @@ class SpineOnlyAnalysis:
         
         return axial_distribution_counts
 
-    def subject_distribution(self, data_name, k, thresh=2, overwrite_bin=False, save_results=False):
+    def subject_distribution(self, data_name, k):
         '''
         Create maps of the distribution of subject level components
         
@@ -429,43 +407,18 @@ class SpineOnlyAnalysis:
             Name of the set of components to analyze
         k : int
             # of components to consider
-        thresh : float
-            Lower threshold value to binarize components (default = 2)
-        overwrite_bin : boolean
-            Defines whether binarized maps should be overwritten (default = False)
-        save_results : boolean
-            Defines whether results are saved or not (default = False)
-
-        print(f'COMPUTING INDIVIDUAL MAPS FOR \n ––– Set: {data_name} \n ––– K: {k} \n ––– Overwriting binarized maps: {overwrite_bin}')
-        
-        # Saving common data path for simplicity
-        datapath = self.config['main_dir'] + self.config['data'][self.dataset[data_name]][self.analysis[data_name]]['spinalcord']['dir'] + 'K_' + str(k)
-        print(f'...Binarize maps')
-        for sub in self.config['list_subjects'][self.dataset[data_name]]:
-            if overwrite_bin==True or not glob.glob(datapath + '/comp_indiv/sub-' + sub + '*' + self.config['data'][self.dataset[data_name]][self.analysis[data_name]]['spinalcord']['tag_filename'] + '*_bin.nii*'):
-                print(f'......Running on sub-' + sub)
-                # Take basename for this subject
-                base_sub = glob.glob(datapath + '/comp_indiv/sub-' + sub + '*' + self.config['data'][self.dataset[data_name]][self.analysis[data_name]]['spinalcord']['tag_filename'] + '*.nii*')[0].split('.')[0]
-                run_string = 'fslmaths ' + base_sub + ' -thr ' + str(thresh) + ' -bin ' +  base_sub + '_bin'                   
-                os.system(run_string)
-            elif overwrite_bin==False and os.path.isfile(glob.glob(datapath + '/comp_indiv/sub-' + sub + '*' + self.config['data'][self.dataset[data_name]][self.analysis[data_name]]['spinalcord']['tag_filename'] + '*_bin.nii*')):
-                print(f'......Already done for sub-' + sub)
         '''
 
         print(f'SUBJECT DISTRIBUTION FOR \n ––– Set: {data_name} \n ––– K: {k}')
         
-        print('...Sorting and binarize individual maps')
-        #n_sub = (len(self.config['list_subjects'][self.dataset[data_name]]),)
-        #data_sorted_bin = np.zeros(n_sub+self.data_indiv[data_name][k][self.config['list_subjects'][self.dataset[data_name]][0]].shape)
-        #data_sorted_bin = np.empty((1,)+self.data_indiv[data_name][k][self.config['list_subjects'][self.dataset[data_name]][0]].shape)
+        print('...Sorting and binarizing individual maps')
         for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[data_name]]):
-            map_order = sort_maps(self.data_indiv[data_name][k][sub], sorting_method='rostrocaudal')#,threshold=self.threshold[self.name1]) # We sort each subject maps rostrocaudally
+            map_order = sort_maps(self.data_indiv[data_name][k][sub], sorting_method='rostrocaudal_CoM',threshold=self.threshold[data_name]) # We sort each subject maps rostrocaudally
             data_sorted = self.data_indiv[data_name][k][sub][:,:,:,map_order]
-            #data_sorted_bin(sub,:,:,:,:) = np.where(data_sorted >= thresh, 1, 0) # Sorted maps are then binarized
             if sub_ind == 0:
-                data_sorted_bin = [np.where(data_sorted >= thresh, 1, 0)]
+                data_sorted_bin = [np.where(data_sorted >= self.threshold[data_name], 1, 0)]
             else:
-                data_sorted_bin = np.append(data_sorted_bin,[np.where(data_sorted >= thresh, 1, 0)],axis=0)
+                data_sorted_bin = np.append(data_sorted_bin,[np.where(data_sorted >= self.threshold[data_name], 1, 0)],axis=0)
 
 
         print('...Computing overlap')

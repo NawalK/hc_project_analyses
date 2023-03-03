@@ -28,7 +28,7 @@
             {"ica":
                 {"spinalcord": {
                 "dir":"/spine_only/mtl/spinalcord/",
-                "tag_filename":"4D"}},
+                "tag_filename":"4D_z"}},
             "icap":
                 {"spinalcord": {
                 "dir":"/spine_only/mtl/icap/",
@@ -36,7 +36,7 @@
             "ica_duration":
                 {"spinalcord": {
                 "dir":"/spine_only/mtl/ica_duration/",
-                "tag_filename":"4D"}},
+                "tag_filename":"4D_z"}},
             "icap_duration":
                 {"spinalcord": {
                 "dir":"/spine_only/mtl/icap_duration/",
@@ -45,7 +45,7 @@
             {"ica":
                 {"spinalcord": {
                 "dir":"/spine_only/gva/ica/",
-                "tag_filename":"4D"}},
+                "tag_filename":"4D_"}},
             "icap":
                 {"spinalcord": {
                 "dir":"/spine_only/gva/icap/",
@@ -53,14 +53,10 @@
             "ica_duration":
                 {"spinalcord": {
                 "dir":"/spine_only/gva/ica_duration/",
-                "tag_filename":"4D"}},
+                "tag_filename":"4D_z"}},
             "icap_duration":
                 {"spinalcord": {
                 "dir":"/spine_only/gva/icap_duration/",
                 "tag_filename":"iCAPs"}}}          
-        },
-
-
-"z_thresh": {"mtl": [2, 2, 2, 2, 2, 2],
-             "gva": [2, 2, 2, 2, 2, 2]}
+        }
 } 

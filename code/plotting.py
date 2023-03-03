@@ -67,8 +67,8 @@ class Plotting:
             self.lthresh[self.name2]  = params2.get('lthresh') # precise a threshold for cluster selection (sort_map)
         
         self.sorting_method = sorting_method
-        if self.sorting_method == "ocaudal_CoM" and  self.lthresh[self.name1] ==None:
-            raise(Exception(f'"You should predefine a threshold for sorting method rostrocaulda_CoM'))
+        if self.sorting_method == "rostrocaudal_CoM" and  self.lthresh[self.name1] ==None:
+            raise(Exception(f'"You should predefine a threshold for sorting method rostrocaudal_CoM'))
             
             
         self.data = {} # To store the data with their initial order (i.e., as in the related nifti files)
@@ -86,11 +86,11 @@ class Plotting:
                 #print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + self.duration[set]  + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')
                 self.data[set] =nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + self.duration[set]  + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
             elif self.duration[set] == None and self.subject[set] != None and self.analysis[set]!=("icap_duration" or "ica_duration"):
-                print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_indiv/*' + self.subject[set] + '*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')
+                #print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_indiv/*' + self.subject[set] + '*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')
                 self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_indiv/*' + self.subject[set] + '*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
                 
             elif self.duration[set] == None and self.subject[set] == None and self.analysis[set]!=("icap_duration" or "ica_duration"):
-                print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')
+                #print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')
                 self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
             else:
                 raise(Exception(f'"You should define subject *or* duration, or none. If duration is chose, please choose "ica_duration" or "icap_duration" as analysis.'))
@@ -102,7 +102,7 @@ class Plotting:
 
     # ======= SPINAL CORD ========
     
-    def sc_plot(self, k_per_line=None, lthresh=None, uthresh=4.0, auto_thresh=False, perc_thresh=90, template=None, centering_method='max', similarity_method='Dice', show_spinal_levels=False, colormap_one='autumn', colormap_two=['winter','autumn'], save_results=False):
+    def sc_plot(self, k_per_line=None, lthresh=None, uthresh=4.0, auto_thresh=False, perc_thresh=90, template=None, centering_method='max', similarity_method='Dice', show_spinal_levels=False, colormap_one='autumn', colormap_two=['autumn','winter'], save_results=False):
         ''' Plot components overlaid on PAM50 template (coronal and axial views are shown)
         
         Inputs
@@ -130,11 +130,11 @@ class Plotting:
         colormap_one : str
             Defines colormap used to plot the maps if one dataset (default = 'autumn')
         colormap_two : list
-            Defines colormap used to plot the maps if two datasets (default = ['winter','autumn'])
+            Defines colormap used to plot the maps if two datasets (default = ['autumn','winter'])
         save_results : boolean
             Set to True to save figure (default = False)'''
         
-        print("The plotting will be display in neurological orientation (Left > Right)")
+        print("The plotting will be displayed in neurological orientation (Left > Right)")
 
         if lthresh==None:
             lthresh=self.lthresh[self.name1]
@@ -159,7 +159,6 @@ class Plotting:
             elif self.k[self.name1] == self.k[self.name2]: # If there are two datasets with the same size
                 main_dataset = self.name1 # We simply assign them based on the order given for the parameters
                 secondary_dataset = self.name2
-            #colormaps[main_dataset]='autumn'; colormaps[secondary_dataset]='winter'
             colormaps[main_dataset]=colormap_two[0]; colormaps[secondary_dataset]=colormap_two[1]
             alpha[main_dataset] = 1; alpha[secondary_dataset] = 0.8     
         else:
