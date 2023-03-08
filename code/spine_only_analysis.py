@@ -142,7 +142,7 @@ class SpineOnlyAnalysis:
             raise(Exception(f'A K value should also be given when t_ranges are provided!'))
         elif k_range == None and k1 != None and t_range1 == None and t_range2 == None:
             method = 1
-            output_fname=self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_similarity_across_K'
+            output_fname=self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_mean_0_'
             if k2 == None: # If just one k is provided, we assume the same should be taken for other set
                 k2 = k1
                 
@@ -238,8 +238,8 @@ class SpineOnlyAnalysis:
             
             # Save figure  
             if save_figure == True:
-                plt.savefig(output_fname ) 
-                
+                plt.savefig(output_fname + str(round(mean_similarity*100)))  
+
         elif method == 2:
             print('METHOD 2: Comparing two sets of components across K values')
             mean_similarity = np.empty(len(k_range), dtype=object)
@@ -292,7 +292,7 @@ class SpineOnlyAnalysis:
                 mean_similarity_df.to_csv(output_fname +'.txt',index=False, sep=' ')
                 
             if save_figure == True:
-                plt.savefig(output_fname ) # Save figure
+                plt.savefig(output_fname) 
 
         else: 
             raise(Exception(f'Something went wrong! No method was assigned...'))
