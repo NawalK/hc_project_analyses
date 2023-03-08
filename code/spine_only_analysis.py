@@ -432,3 +432,41 @@ class SpineOnlyAnalysis:
         nib.save(dist_4d_img, self.config['main_dir']+self.config['data'][self.dataset[data_name]][self.analysis[data_name]]['spinalcord']['dir'] + '/K_' + str(k) + '/comp_indiv/distribution.nii.gz')
 
         print('Done!')
+        
+        
+    def extract_voxels_nb(self, K,params,sorting_method='rostrocaudal'):  
+        '''
+        Extract the number of voxels in each components
+        
+        Inputs
+        ---------
+        K : int
+            # of components to consider
+        params : dict
+        Parameters for the clustering
+        - dataset: selected dataset (e.g., 'gva' or 'mtl')
+        - analysis: analysis method (e.g., 'ica', 'icap', 'ica_duration' or 'icap_duration')
+        - lthresh: lower Z value to threshold or binarize maps 
+    name1,name2 : str
+        Names to identify the sets (built as dataset+analysis)  
+        '''
+        print(" ")
+        data_name=params.get('dataset')+'_'+params.get('analysis')
+
+        thresh=params.get('lthresh')#define the threshold of the component
+        print(data_name + ' theshold was put at z= '+ str(thresh) )
+        # sort data in rostrocaudal order
+        map_order = sort_maps(self.data[data_name][K], sorting_method=sorting_method) # The 1st dataset is sorted
+        data_sorted = self.data[data_name][K][:,:,:,map_order]
+        
+        data_bin = np.where(data_sorted  >= thresh, 1, 0) # binarized the data at the defined threshold
+        voxels_sum=0
+        voxels_nb=[0]*K
+        for k in range(0,K):
+            voxels_nb[k]=np.sum(data_bin[:,:,:,k])
+
+        print(">> Total number of voxels:" + str(voxels_nb))
+        #voxels_sum=voxels_sum+voxels_nb[k]
+        
+        voxels_nb_mean=np.mean(voxels_nb)
+        print(">> Average number of voxels " + str(np.round(voxels_nb_mean,2)) + " ± "+ str(np.round(np.std(voxels_nb),1)))
