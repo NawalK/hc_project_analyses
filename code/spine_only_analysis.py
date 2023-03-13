@@ -432,12 +432,13 @@ class SpineOnlyAnalysis:
         # Load affine fron template
         template_img = nib.load(self.config['main_dir'] + self.config['templates']['spinalcord'])
         dist_4d_img = nib.Nifti2Image(data_sorted_bin_sum,affine=template_img.affine)
+        print(self.config['main_dir']+self.config['data'][self.dataset[data_name]][self.analysis[data_name]]['spinalcord']['dir'] + '/K_' + str(k) + '/comp_indiv/distribution.nii.gz')
         nib.save(dist_4d_img, self.config['main_dir']+self.config['data'][self.dataset[data_name]][self.analysis[data_name]]['spinalcord']['dir'] + '/K_' + str(k) + '/comp_indiv/distribution.nii.gz')
 
         print('Done!')
         
         
-    def extract_voxels_info(self, K,params,sorting_method='rostrocaudal', method="larger cluster"):  
+    def extract_voxels_info(self, K,params,sorting_method='rostrocaudal', lthresh=None,subject_distribution=False):  
         '''
         Extract the number of voxels and CoM for each components (of the larger clusteror in total)
         
@@ -459,15 +460,24 @@ class SpineOnlyAnalysis:
         '''
         print(" ")
         data_name=params.get('dataset')+'_'+params.get('analysis')
-
-        thresh=params.get('lthresh')#define the threshold of the component
-        print(data_name + ' theshold was put at z= '+ str(thresh) )
+        if lthresh==None:
+            lthresh=params.get('lthresh')#define the threshold of the component
+            
+        print(data_name + ' theshold was put at z= '+ str(lthresh) )
         # sort data in rostrocaudal order
-        map_order = sort_maps(self.data[data_name][K], sorting_method=sorting_method) # The 1st dataset is sorted
-        data_sorted = self.data[data_name][K][:,:,:,map_order]
+        
+        if subject_distribution==True:
+            sorting_method='rostrocaudal_CoM'
+            data=nib.load(self.config['main_dir']+self.config['data'][self.dataset[data_name]][self.analysis[data_name]]['spinalcord']['dir'] + '/K_' + str(K) + '/comp_indiv/distribution.nii.gz').get_fdata()
+            map_order = sort_maps(data, sorting_method=sorting_method,threshold=lthresh) # The 1st dataset is sorted
+            data_sorted = data[:,:,:,map_order]
+       
+        else:
+            map_order = sort_maps(self.data[data_name][K], sorting_method=sorting_method) # The 1st dataset is sorted
+            data_sorted = self.data[data_name][K][:,:,:,map_order]
         
         
-        data_bin = np.where(data_sorted  >= thresh, 1, 0) # binarized the data at the defined threshold
+        data_bin = np.where(data_sorted  >= lthresh, 1, 0) # binarized the data at the defined threshold
               
         voxels_sum=0
         voxels_nb=[0]*K;cm1=[0]*K
