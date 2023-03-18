@@ -108,6 +108,7 @@ class ICA:
                 os.mkdir(self.analyse_dir + '/comp_raw/')
                 os.mkdir(self.analyse_dir + '/comp_zscored/')
                 os.mkdir(self.analyse_dir + '/comp_bin/')
+                os.mkdir(self.analyse_dir + '/pca_indiv/')
                 os.mkdir(self.analyse_dir +'/comp_indiv/')
                 if not os.path.exists(self.config["main_dir"] + self.config["data"][self.dataset]["ica"][self.structures_ana[0]]["dir"]+'/' +  '/subject_data/'):
                         os.mkdir(self.config["main_dir"] + self.config["data"][self.dataset]["ica"][self.structures_ana[0]]["dir"]+'/' +  '/subject_data/')          

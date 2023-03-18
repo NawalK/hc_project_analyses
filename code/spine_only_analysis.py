@@ -480,21 +480,26 @@ class SpineOnlyAnalysis:
         data_bin = np.where(data_sorted  >= lthresh, 1, 0) # binarized the data at the defined threshold
               
         voxels_sum=0
-        voxels_nb=[0]*K;cm1=[0]*K
+        voxels_nb=[0]*K;cm1=[0]*K;peak_max=[0]*K
         for k in range(0,K):
+            # Select larger cluster ------------------
             data_k_bin=data_bin[:,:,:,k]
+            data_k_sorted=data_sorted[:,:,:,k]
+           
+            
             lbl1 = label(data_k_bin)[0]  # Label data to find the different clusters
             larger_cluster_location=np.where(lbl1 == Counter(lbl1.ravel()).most_common()[1][0]) # don't take the 0 because it's relate to 0 values
-            voxels_nb[k]=np.sum(data_k_bin[larger_cluster_location]) # number of voxels in the larger cluster
+            
+            # Extract cluster info ------------------
             cm1[k] = center_of_mass(data_bin[:,:,:,k],lbl1,Counter(lbl1.ravel()).most_common()[1][0]) # center of mass in voxels unit
-            #print(">> Center of mass in z:" + str(cm1[k][2]))
-           
-        #print(">> Total number of voxels:" + str(voxels_nb))
-           
+            voxels_nb[k]=np.sum(data_k_bin[larger_cluster_location]) # number of voxels in the larger cluster
+            peak_max[k]=np.max(data_k_sorted[larger_cluster_location]) # peak of the larger cluster
+         
         voxels_nb_mean=np.mean(voxels_nb)
+        
         #print(">> Average number of voxels " + str(np.round(voxels_nb_mean,2)) + " ± "+ str(np.round(np.std(voxels_nb),1)))
         
-        return voxels_nb,cm1
+        return voxels_nb,cm1, peak_max
        
         
         
