@@ -7,6 +7,8 @@ from scipy.ndimage import center_of_mass,label,find_objects
 from sklearn.metrics.pairwise import cosine_similarity
 from collections import Counter 
 
+
+
 def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, mask1=None, mask2=None, method='Dice', match_compo=True, plot_results=False,save_results=False,verbose=True):
     ''' Compute the spatial similarity between two sets of 3D components
         

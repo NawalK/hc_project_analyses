@@ -7,8 +7,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from compute_similarity import compute_similarity
 from sc_utilities import sort_maps
-from statistics import mean
-
+from statistics import mean, stdev
+from scipy.ndimage import center_of_mass,label,find_objects
+from collections import Counter 
 class SpineOnlyAnalysis:
     '''
     The SpineOnlyAnalysis class is used to investigate components extracted in the spinal cord
@@ -198,7 +199,9 @@ class SpineOnlyAnalysis:
                 sns.heatmap(similarity_matrix, linewidths=.5, square=True, cmap='YlOrBr', vmin=0, vmax=1, xticklabels=orderY+1, yticklabels=np.array(range(1,k1+1)),cbar_kws={'shrink' : 0.8, 'label': similarity_method});
                 plt.xlabel(self.name2)
                 plt.ylabel(self.name1)
-                print(f'The mean similarity is {mean_similarity:.2f}')
+                
+                print(f'The mean similarity is {mean_similarity:.2f}' + " ± " + str(np.round(stdev((x for x in np.diagonal(similarity_matrix) if x !=-1)),1)))
+                
             
             elif self.load_subjects == True:                
                 # Create a dataframe that will contain similarity index for each individual
@@ -429,14 +432,15 @@ class SpineOnlyAnalysis:
         # Load affine fron template
         template_img = nib.load(self.config['main_dir'] + self.config['templates']['spinalcord'])
         dist_4d_img = nib.Nifti2Image(data_sorted_bin_sum,affine=template_img.affine)
+        print(self.config['main_dir']+self.config['data'][self.dataset[data_name]][self.analysis[data_name]]['spinalcord']['dir'] + '/K_' + str(k) + '/comp_indiv/distribution.nii.gz')
         nib.save(dist_4d_img, self.config['main_dir']+self.config['data'][self.dataset[data_name]][self.analysis[data_name]]['spinalcord']['dir'] + '/K_' + str(k) + '/comp_indiv/distribution.nii.gz')
 
         print('Done!')
         
         
-    def extract_voxels_nb(self, K,params,sorting_method='rostrocaudal'):  
+    def extract_voxels_info(self, K,params,sorting_method='rostrocaudal', lthresh=None,subject_distribution=False):  
         '''
-        Extract the number of voxels in each components
+        Extract the number of voxels and CoM for each components (of the larger clusteror in total)
         
         Inputs
         ---------
@@ -449,24 +453,56 @@ class SpineOnlyAnalysis:
         - lthresh: lower Z value to threshold or binarize maps 
     name1,name2 : str
         Names to identify the sets (built as dataset+analysis)  
+        
+        method: str
+            "larger cluster" : provide info about the larger cluster
+            "total" :  provide info about all the map
         '''
         print(" ")
         data_name=params.get('dataset')+'_'+params.get('analysis')
-
-        thresh=params.get('lthresh')#define the threshold of the component
-        print(data_name + ' theshold was put at z= '+ str(thresh) )
+        if lthresh==None:
+            lthresh=params.get('lthresh')#define the threshold of the component
+            
+        print(data_name + ' theshold was put at z= '+ str(lthresh) )
         # sort data in rostrocaudal order
-        map_order = sort_maps(self.data[data_name][K], sorting_method=sorting_method) # The 1st dataset is sorted
-        data_sorted = self.data[data_name][K][:,:,:,map_order]
         
-        data_bin = np.where(data_sorted  >= thresh, 1, 0) # binarized the data at the defined threshold
+        if subject_distribution==True:
+            sorting_method='rostrocaudal_CoM'
+            data=nib.load(self.config['main_dir']+self.config['data'][self.dataset[data_name]][self.analysis[data_name]]['spinalcord']['dir'] + '/K_' + str(K) + '/comp_indiv/distribution.nii.gz').get_fdata()
+            map_order = sort_maps(data, sorting_method=sorting_method,threshold=lthresh) # The 1st dataset is sorted
+            data_sorted = data[:,:,:,map_order]
+       
+        else:
+            map_order = sort_maps(self.data[data_name][K], sorting_method=sorting_method) # The 1st dataset is sorted
+            data_sorted = self.data[data_name][K][:,:,:,map_order]
+        
+        
+        data_bin = np.where(data_sorted  >= lthresh, 1, 0) # binarized the data at the defined threshold
+              
         voxels_sum=0
-        voxels_nb=[0]*K
+        voxels_nb=[0]*K;cm1=[0]*K;peak_max=[0]*K
         for k in range(0,K):
-            voxels_nb[k]=np.sum(data_bin[:,:,:,k])
-
-        print(">> Total number of voxels:" + str(voxels_nb))
-        #voxels_sum=voxels_sum+voxels_nb[k]
-        
+            # Select larger cluster ------------------
+            data_k_bin=data_bin[:,:,:,k]
+            data_k_sorted=data_sorted[:,:,:,k]
+           
+            
+            lbl1 = label(data_k_bin)[0]  # Label data to find the different clusters
+            larger_cluster_location=np.where(lbl1 == Counter(lbl1.ravel()).most_common()[1][0]) # don't take the 0 because it's relate to 0 values
+            
+            # Extract cluster info ------------------
+            cm1[k] = center_of_mass(data_bin[:,:,:,k],lbl1,Counter(lbl1.ravel()).most_common()[1][0]) # center of mass in voxels unit
+            voxels_nb[k]=np.sum(data_k_bin[larger_cluster_location]) # number of voxels in the larger cluster
+            peak_max[k]=np.max(data_k_sorted[larger_cluster_location]) # peak of the larger cluster
+         
         voxels_nb_mean=np.mean(voxels_nb)
-        print(">> Average number of voxels " + str(np.round(voxels_nb_mean,2)) + " ± "+ str(np.round(np.std(voxels_nb),1)))
+        
+        #print(">> Average number of voxels " + str(np.round(voxels_nb_mean,2)) + " ± "+ str(np.round(np.std(voxels_nb),1)))
+        
+        return voxels_nb,cm1, peak_max
+       
+        
+        
+        # We calculate the center of mass of the largest clusters
+        
+                    

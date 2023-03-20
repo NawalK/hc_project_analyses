@@ -32,7 +32,8 @@ def sort_maps(data, sorting_method,threshold=None):
         print('Sorting method: rostrocaudal (center-of-mass biggest cluster)')
         cm_z=[]
         data_thresh =  np.where(data > threshold, data, 0) # Threshold data
-           
+        
+              
         # We calculate the center of mass of the largest clusters
         for i in range(0,data.shape[3]):
             # Label data to find the different clusters
