@@ -37,13 +37,13 @@
                     "tag_filename":"4D_z"}},
                "ica_duration":
                {"spinalcord":
-                    {"dir":"/ICA/results_spine_only/mtl/spinalcord/temporal_cropping/",
-                     "durations":[1,2,3,4,5,6],
+                    {"dir":"/ICA/results_spine_only/mtl/spinalcord/split_volumes/",
+                     "durations":[1,2],
                     "tag_filename":"4D_z"}},
                 "icap_duration":
               {"spinalcord":
-                    {"dir":"/iCAP/results_spine_only/mtl/spinalcord/temporal_cropping/",
-                     "durations":[1,2,3,4,5,6],
+                    {"dir":"/iCAP/results_spine_only/mtl/spinalcord/split_volumes/",
+                     "durations":[1,2,3,4],
                     "tag_filename":"_z"}},
                "icap":
                 {"spinalcord":
@@ -65,13 +65,13 @@
                 "tag_filename":"4D_z"}},
               "ica_duration":
                {"spinalcord":
-                    {"dir":"/ICA/results_spine_only/gva/spinalcord/temporal_cropping/",
-                     "durations":[1,2,3,4,5,6,9,12,15],
+                    {"dir":"/ICA/results_spine_only/gva/spinalcord/split_volumes/",
+                     "durations":[1,2],
                     "tag_filename":"4D_z"}},
               "icap_duration":
               {"spinalcord":
-                    {"dir":"/iCAP/results_spine_only/gva/spinalcord/temporal_cropping/",
-                     "durations":[1,2,3,4,5,6,9,12,15],
+                    {"dir":"/iCAP/results_spine_only/gva/spinalcord/split_volumes/",
+                     "durations":[1,2,3,4],
                     "tag_filename":"_z"}},
               
                  "icap":
