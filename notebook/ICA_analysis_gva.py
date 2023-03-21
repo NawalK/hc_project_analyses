@@ -25,44 +25,33 @@
 # ____________________________________________________
 # 
 
-# ## <font color=#00988c> Imports </font>
-
-# In[14]:
-
-
 import sys
 import json
-# Spinal cord Toolbox_________________________________________
-### Cerebro:
-sys.path.append("/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spinalcordtoolbox-5.0.0")
-sys.path.append("/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spinalcordtoolbox-5.0.0/scripts") #sys.path.insert(0, "/cerebro/cerebro1/dataset/bmpd/derivatives/sc_preproc/code/sct/spinalcordtoolbox")
-sys.path.append("/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/code/") #sys.path.insert(0, "/cerebro/cerebro1/dataset/bmpd/derivatives/sc_preproc/code/sct/spinalcordtoolbox")
+import time
 
-from spinalcordtoolbox.utils.sys import run_proc
+sys.path.append('/media/miplab-nas2/Data3/BMPD/hc_project/analysis/code/')
+
 import glob, os
 from nilearn.maskers import NiftiMasker
 import numpy as np
 import random
-from canICA_analyses import ICA
+from canICA_analyses_NK import ICA
 import pandas as pd
 
-# ## <font color=#00988c>  I. Run the canICA analysis </font>
-
-# In[17]:
-
-
 # Load the dataset config
-#config_spine_only_CL.json #../config/config_brsc_CL.json
-with open('/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/config/config_spine_only_CL.json') as config_file:
+with open('../config/config_spine_only_NK.json') as config_file:
     config = json.load(config_file)
-dataset="gva" 
-structures=["spinalcord"] # ["spinalcord"] or ["brain","spinalcord"] . double check the script for brainsc
-n_subject=5
+dataset="mtl" 
+structure="spinalcord"
+structures=["spinalcord"]
+n_subject=10
 
-split_file=pd.read_csv(config['main_dir']+ '/ICA/results_spine_only/'+dataset+'/spinalcord/split_'+str(n_subject)+'subjects/' + "subperm.csv",header=None)
+split_file=pd.read_csv(config['main_dir'] + 'spine_only/' + dataset + '/ica_split_' + str(n_subject) + 'sub/' + 'subperm_' + str(n_subject) + '_' + dataset + '.csv',header=None)
 
-for iter in range(0,99):
-    config["data"][dataset]["ica"]["spinalcord"]["dir"]='/ICA/results_spine_only/'+dataset+'/spinalcord/split_'+str(n_subject)+'subjects/n' + str(iter+1) + '/'
+for iter in range(2,70):
+    print(f'Iteration {iter+1}')
+    tic = time.perf_counter()
+    config["data"][dataset]["ica"]["spinalcord"]["dir"]='/spine_only/'+dataset+'/ica_split_'+str(n_subject)+'sub/n' + str(iter+1) + '/'
     if not os.path.exists(config['main_dir']+ config["data"][dataset]["ica"]["spinalcord"]["dir"]):
         os.mkdir(config['main_dir'] + config["data"][dataset]["ica"]["spinalcord"]["dir"])
     
@@ -70,31 +59,26 @@ for iter in range(0,99):
    
     print(config["list_subjects"][dataset])
     files_func={};func_allsbj={}
-    for structure in structures:
-        if len(structures) == 1:
-            ana=structure
-        else:
-            ana= "brain_spinalcord"
-        files_func[structure]=[];func_allsbj[structure]=[]
-        for sbj_nb in range(len(config["list_subjects"][dataset])):
-            subject_name=config["list_subjects"][dataset][sbj_nb]
-            files_func[structure].append(glob.glob(config["data"][dataset]["inputs_ica"]["dir"]+ '/sub-' + subject_name + '/'  + structure + '/*' + config["data"][dataset]["inputs_ica"][structure]["tag_filename_" + ana] + '*')[0])
+    ana=structure
+    files_func[structure]=[];func_allsbj[structure]=[]
+    for sbj_nb in range(len(config["list_subjects"][dataset])):
+        subject_name=config["list_subjects"][dataset][sbj_nb]
+        files_func[structure].append(glob.glob(config["main_dir"]+config["data"][dataset]["inputs_ica"]["dir"]+ '/' + subject_name + '/' + '/*' + config["data"][dataset]["inputs_ica"][structure]["tag_filename_" + ana] + '*')[0])
   
     redo=True
-    config["ica_ana"]["k_range"]["spinalcord"]=[3,4,5,6,7]
+    config["ica_ana"]["k_range"]["spinalcord"]=[7,8,9,10,11]
     for k in config["ica_ana"]["k_range"]["spinalcord"]:
         config["ica_ana"]["n_comp"]=k # usefull if you want to test only on k
         print(config["ica_ana"]["iter"])
 
-        icas = ICA(files_func[structure],[''],structures,dataset,config) # "brain_spinalcord" or "brain" or "spinalcord"
-        #icas = ICA(files_func[structures[0]],files_func[structures[1]],structures,dataset,config) # "brain_spinalcord" or "brain" or "spinalcord"
-        if k==8:
+        icas = ICA(files_func[structure],[''],structures,dataset,config) 
+        if k==config["ica_ana"]["k_range"]["spinalcord"][0]:
             all_data=icas.get_data(run='extract',t_r=config["acq_params"][dataset]["TR"],n_jobs=5) # load or extract
         if redo==True:
-            #all_data=icas.get_data(run='extract',t_r=config["acq_params"][dataset]["TR"],n_jobs=8) # load or extract, if NaN issues put both
             all_data=icas.get_data(run='load',t_r=config["acq_params"][dataset]["TR"],n_jobs=5) # load or extract, if NaN issues put both
             reducedata_all=icas.indiv_PCA(all_data,save_indiv_img=False) # that step is not implanted to save individual maps for brain + sc yet
             components=icas.get_CCA(reducedata_all)
             components_final,components_final_z=icas.get_ICA(components)
             zcomponents4D_filename=icas.save_components(components_final,components_final_z)
-    
+    toc = time.perf_counter()
+    print(f"Iteration done in {toc - tic:0.4f} seconds")

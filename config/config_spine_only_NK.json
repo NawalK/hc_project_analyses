@@ -40,7 +40,11 @@
             "icap_duration":
                 {"spinalcord": {
                 "dir":"/spine_only/mtl/icap_duration/",
-                "tag_filename":"iCAPs"}}},
+                "tag_filename":"iCAPs"}},
+                "inputs_ica":
+            {"dir":"/spine_only/mtl/",
+                 "spinalcord": {
+                  "tag_filename_spinalcord":"moco_HP_sc_inTemplate_s.nii.gz"}}},
        "gva":
             {"ica":
                 {"spinalcord": {
@@ -57,6 +61,14 @@
             "icap_duration":
                 {"spinalcord": {
                 "dir":"/spine_only/gva/icap_duration/",
-                "tag_filename":"iCAPs"}}}          
-        }
+                "tag_filename":"iCAPs"}},
+            "inputs_ica":
+                {"dir":"/spine_only/gva/",
+                 "spinalcord": {
+                  "tag_filename_spinalcord":"moco_HP_sc_inTemplate_s.nii.gz"}}}          
+        },
+"ica_ana":{
+    "iter": 500,
+    "n_comp":0,
+    "k_range": {"spinalcord":[]}}
 } 
