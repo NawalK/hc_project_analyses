@@ -41,8 +41,18 @@
                 {"spinalcord": {
                 "dir":"/spine_only/mtl/icap_duration/",
                 "tag_filename":"iCAPs"}},
-                "inputs_ica":
-            {"dir":"/spine_only/mtl/",
+            "icap_perm":
+                {"spinalcord": {
+                "dir":"/spine_only/mtl/iCAPs_results/perm_10sub/PAM50_C1toC8_10sub_perm",
+                "comp_folder":"",
+                "tag_filename":"iCAPs_z"}},
+            "ica_perm":
+                {"spinalcord": {
+                "dir":"/spine_only/mtl/ica_split_10sub/n",
+                "comp_folder":"comp_zscored",
+                "tag_filename":"4D_z"}},
+            "inputs_ica":
+                {"dir":"/spine_only/mtl/",
                  "spinalcord": {
                   "tag_filename_spinalcord":"moco_HP_sc_inTemplate_s.nii.gz"}}},
        "gva":
@@ -62,6 +72,16 @@
                 {"spinalcord": {
                 "dir":"/spine_only/gva/icap_duration/",
                 "tag_filename":"iCAPs"}},
+                "icap_perm":
+            {"spinalcord": {
+                "dir":"/spine_only/gva/iCAPs_results/perm_10sub/PAM50_C5toC8_10sub_perm",
+                "comp_folder":"",
+                "tag_filename":"iCAPs_z"}},
+            "ica_perm":
+                {"spinalcord": {
+                "dir":"/spine_only/gva/ica_split_10sub/n",
+                "comp_folder":"comp_zscored",
+                "tag_filename":"4D_z"}},
             "inputs_ica":
                 {"dir":"/spine_only/gva/",
                  "spinalcord": {

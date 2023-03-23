@@ -41,12 +41,11 @@ import pandas as pd
 # Load the dataset config
 with open('../config/config_spine_only_NK.json') as config_file:
     config = json.load(config_file)
-dataset="gva" 
+dataset="mtl" 
 structure="spinalcord"
 structures=["spinalcord"]
 n_subject=10
-nperm = range(0,50)
-krange=[3,4,5,6,7]
+nperm = range(30,100)
 
 split_file=pd.read_csv(config['main_dir'] + 'spine_only/' + dataset + '/ica_split_' + str(n_subject) + 'sub/' + 'subperm_' + str(n_subject) + '_' + dataset + '.csv',header=None)
 
@@ -68,7 +67,7 @@ for iter in nperm:
         files_func[structure].append(glob.glob(config["main_dir"]+config["data"][dataset]["inputs_ica"]["dir"]+ '/' + subject_name + '/' + '/*' + config["data"][dataset]["inputs_ica"][structure]["tag_filename_" + ana] + '*')[0])
   
     redo=True
-    config["ica_ana"]["k_range"]["spinalcord"]=krange
+    config["ica_ana"]["k_range"]["spinalcord"]=[7,8,9,10,11]
     for k in config["ica_ana"]["k_range"]["spinalcord"]:
         config["ica_ana"]["n_comp"]=k # usefull if you want to test only on k
         print(config["ica_ana"]["iter"])
