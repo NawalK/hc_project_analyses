@@ -93,8 +93,10 @@ class SpineOnlyAnalysis:
             elif self.t_range[set] != None:
                 for k_ind,k in enumerate(self.k_range[set]): 
                     for t in self.t_range[set]:
-                        print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + str(t) + 'min/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')
-                        self.data[set][t] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + str(t) + 'min/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
+                        print(t)
+                        print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + t + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')
+                        self.data[set][t] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + t + '*/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
+                        #self.data[set][t] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + str(t) + 'min/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
 
     def spatial_similarity(self, k1=None, k2=None, k_range=None, t_range1=None, t_range2=None, similarity_method='Dice', sorting_method='rostrocaudal', save_results=False,save_figure=False, verbose=True):
         '''
@@ -295,7 +297,10 @@ class SpineOnlyAnalysis:
                 mean_similarity_df.to_csv(output_fname +'.txt',index=False, sep=' ')
                 
             if save_figure == True:
-                plt.savefig(output_fname) 
+                plt.savefig(output_fname)
+                       
+
+                
 
         else: 
             raise(Exception(f'Something went wrong! No method was assigned...'))
