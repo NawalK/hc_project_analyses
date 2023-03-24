@@ -45,7 +45,7 @@ dataset="gva"
 structure="spinalcord"
 structures=["spinalcord"]
 n_subject=10
-nperm = range(0,50)
+nperm = range(50,100)
 krange=[3,4,5,6,7]
 
 split_file=pd.read_csv(config['main_dir'] + 'spine_only/' + dataset + '/ica_split_' + str(n_subject) + 'sub/' + 'subperm_' + str(n_subject) + '_' + dataset + '.csv',header=None)
