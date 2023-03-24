@@ -51,8 +51,7 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, mask1=None, m
 
     # Number of components is equal to the max between the two sets
     k = np.max([data1.shape[3],data2.shape[3]]) # Save number of components for later use, shape 3 = number of components
-    
-    if method == 'Dice' or method == 'Overlap' or method == 'Euclidean distance': # Binarize data if needed
+    if method == 'Dice' or method == 'Overlap' or method == 'Euclidean distance' or method == 'Euclidean distance abs' : # Binarize data if needed
         data1_bin = np.where(data1 >= thresh1, 1, 0)
         data2_bin = np.where(data2 >= thresh2, 1, 0)
     elif method == 'Cosine': # Prepare structures to save vectorized maps if needed
@@ -106,11 +105,12 @@ def compute_similarity(config, data1, data2, thresh1=2, thresh2=2, mask1=None, m
                     # We calculate the center of mass of the largest clusters
                     cm1 = center_of_mass(data1_bin[:,:,:,k1],lbl1,Counter(lbl1.ravel()).most_common()[1][0])
                     cm2 = center_of_mass(data2_bin[:,:,:,k2],lbl2,Counter(lbl2.ravel()).most_common()[1][0])
-
+                    
                     if method == 'Euclidean distance abs':
                         # inverse of the euclidean distance between CoG
                         #similarity_matrix[k1,k2]=1/(np.mean(np.abs(np.array(cm1)-np.array(cm2)))) 
-                        similarity_matrix[k1,k2] = 1/(np.mean(np.abs([float(cm1[1])-float(cm2[1]),float(cm1[2])-float(cm2[2])])))
+                        #similarity_matrix[k1,k2] = 1/(np.mean(np.abs([float(cm1[1])-float(cm2[1]),float(cm1[2])-float(cm2[2])])))
+                        similarity_matrix[k1,k2] = np.abs([float(cm1[2])-float(cm2[2])])*0.5
                     
                     elif method == 'Euclidean distance':
                         similarity_matrix[k1,k2] = np.mean([float(cm1[1])-float(cm2[1]),float(cm1[2])-float(cm2[2])])
