@@ -43,7 +43,7 @@
                 "tag_filename":"iCAPs"}},
             "icap_perm":
                 {"spinalcord": {
-                "dir":"/spine_only/mtl/iCAPs_results/perm_10sub/PAM50_C1toC8_10sub_perm",
+                "dir":"/spine_only/mtl/iCAPs_results/perm_5sub/PAM50_C1toC8_5sub_perm",
                 "comp_folder":"",
                 "tag_filename":"iCAPs_z"}},
             "ica_perm":

@@ -44,8 +44,8 @@ with open('../config/config_spine_only_NK.json') as config_file:
 dataset="mtl" 
 structure="spinalcord"
 structures=["spinalcord"]
-n_subject=10
-nperm = range(30,100)
+n_subject=5
+nperm = range(0,100)
 
 split_file=pd.read_csv(config['main_dir'] + 'spine_only/' + dataset + '/ica_split_' + str(n_subject) + 'sub/' + 'subperm_' + str(n_subject) + '_' + dataset + '.csv',header=None)
 
@@ -74,9 +74,9 @@ for iter in nperm:
 
         icas = ICA(files_func[structure],[''],structures,dataset,config) 
         if k==config["ica_ana"]["k_range"]["spinalcord"][0]:
-            all_data=icas.get_data(run='extract',t_r=config["acq_params"][dataset]["TR"],n_jobs=5) # load or extract
+            all_data=icas.get_data(run='extract',t_r=config["acq_params"][dataset]["TR"],n_jobs=10) # load or extract
         if redo==True:
-            all_data=icas.get_data(run='load',t_r=config["acq_params"][dataset]["TR"],n_jobs=5) # load or extract, if NaN issues put both
+            all_data=icas.get_data(run='load',t_r=config["acq_params"][dataset]["TR"],n_jobs=10) # load or extract, if NaN issues put both
             reducedata_all=icas.indiv_PCA(all_data,save_indiv_img=False) # that step is not implanted to save individual maps for brain + sc yet
             components=icas.get_CCA(reducedata_all)
             components_final,components_final_z=icas.get_ICA(components)

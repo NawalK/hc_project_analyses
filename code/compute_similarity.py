@@ -105,13 +105,13 @@ def compute_similarity(config, data1, data2, thresh1=1.6, thresh2=1.6, mask1=Non
                     # We calculate the center of mass of the largest clusters
                     cm1 = center_of_mass(data1_bin[:,:,:,k1],lbl1,Counter(lbl1.ravel()).most_common()[1][0])
                     cm2 = center_of_mass(data2_bin[:,:,:,k2],lbl2,Counter(lbl2.ravel()).most_common()[1][0])
-                    
                     if method == 'Euclidean distance abs':
                         # inverse of the euclidean distance between CoG
                         #similarity_matrix[k1,k2]=1/(np.mean(np.abs(np.array(cm1)-np.array(cm2)))) 
                         #similarity_matrix[k1,k2] = 1/(np.mean(np.abs([float(cm1[1])-float(cm2[1]),float(cm1[2])-float(cm2[2])])))
-                        similarity_matrix[k1,k2] = np.abs([float(cm1[2])-float(cm2[2])])*0.5
-                    
+                       # similarity_matrix[k1,k2] = np.abs([float(cm1[2])-float(cm2[2])])*0.5
+                        similarity_matrix[k1,k2] = 1/np.abs([float(cm1[2])-float(cm2[2])])*0.5
+
                     elif method == 'Euclidean distance':
                         similarity_matrix[k1,k2] = np.mean([float(cm1[1])-float(cm2[1]),float(cm1[2])-float(cm2[2])])
                 else:
