@@ -154,7 +154,7 @@ class SpineOnlyAnalysis:
        
         elif k1 != None and t_range1 != None and t_range2 != None:
             method = 3
-            output_fname=self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_vs_' + self.name2 + '_similarity_across_duration'
+            output_fname=self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.name1 + '_similarity_across_splits'
                     
         # For method 1, we focus on one similarity matrix
         if method == 1:
@@ -272,19 +272,29 @@ class SpineOnlyAnalysis:
         elif method == 3:
             print('METHOD 3: Comparing sets of components across durations')
             mean_similarity = np.empty(len(t_range2), dtype=object)
+            std_similarity = np.empty(len(t_range2), dtype=object)
             for t_ind, t in enumerate(t_range2):
                 
                 if verbose == True:
                     print(f'... Computing similarity for K={k1} between {t} and {t_range1} ')
                
-                similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][t_range1], self.data[self.name2][t], thresh1=self.threshold[self.name1], thresh2=self.threshold[self.name2], method=similarity_method, match_compo=True, verbose=False)
+                similarity_matrix,_,orderY = compute_similarity(self.config, self.data[self.name1][t_range1], self.data[self.name2][t], thresh1=self.threshold[self.name1], thresh2=self.threshold[self.name2], method=similarity_method, match_compo=True, verbose=False)
+                plt.figure(figsize=(7,7))
+                sns.heatmap(similarity_matrix, linewidths=.5, square=True, cmap='YlOrBr', vmin=0, vmax=1, xticklabels=orderY+1, yticklabels=np.array(range(1,k1+1)),cbar_kws={'shrink' : 0.8, 'label': similarity_method});
+                plt.xlabel(self.name2 + '_' + t)
+                plt.ylabel(self.name1)
+            
                 mean_similarity[t_ind] = np.mean(np.diagonal(similarity_matrix))
-                print(mean_similarity[t_ind])
-            fig, ax = plt.subplots(figsize=(10,4))
-            ax.plot(range(1,len(t_range2)+1), mean_similarity, linewidth=2, markersize=10, marker='.')
-            ax.set_xticks(range(1,len(t_range2)+1))
-            ax.set_xticklabels(t_range2)
-            plt.title('Spatial similarity for different resting-state durations'); plt.xlabel('Duration (minutes)'); plt.ylabel('Mean similarity');
+                std_similarity[t_ind] = np.std(np.diagonal(similarity_matrix))
+
+                print(f'{mean_similarity[t_ind]}  ±  {np.round(std_similarity[t_ind],2)}')
+                if save_figure == True:
+                    plt.savefig(output_fname + "_" + t)
+#            fig, ax = plt.subplots(figsize=(10,4))
+#            ax.plot(range(1,len(t_range2)+1), mean_similarity, linewidth=2, markersize=10, marker='.')
+#            ax.set_xticks(range(1,len(t_range2)+1))
+#            ax.set_xticklabels(t_range2)
+#            plt.title('Spatial similarity for different resting-state splits'); plt.xlabel('Split'); plt.ylabel('Mean similarity');
             
             if save_results == True:
                 # create a dataframe that will contain similarity index for duration
@@ -297,11 +307,8 @@ class SpineOnlyAnalysis:
                
                 mean_similarity_df.to_csv(output_fname +'.txt',index=False, sep=' ')
                 
-            if save_figure == True:
-                plt.savefig(output_fname)
+           
                        
-
-                
 
         else: 
             raise(Exception(f'Something went wrong! No method was assigned...'))
