@@ -45,7 +45,7 @@ dataset="mtl"
 structure="spinalcord"
 structures=["spinalcord"]
 n_subject=5
-nperm = range(0,100)
+nperm = range(3,100)
 
 split_file=pd.read_csv(config['main_dir'] + 'spine_only/' + dataset + '/ica_split_' + str(n_subject) + 'sub/' + 'subperm_' + str(n_subject) + '_' + dataset + '.csv',header=None)
 

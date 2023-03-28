@@ -280,7 +280,7 @@ class SpineOnlyAnalysis:
                
                 similarity_matrix,_,orderY = compute_similarity(self.config, self.data[self.name1][t_range1], self.data[self.name2][t], thresh1=self.threshold[self.name1], thresh2=self.threshold[self.name2], method=similarity_method, match_compo=True, verbose=False)
                 plt.figure(figsize=(7,7))
-                sns.heatmap(similarity_matrix, linewidths=.5, square=True, cmap='YlOrBr', vmin=0, vmax=0.1, xticklabels=orderY+1, yticklabels=np.array(range(1,k1+1)),cbar_kws={'shrink' : 0.8, 'label': similarity_method});
+                sns.heatmap(similarity_matrix, linewidths=.5, square=True, cmap='YlOrBr', vmin=0, vmax=1, xticklabels=orderY+1, yticklabels=np.array(range(1,k1+1)),cbar_kws={'shrink' : 0.8, 'label': similarity_method});
                 plt.xlabel(self.name2 + '_' + t)
                 plt.ylabel(self.name1)
             
