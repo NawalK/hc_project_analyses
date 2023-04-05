@@ -1,9 +1,11 @@
-import glob 
+import glob, os
 import numpy as np
 import nibabel as nib
 from scipy.ndimage import center_of_mass,label
 from collections import Counter 
 from scipy import stats
+from nilearn import image
+from nilearn.maskers import NiftiMasker
 
 def sort_maps(data, sorting_method,threshold=None):
     ''' Sort maps based on sorting_method (e.g., rostrocaudally)
@@ -112,5 +114,60 @@ def match_levels(config, data, method="CoM"):
 
 
           
-        
+def tSNR(config,input_files,dataset=None, mask_files=None,outputdir=None,redo=False):
+    '''
+        Temporal signal/noise ratio calculation; tSNR=mean/std (in time domaine)
 
+        Attributes
+        ----------
+        config: list
+            config file
+        input_files : list
+            list of 4D input files (one for each participants)
+        dataset: str
+            Name of the dataset (default=None)
+        mask_files: list
+            list of 3D mask files if you want to calculate the tSNR in a mask (one for each participants)
+            (default=None)
+        out_dir: list
+            list of output directories (one for each participants)
+             
+       return
+       ----------
+       tSNR_files: list
+            list of tSNR files (one for each participants)
+       
+       '''
+    
+    tSNR_files=[]; tSNR_means=[]
+    for file_nb in range(0,len(input_files)):
+        subject_name=config["list_subjects"][dataset][file_nb]
+        if outputdir is not None:
+            tSNRdir=outputdir[file_nb]
+        else:
+            tSNRdir=os.path.dirname(input_files[file_nb])
+        
+        if dataset=="gva":
+            tSNR_file=tSNRdir+ "sub-"+ subject_name+ "_" + os.path.basename(input_files[file_nb]).split('.')[0] + '_tSNR.nii.gz'
+        else:
+            tSNR_file=tSNRdir+os.path.basename(input_files[file_nb]).split('.')[0] + '_tSNR.nii.gz'
+           
+        if not os.path.exists(tSNR_file) or redo==True:
+            tSNR=math_img('img.mean(axis=3) / img.std(axis=3)', img=input_files[file_nb])
+            tSNR.to_filename(tSNR_file)
+        
+        # extract value in a mask
+        if mask_files is not None:# and not os.path.exists(tSNR_file.split(".")[0] + "_mean.txt"):
+            masker= NiftiMasker(mask_img=mask_files[file_nb],smoothing_fwhm=None) # select the mask
+            func_tSNR_masked=masker.fit_transform(tSNR_file) # mask the image
+            mean_func_tSNR_masked=np.mean(func_tSNR_masked) # calculate the mean value
+            
+            with open(tSNR_file.split(".")[0] + "_mean.txt", 'w') as f:
+                f.write(str(mean_func_tSNR_masked))  # save in a file
+
+            #extract
+            
+                         
+        tSNR_files.append(tSNR_file)
+        tSNR_means.append(mean_func_tSNR_masked)
+    return tSNR_files, tSNR_means
