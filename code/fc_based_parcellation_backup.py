@@ -37,7 +37,7 @@ class FC_Parcellation:
         - affinity: metric used to compute the linkage (Default = 'euclidean')
     '''
     
-    def __init__(self, config, struct_source='spinacord', struct_target='brain', params_kmeans={'init':'k-means++', 'n_init':100, 'max_iter':300}, params_agglom={'linkage':'ward', 'affinity':'euclidean'}):
+    def __init__(self, config, struct_source='spinalcord', struct_target='brain', params_kmeans={'init':'k-means++', 'n_init':100, 'max_iter':300}, params_agglom={'linkage':'ward', 'affinity':'euclidean'}):
         self.config = config # Load config info
         self.struct_source = struct_source
         self.struct_target = struct_target

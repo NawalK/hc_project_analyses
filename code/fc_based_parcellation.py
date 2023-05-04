@@ -12,6 +12,8 @@ import nibabel as nib
 import itertools
 import os
 from tqdm import tqdm
+from multiprocessing import Pool
+from functools import partial
 
 class FC_Parcellation:
     '''
@@ -114,10 +116,21 @@ class FC_Parcellation:
                 fc = np.arctanh(fc)
             elif self.fc_metric == 'mi':
                 print("... Metric: mutual information")
-                for vox_source in tqdm(range(np.shape(data_source_masked)[0])):
-                    fc[vox_source,:] = mutual_info_regression(data_target_masked.T, data_source_masked[vox_source,:].T, n_neighbors=8) 
-                    fc[vox_source,:] = np.max(fc[vox_source,:])
-
+                #for vox_source in tqdm(range(np.shape(data_source_masked)[0])):
+                #    fc[vox_source,:] = mutual_info_regression(data_target_masked.T, data_source_masked[vox_source,:].T, n_neighbors=8) 
+                #    fc[vox_source,:] = np.max(fc[vox_source,:])
+                pool = Pool(40)
+                vox_source_list = list(range(np.shape(data_source_masked)[0]))
+                result_list = []
+                for result in tqdm(pool.imap_unordered(partial(self._compute_mi, data_source_masked=data_source_masked, data_target_masked=data_target_masked), vox_source_list), total=len(vox_source_list)):
+                    result_list.append(result)
+                pool.close()
+                pool.join()
+                fc = np.zeros((np.count_nonzero(self.mask_source), np.count_nonzero(self.mask_target)))
+                for i, result in enumerate(result_list):
+                    fc[i, :] = result
+                    fc[i, :] = np.max(fc[i, :])
+            
             if save_results == True:            
                 np.save(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '_' + self.fc_metric + '.npy',fc)
             
@@ -399,7 +412,7 @@ class FC_Parcellation:
         print("DONE")
 
     def _corr2_coeff(self, arr_source, arr_target):
-        # Rowwise mean of input arrays & subtract from input arrays themeselves
+        # Rowwise mean of input arrays & subtract from input arrays themselves
         A_mA = arr_source - arr_source.mean(1)[:, None]
         B_mB = arr_target - arr_target.mean(1)[:, None]
 
@@ -409,7 +422,9 @@ class FC_Parcellation:
 
         # Finally get corr coeff
         return np.dot(A_mA, B_mB.T) / np.sqrt(np.dot(ssA[:, None],ssB[None]))
-
+    
+    def _compute_mi(self, vox_source, data_source_masked, data_target_masked):
+        return mutual_info_regression(data_target_masked.T, data_source_masked[vox_source,:].T, n_neighbors=8)
 
     def _compute_k_scores(self, k, algorithm, kwargs):
         if algorithm == 'kmeans':
