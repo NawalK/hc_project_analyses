@@ -14,6 +14,7 @@ import os
 from tqdm import tqdm
 from multiprocessing import Pool
 from functools import partial
+import json
 
 class FC_Parcellation:
     '''
@@ -43,7 +44,7 @@ class FC_Parcellation:
         - affinity: metric used to compute the linkage (Default = 'euclidean')
     '''
     
-    def __init__(self, config, struct_source='spinacord', struct_target='brain', fc_metric='corr', params_kmeans={'init':'k-means++', 'n_init':100, 'max_iter':300}, params_agglom={'linkage':'ward', 'affinity':'euclidean'}):
+    def __init__(self, config, struct_source='spinalcord', struct_target='brain', fc_metric='corr', params_kmeans={'init':'k-means++', 'n_init':100, 'max_iter':300}, params_agglom={'linkage':'ward', 'affinity':'euclidean'}):
         self.config = config # Load config info
         self.struct_source = struct_source
         self.struct_target = struct_target
@@ -62,6 +63,16 @@ class FC_Parcellation:
         self.linkage = params_agglom.get('linkage')
         self.affinity = params_agglom.get('affinity')
 
+        # Create folder structure and save config file as json for reference
+        path_to_create = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/'
+        os.makedirs(os.path.dirname(path_to_create), exist_ok=True)
+        for folder in ['labels', 'target']:
+            os.makedirs(os.path.join(path_to_create, folder, 'arrays'), exist_ok=True)
+            os.makedirs(os.path.join(path_to_create, folder, 'maps'), exist_ok=True)
+        path_config = path_to_create + 'config_' + self.config['output_tag'] + '.json'
+        with open(path_config, 'w') as f:
+            json.dump(self.config,f)
+            
     def compute_voxelwise_fc(self, sub, mask_source_path, mask_target_path, load_from_file, save_results=True):
         '''
         To compute functional connectivity between each voxel of mask_source to all voxels of mask_target
@@ -100,7 +111,7 @@ class FC_Parcellation:
         # We can load it from file if it exists
         if load_from_file and os.path.isfile(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy'):
             print(f"... Load FC from file")
-            fc = np.load(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy')
+            fc = np.load(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy')
         else: # Otherwise we compute FC    
             print(f"... Computing FC for all possibilities")
             
@@ -126,13 +137,12 @@ class FC_Parcellation:
                     result_list.append(result)
                 pool.close()
                 pool.join()
-                fc = np.zeros((np.count_nonzero(self.mask_source), np.count_nonzero(self.mask_target)))
                 for i, result in enumerate(result_list):
                     fc[i, :] = result
-                    fc[i, :] = np.max(fc[i, :])
+                    fc[i, :] /= np.max(fc[i, :])
             
             if save_results == True:            
-                np.save(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '_' + self.fc_metric + '.npy',fc)
+                np.save(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy',fc)
             
         dict_fc = {}
         dict_fc['id'] = sub
@@ -169,9 +179,9 @@ class FC_Parcellation:
         self.k = k 
         self.algorithm = algorithm # So that the algorithm is defined based on last run of clustering
 
-        if load_from_file and os.path.isfile(self.config['main_dir'] + self.config['output_dir'] + '/labels/arrays/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_labels_k' + str(self.k) + '.npy'):
+        if load_from_file and os.path.isfile(self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/labels/arrays/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_labels_k' + str(self.k) + '.npy'):
             print(f"... Load labels from file")
-            labels = np.load(self.config['main_dir'] + self.config['output_dir'] + '/labels/arrays/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_labels_k' + str(self.k) + '.npy')
+            labels = np.load(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/labels/arrays/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_labels_k' + str(self.k) + '.npy')
         
         else:
             if algorithm == 'kmeans':
@@ -200,7 +210,7 @@ class FC_Parcellation:
 
             if save_results == True:
                 # Save arrays
-                np.save(self.config['main_dir'] + self.config['output_dir'] + '/labels/arrays/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_labels_k' + str(self.k) + '.npy', labels)
+                np.save(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/labels/arrays/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_labels_k' + str(self.k) + '.npy', labels)
                 
         return labels
 
@@ -225,7 +235,6 @@ class FC_Parcellation:
         x = indiv_labels.T
         y = pdist(x, metric='hamming')
         z = hierarchy.linkage(y, method=linkage, metric='hamming')
-        cophenetic_correlation, *_ = hierarchy.cophenet(z, y)
         group_labels = hierarchy.cut_tree(z, n_clusters=len(np.unique(x)))
         group_labels = np.squeeze(group_labels)  # (N, 1) to (N,)
 
@@ -349,7 +358,7 @@ class FC_Parcellation:
 
         seed = NiftiMasker(self.mask_source_path).fit()
         labels_img = seed.inverse_transform(labels+1) # +1 because labels start from 0 
-        labels_img.to_filename(self.config['main_dir'] + self.config['output_dir'] + '/labels/maps/' + self.config['output_tag'] + '_' + self.algorithm + '_labels_k' + str(self.k) + '.nii.gz')
+        labels_img.to_filename(self.config['main_dir'] + self.config['output_dir']  + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/labels/maps/' + self.config['output_tag'] + '_' + self.algorithm + '_labels_k' + str(self.k) + '.nii.gz')
 
         print("DONE")
 
@@ -370,7 +379,7 @@ class FC_Parcellation:
         
         Outputs
         ------------
-        brain_maps : array
+        target_maps : array
             array containing the brain maps for each label and subject (nb_subjects x K x n_vox_target)
         K nifti images
             one image for each mean connectivity profile (i.e., one per K)
@@ -378,35 +387,35 @@ class FC_Parcellation:
             
         '''
             
-        print("PREPARE BRAIN MAPS")
-        if load_from_file and os.path.isfile(self.config['main_dir'] + self.config['output_dir'] + '/target/arrays/' + self.config['output_tag'] + '_brain_maps.npy'):
-            print(f"... Load brain maps from file")
-            brain_maps = np.load(self.config['main_dir'] + self.config['output_dir'] + '/target/arrays/' + self.config['output_tag'] + '_brain_maps.npy')
+        print("PREPARE TARGET MAPS")
+        if load_from_file and os.path.isfile(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/target/arrays/' + self.config['output_tag'] + '_target_maps.npy'):
+            print(f"... Load target maps from file")
+            target_maps = np.load(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/target/arrays/' + self.config['output_tag'] + '_target_maps.npy')
             
         else:
             # Initialize array to save target data
-            brain_maps = np.zeros((labels.shape[0],len(np.unique(labels)),np.count_nonzero(self.mask_target)))
+            target_maps = np.zeros((labels.shape[0],len(np.unique(labels)),np.count_nonzero(self.mask_target)))
             for sub in range(0,labels.shape[0]):
                 print(f"Subject {self.config['list_subjects'][sub]}")
                 print(f"... Load FC")
-                fc = np.load(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' +  self.config['output_tag'] + '_' + self.config['list_subjects'][sub] + '_' + self.fc_metric + '.npy')
+                fc = np.load(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/' + self.config['output_tag'] + '_' + self.config['list_subjects'][sub] + '_' + self.fc_metric + '.npy')
                 print(f"... Compute mean map per label")
                 for label in np.unique(labels):
-                    brain_maps[sub,label,:] = np.mean(fc[np.where(labels[sub,:]==label),:],axis=1)
+                    target_maps[sub,label,:] = np.mean(fc[np.where(labels[sub,:]==label),:],axis=1)
                     
                 print("... Save as nifti files")
-                brain_mask = NiftiMasker(self.mask_target_path).fit()
+                target_mask = NiftiMasker(self.mask_target_path).fit()
                 
                 for label in np.unique(labels):
-                    if os.path.isfile(self.config['main_dir'] + self.config['output_dir'] + '/target/maps/' + self.config['output_tag'] + '_sub_' + self.config['list_subjects'][sub] + self.algorithm + '_brain_pattern_K' + str(self.k) + '_' + str(label+1) + '.nii.gz'):
+                    if os.path.isfile(self.config['main_dir'] + self.config['output_dir']  + '/' + self.fc_metric  + '/'  + self.config['output_tag'] + '/' + self.config['output_tag'] + '/target/maps/' + self.config['output_tag'] + '_sub_' + self.config['list_subjects'][sub] + '_' + self.algorithm + '_brain_pattern_K' + str(self.k) + '_' + str(label+1) + '.nii.gz'):
                         raise(Exception(f'Maps already exist!'))
                     else:
-                        brain_map_img = brain_mask.inverse_transform(brain_maps[sub,label,:])
-                        brain_map_img.to_filename(self.config['main_dir'] + self.config['output_dir'] + '/target/maps/' + self.config['output_tag'] + '_sub_' + self.config['list_subjects'][sub] + self.algorithm + '_brain_pattern_K' + str(self.k) + '_' + str(label+1) + '.nii.gz')
+                        target_map_img = target_mask.inverse_transform(target_maps[sub,label,:])
+                        target_map_img.to_filename(self.config['main_dir'] + self.config['output_dir']  + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/target/maps/' + self.config['output_tag'] + '_sub_' + self.config['list_subjects'][sub] + '_' + self.algorithm + '_brain_pattern_K' + str(self.k) + '_' + str(label+1) + '.nii.gz')
             
             if save_results == True:
                 # Save array
-                np.save(self.config['main_dir'] + self.config['output_dir'] + '/target/arrays/' + self.config['output_tag'] + '_brain_maps.npy', brain_maps)
+                np.save(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/target/arrays/' + self.config['output_tag'] + '_target_maps.npy', target_maps)
          
         
         print("DONE")
