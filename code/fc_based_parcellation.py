@@ -328,11 +328,13 @@ class FC_Parcellation:
         fig.tight_layout()
 
         if save_results == True:
+            path_to_create = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/define_K/'
+            os.makedirs(os.path.dirname(path_to_create), exist_ok=True)
             # Save arrays
-            np.save(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_define_K_SSE.npy',sse)
-            np.save(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_define_K_silhouette.npy',silhouette_coefficients)
+            np.save(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/define_K/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_define_K_SSE.npy',sse)
+            np.save(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/define_K/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_define_K_silhouette.npy',silhouette_coefficients)
             # Save figure
-            plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_define_K.png')
+            plt.savefig(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/define_K/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_define_K.png')
 
         print("DONE")
 
@@ -433,7 +435,7 @@ class FC_Parcellation:
         return np.dot(A_mA, B_mB.T) / np.sqrt(np.dot(ssA[:, None],ssB[None]))
     
     def _compute_mi(self, vox_source, data_source_masked, data_target_masked):
-        return mutual_info_regression(data_target_masked.T, data_source_masked[vox_source,:].T, n_neighbors=8)
+        return mutual_info_regression(data_target_masked.T, data_source_masked[vox_source,:].T, discrete_features=True, n_neighbors=8)
 
     def _compute_k_scores(self, k, algorithm, kwargs):
         if algorithm == 'kmeans':
