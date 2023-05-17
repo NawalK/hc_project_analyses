@@ -30,6 +30,7 @@
  
          
  "seed2vox_dir": "/seed_to_voxels/spring_2023/",
+ "ica_dir": "/seed_to_voxels/spring_2023/",
  "tools_dir":{"main_codes":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/codes/",
              "sct_toolbox":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spinalcordtoolbox-5.0.0",
             "spm_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spm12/"},

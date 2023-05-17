@@ -20,7 +20,11 @@
 "output_dir": "/ICA/results_spine_only/results/",
 "output_tag": "Indiv",
  
-"data":{"mtl":
+"data":{"brain_sc":{"icap":
+                {"spinalcord":
+                    {"dir":"/iCAP/results_brsc_project/spinalcord/",
+                    "tag_filename":"_z.nii"}}},
+        "mtl":
         {"Prepross":
          {"dir_bmpd":"/cerebro/cerebro1/dataset/bmpd/derivatives/spinalcord_processing/",
                      "dir_stratals":"/cerebro/cerebro1/dataset/stratals/derivatives/preprocessing/"},
