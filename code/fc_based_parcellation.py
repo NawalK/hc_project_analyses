@@ -1,23 +1,21 @@
 import matplotlib.pyplot as plt
-from kneed import KneeLocator
 from sklearn.cluster import KMeans, AgglomerativeClustering
-from sklearn.metrics import silhouette_score, adjusted_mutual_info_score, adjusted_rand_score
+from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score, adjusted_mutual_info_score, adjusted_rand_score
 from sklearn.feature_selection import mutual_info_regression
 from scipy.spatial.distance import pdist
 from scipy.cluster import hierarchy
 from scipy import stats
 import numpy as np
+import itertools
 from nilearn.maskers import NiftiMasker
 import nibabel as nib
-import itertools
+import seaborn as sns
 import os
 from tqdm import tqdm
 from multiprocessing import Pool
 from functools import partial
 import json
-import pickle
 import pandas as pd
-from colorama import init, Fore, Style
 
 class FC_Parcellation:
     '''
@@ -53,13 +51,7 @@ class FC_Parcellation:
         self.struct_target = struct_target
         self.fc_metric=fc_metric
         self.clusters = {}
-        # Load data
-        self.data_source = {}
-        self.data_target = {}
-        for sub in self.config['list_subjects']:
-            self.data_source[sub] = nib.load(config['main_dir'] + config['smooth_dir'] + 'sub-'+ sub + '/' + self.struct_source + '/sub-' + sub + config['coreg_tag'][struct_source] + '.nii.gz').get_fdata() # Read the data as a matrix
-            self.data_target[sub] = nib.load(config['main_dir'] + config['smooth_dir'] + 'sub-'+ sub + '/' + self.struct_target + '/sub-' + sub + config['coreg_tag'][struct_target] + '.nii.gz').get_fdata() 
-
+        
         self.init = params_kmeans.get('init')
         self.n_init = params_kmeans.get('n_init')
         self.max_iter = params_kmeans.get('max_iter')
@@ -112,19 +104,21 @@ class FC_Parcellation:
         print(f"\033[37mLoading from file = {load_from_file}\033[0m")
         print(f"\033[37mSaving results = {save_results}\033[0m")
         
-        print(self.data_source[sub][self.mask_source].shape)
         # Compute FC
         # We can load it from file if it exists
         if load_from_file and os.path.isfile(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/fcs/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy'):
             print(f"... Load FC from file")
             fc = np.load(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/fcs/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy')
         else: # Otherwise we compute FC    
+            print(f"... Loading data")
+            data_source = nib.load(self.config['main_dir'] + self.config['smooth_dir'] + 'sub-'+ sub + '/' + self.struct_source + '/sub-' + sub + self.config['coreg_tag'][self.struct_source] + '.nii.gz').get_fdata() # Read the data as a matrix
+            data_target = nib.load(self.config['main_dir'] + self.config['smooth_dir'] + 'sub-'+ sub + '/' + self.struct_target + '/sub-' + sub + self.config['coreg_tag'][self.struct_target] + '.nii.gz').get_fdata() 
+
             print(f"... Computing FC for all possibilities")
-            
             # Create empty array
             fc = np.zeros((np.count_nonzero(self.mask_source),np.count_nonzero(self.mask_target)))
-            data_source_masked = self.data_source[sub][self.mask_source]
-            data_target_masked = self.data_target[sub][self.mask_target] 
+            data_source_masked = data_source[self.mask_source]
+            data_target_masked = data_target[self.mask_target] 
     
             if standardize:
                 data_source_masked = stats.zscore(data_source_masked, axis=1).astype(np.float32)
@@ -134,6 +128,9 @@ class FC_Parcellation:
                 print("... Metric: correlation")
                 fc = self._corr2_coeff(data_source_masked,data_target_masked)
                 print(f"... Fisher transforming correlations")
+                # Set values slightly below 1 or above -1 (for use with, e.g., arctanh) [FROM CBP TOOLS]
+                fc[fc >= 1] = np.nextafter(np.float32(1.), np.float32(-1))
+                fc[fc <= -1] = np.nextafter(np.float32(-1.), np.float32(1))
                 fc = np.arctanh(fc)
             elif self.fc_metric == 'mi':
                 print("... Metric: mutual information")
@@ -202,12 +199,15 @@ class FC_Parcellation:
 
         # Path to create folder structure
         path_source = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/'
-        path_internal_validity = path_source + self.config['output_tag'] + '_' + algorithm + '_internal_validity.pkl'
+        os.makedirs(os.path.join(path_source, 'validity'), exist_ok=True)
+        path_internal_validity = path_source + 'validity/' + self.config['output_tag'] + '_' + algorithm + '_internal_validity.pkl'
         # Load file with metrics to define K (SSE, silhouette, ...)
-        if not overwrite and os.path.isfile(path_internal_validity):
-            internal_validity_df = pd.read_pickle(path_internal_validity) 
+        if os.path.isfile(path_internal_validity): # Take it if it exists
+            internal_validity_df = pd.read_pickle(path_internal_validity)
+            if overwrite: # Overwrite subject if already done and option is set
+                internal_validity_df = internal_validity_df[internal_validity_df['sub'] != dict_fc['id']]
         else: # Create an empty dataframe with the needed columns
-            columns = ["sub", "SSE", "silhouette", "k"]
+            columns = ["sub", "SSE", "silhouette", "davies", "calinski", "k"]
             internal_validity_df = pd.DataFrame(columns=columns)
 
         # Check if file already exists
@@ -236,7 +236,7 @@ class FC_Parcellation:
                     labels = kmeans_clusters.labels_
 
                     # Compute validity metrics and add them to dataframe
-                    internal_validity_df.loc[len(internal_validity_df)] = [dict_fc['id'], kmeans_clusters.inertia_, silhouette_score(dict_fc['connectivity'], kmeans_clusters.labels_), k]
+                    internal_validity_df.loc[len(internal_validity_df)] = [dict_fc['id'], kmeans_clusters.inertia_, silhouette_score(dict_fc['connectivity'], kmeans_clusters.labels_), davies_bouldin_score(dict_fc['connectivity'], kmeans_clusters.labels_), calinski_harabasz_score(dict_fc['connectivity'], kmeans_clusters.labels_), k]
                 
                 elif algorithm == 'agglom':
                     print(f"... Running agglomerative clustering")
@@ -249,7 +249,7 @@ class FC_Parcellation:
 
                     # Compute validity metrics and add them to dataframe
                     # Note that SSE is not relevant for this type of clustering
-                    internal_validity_df.loc[len(internal_validity_df)] = [dict_fc['id'], 0, silhouette_score(dict_fc['connectivity'], kmeans_clusters.labels_), k]
+                    internal_validity_df.loc[len(internal_validity_df)] = [dict_fc['id'], 0,  silhouette_score(dict_fc['connectivity'], kmeans_clusters.labels_), davies_bouldin_score(dict_fc['connectivity'], kmeans_clusters.labels_), calinski_harabasz_score(dict_fc['connectivity'], kmeans_clusters.labels_), k]
                     
                 else:
                     raise(Exception(f'Algorithm {algorithm} is not a valid option.'))
@@ -264,7 +264,7 @@ class FC_Parcellation:
 
         print("\n")
        
-    def group_clustering(self, k_range, indiv_algorithm='kmeans', linkage="complete", overwrite=False, save_results=True):
+    def group_clustering(self, k_range, subsample_target=False, indiv_algorithm='kmeans', linkage="complete", overwrite=False, save_results=True):
         '''  
         Perform group-level clustering using the individual labels
         BASED ON CBP toolbox
@@ -300,7 +300,7 @@ class FC_Parcellation:
         k_range = range(k_range,k_range+1) if isinstance(k_range,int) else k_range
 
         path_source = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/'
-        path_group_validity = path_source + self.config['output_tag'] + '_' + indiv_algorithm + '_group_validity.pkl'
+        path_group_validity = path_source + 'validity/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_validity.pkl'
         path_cophenetic_correlation = path_source + self.config['output_tag'] + '_' + indiv_algorithm + '_cophenetic_correlation.pkl'
         
         # Load file with metrics to similarity indiv vs group labels
@@ -366,7 +366,7 @@ class FC_Parcellation:
                 # Set group labels to mode for mapping
                 group_labels = np.squeeze(mode)
 
-                for sub_id, sub in self.config['list_subjects']: 
+                for sub_id, sub in enumerate(self.config['list_subjects']): 
                     ami = adjusted_mutual_info_score(labels_true=group_labels,labels_pred=indiv_labels_relabeled[sub_id,:])
                     ari = adjusted_rand_score(labels_true=group_labels,labels_pred=indiv_labels_relabeled[sub_id,:])
                     group_validity_df.loc[len(group_validity_df)] = [sub, ami, ari, k]
@@ -396,8 +396,8 @@ class FC_Parcellation:
             defines the type of labels to use to define connectivity patterns (target)
             'indiv': relabeled labels (i.e., specific to each participant)
             'group': group labels (i.e., same for all participants)
-        k_range : array
-            Number of clusters to include in the comparison
+        k_range : int, array or range
+            number of clusters  
         overwrite : boolean
             if set to True, maps are overwritten (default = False)
         save_results : boolean
@@ -480,86 +480,88 @@ class FC_Parcellation:
             
         print("\033[1mDONE\033[0m\n")
 
-    def define_n_clusters(self, dict_fc, k_range, algorithm='kmeans', save_results=True):
+    def plot_validity(self, k_range, internal=[], group=[], indiv_algorithm='kmeans', save_figures=True):
         '''  
-        Probe different number of clusters to define best option
-        Two methods are used:
-        - SSE for different K
-        - Silhouette coefficients
+        Plot validity metrics to help define the best number of clusters
         
+        Internal metrics are computed during participant-level clustering:
+        - SSE (not if 'agglom' is used)
+        - Silhouette coefficients
+        - Davies-Bouldin index 
+        - Calinski-Harabasz index
+
+        Group metrics are computed during group-level clustering:
+        - adjusted mutual information (AMI)
+        - adjusted rand index (ARI)
+        - Cophenetic correlation (how well participant-level distances are preserved in the group-level clustering)
+
         Inputs
         ------------
-        dict_fc : dict
-            dictionary containing two fields
-            id -> subject tag for saving (e.g., name, 'mean', ...)
-            connectivity -> matrix to use as input for the clustering (typically an array with dimensions n_sc_voxels x n_br_voxels)
-        k_range : array
-            Number of clusters to include in the comparison
-        algorithm: str
-            defines which algorithm to use ('kmeans' or 'agglom') (default = 'kmeans')
-        save_results : boolean
-            Results are saved as npy and png if set to True (default = True)
-         
+        k_range : int, array or range
+            number of clusters to plot  
+        internal: str, list
+            indicates internal metrics to plot ('SSE', 'silhouette', 'davies', 'calinski')
+        group : str, liit
+            indicates group metrics to plot ('ami', 'ari', 'corr')
+        indiv_algorithm: str
+            defines which algorithm was used ('kmeans' or 'agglom') for participant-level clustering (default = 'kmeans')
+        save_figures : boolean
+            is True, figures are saved as pdf (default = True)
         '''
         
-        print("DEFINE NUMBER OF CLUSTERS")
+        print(f"\033[1mVALIDITY METRICS\033[0m")
+        print(f"\033[37mK value(s) = {k_range}\033[0m")
+        print(f"\033[37mSaving figures = {save_figures}\033[0m\n")
 
-        print(f"...Loading clustering parameters, method {algorithm}")
-  
-        # Dict containing clustering parameters
-        if algorithm == 'kmeans':
-            kwargs = {'init': self.init, 'max_iter': self.max_iter, 'n_init': self.n_init}     
-        elif algorithm == 'agglom':
-            kwargs = {'linkage': self.linkage, 'affinity': self.affinity}
-        else:
-            raise(Exception(f'Algorithm {algorithm} is not a valid option.'))
+        # If only one k value is given, convert to range
+        k_range = range(k_range,k_range+1) if isinstance(k_range,int) else k_range
+        
+        # If only one string is given for internal / group metrics, convert to list
+        internal = [internal] if isinstance(internal,str) else internal
+        group = [group] if isinstance(group,str) else group
 
-        sse = []
-        silhouette_coefficients = []
+        # Useful info
+        metrics_names = {'SSE': 'SSE',
+                         'silhouette': 'Silhouette score',
+                         'davies': 'Davies-Bouldin index', 
+                         'calinski': 'Calinski-Harabasz index',
+                         'ami': 'Adjusted Mutual Information',
+                         'ari': 'Adjusted Rand Index',
+                         'corr': 'Cophenetic correlation'}
+        color="#43c7cc"
 
-        print("...Computing SSE and silhouette coefficients")
-        # Compute metrics for each number of clusters
-        for k in k_range:
-            print(f"......K = {k}")
+        # Path to create folder structure
+        path_validity = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/validity/'
+       
+        # Open all dataframes
+        internal_df = pd.read_pickle(path_validity + self.config['output_tag'] + '_' + indiv_algorithm + '_internal_validity.pkl')
+        group_df = pd.read_pickle(path_validity + self.config['output_tag'] + '_' + indiv_algorithm + '_group_validity.pkl')
+        corr_df = pd.read_pickle(path_validity + self.config['output_tag'] + '_' + indiv_algorithm + '_cophenetic_correlation.pkl')
 
-            if algorithm == 'kmeans':
-                clusters = KMeans(n_clusters=k,**kwargs)
-                clusters.fit(dict_fc['connectivity'])
-                sse.append(clusters.inertia_)
-            elif algorithm == 'agglom':
-                clusters = AgglomerativeClustering(n_clusters=k,**kwargs)
-                clusters.fit(dict_fc['connectivity'])
-                sse = np.zeros(len(k_range)) # SSE not relevant here 
-            score = silhouette_score(dict_fc['connectivity'], clusters.labels_)
-            silhouette_coefficients.append(score)
+        sns.set(style="ticks",  font='sans-serif');
 
-        # Find knee point of SSE
-        kl = KneeLocator(k_range, sse, curve="convex", direction="decreasing")
-        sse_knee = kl.elbow
-        print(f'Knee of SSE curve is at K = {sse_knee}')    
-        # Two subplots
-        fig, (ax1,ax2) = plt.subplots(1, 2, figsize=(10, 3))
-        # SSE subplot with knee highlighted
-        ax1.plot(k_range, sse)
-        ax1.set(xticks=k_range, xlabel = "Number of Clusters", ylabel = "SSE")
-        if sse_knee is not None: 
-            ax1.axvline(x=sse_knee, color='r')
-        # Silhouette coefficient
-        ax2.plot(k_range, silhouette_coefficients)
-        ax2.set(xticks=k_range, xlabel = "Number of Clusters", ylabel = "Silhouette Coefficient")
-        fig.tight_layout()
+        for metric in (internal + group):
+            # Cophenetic correlation as lineplot
+            if metric == 'corr':
+                data_df = corr_df[corr_df['k'].isin(k_range)]
+                plt.figure()
+                sns.lineplot(data=data_df, x='k', y=metric, marker='o', color=color)
+                plt.xlabel('K', fontsize=12, fontweight='bold')
+                plt.ylabel(metrics_names[metric], fontsize=12, fontweight='bold')
+            # Other metrics are plotted as boxplots
+            else:
+                data_df = internal_df[internal_df['k'].isin(k_range)] if metric in internal else group_df[group_df['k'].isin(k_range)]
+                g = sns.catplot(y=metric, x="k", data=data_df, kind="box", legend=True, legend_out=True,
+                                linewidth=2,medianprops=dict(color="white"),color=color, 
+                                boxprops=dict(alpha=.6,edgecolor=None),whiskerprops=dict(color=color), capprops=dict(color=color), fliersize=0, aspect=0.5);
+                g.fig.set_size_inches(5, 4)
+                sns.stripplot(y=metric, x="k", data=data_df, size=5, color=color, alpha=.8, linewidth=0,
+                            edgecolor='white', dodge=True)
+                g.set_axis_labels("K", metrics_names[metric], fontsize=12, fontweight='bold')
 
-        if save_results == True:
-            path_to_create = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/define_K/'
-            os.makedirs(os.path.dirname(path_to_create), exist_ok=True)
-            # Save arrays
-            np.save(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/define_K/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_define_K_SSE.npy',sse)
-            np.save(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/define_K/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_define_K_silhouette.npy',silhouette_coefficients)
-            # Save figure
-            plt.savefig(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/define_K/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_define_K.png')
-
-        print("\n\033[1mDONE\033[0m")
-
+                if save_figures:
+                    g.savefig(path_validity + self.config['output_tag'] + '_' + indiv_algorithm + '_' + metric + '.pdf', format='pdf')
+                        
     def _corr2_coeff(self, arr_source, arr_target):
         # Rowwise mean of input arrays & subtract from input arrays themselves
         A_mA = arr_source - arr_source.mean(1)[:, None]
@@ -574,16 +576,6 @@ class FC_Parcellation:
     
     def _compute_mi(self, vox_source, data_source_masked, data_target_masked):
         return mutual_info_regression(data_target_masked.T, data_source_masked[vox_source,:].T, discrete_features=True, n_neighbors=8)
-
-    def _compute_k_scores(self, k, algorithm, kwargs):
-        if algorithm == 'kmeans':
-            clusters = KMeans(n_clusters=k,**kwargs)
-        elif algorithm == 'agglom':
-            clusters = AgglomerativeClustering(n_clusters=k,**kwargs)
-        clusters.fit(self.correlations_mean)
-        sse = clusters.inertia_
-        silhouette = silhouette_score(self.correlations_mean, clusters.labels_)
-        return sse, silhouette
 
     def _relabel(self, reference: np.ndarray, x: np.ndarray):
         """Relabel cluster labels to best match a reference
