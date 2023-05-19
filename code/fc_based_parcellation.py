@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from kneed import KneeLocator
 from sklearn.cluster import KMeans, AgglomerativeClustering
-from sklearn.metrics import silhouette_score
+from sklearn.metrics import silhouette_score, adjusted_mutual_info_score, adjusted_rand_score
 from sklearn.feature_selection import mutual_info_regression
 from scipy.spatial.distance import pdist
 from scipy.cluster import hierarchy
@@ -15,6 +15,9 @@ from tqdm import tqdm
 from multiprocessing import Pool
 from functools import partial
 import json
+import pickle
+import pandas as pd
+from colorama import init, Fore, Style
 
 class FC_Parcellation:
     '''
@@ -25,23 +28,23 @@ class FC_Parcellation:
     ----------
     config : dict
     struct_source/data_target : str
-        Source (i.e., to parcellate) and target (i.e., the one with wich each voxel of the source is correlated) structures
-        Default is struct_source = 'spinalcord', struct_target = 'brain'
+        source (i.e., to parcellate) and target (i.e., the one with wich each voxel of the source is correlated) structures
+        default is struct_source = 'spinalcord', struct_target = 'brain'
     fc_metric: str
-        Defines metrics to used to compute functional connectivity (e.g., 'corr' or 'mi') (Default = 'corr')
+        defines metrics to used to compute functional connectivity (e.g., 'corr' or 'mi') (default = 'corr')
     clusters : dict
-        Will contain the labeling results for each subject
+        will contain the labeling results for each subject
     data_source/target : dict of array
-        Contains 4D data of all subjects for the structures of interest
+        contains 4D data of all subjects for the structures of interest
     params_kmeans : dict
-        Parameters for k-means clustering
-        - init: method for initialization (Default = 'k-means++')
-        - n_init: number of times the algorithm is run with different centroid seeds (Default = 100)
-        - max_iter: maximum number of iterations of the k-means algorithm for a single run (Default = 300)
+        parameters for k-means clustering
+        - init: method for initialization (default = 'k-means++')
+        - n_init: number of times the algorithm is run with different centroid seeds (default = 100)
+        - max_iter: maximum number of iterations of the k-means algorithm for a single run (default = 300)
     params_agglom : dict
-        Parameters for agglomerative clustering
-        - linkage: distance to use between sets of observations (Default = 'ward')
-        - affinity: metric used to compute the linkage (Default = 'euclidean')
+        parameters for agglomerative clustering
+        - linkage: distance to use between sets of observations (default = 'ward')
+        - affinity: metric used to compute the linkage (default = 'euclidean')
     '''
     
     def __init__(self, config, struct_source='spinalcord', struct_target='brain', fc_metric='corr', params_kmeans={'init':'k-means++', 'n_init':100, 'max_iter':300}, params_agglom={'linkage':'ward', 'affinity':'euclidean'}):
@@ -63,17 +66,22 @@ class FC_Parcellation:
         self.linkage = params_agglom.get('linkage')
         self.affinity = params_agglom.get('affinity')
 
+        # Read mask data
+        self.mask_source_path = self.config['main_dir']+self.config['masks'][struct_source]
+        self.mask_target_path = self.config['main_dir']+self.config['masks'][struct_target]
+        self.mask_source = nib.load(self.mask_source_path).get_data().astype(bool)
+        self.mask_target = nib.load(self.mask_target_path).get_data().astype(bool)
+
         # Create folder structure and save config file as json for reference
         path_to_create = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/'
         os.makedirs(os.path.dirname(path_to_create), exist_ok=True)
-        for folder in ['labels', 'target']:
-            os.makedirs(os.path.join(path_to_create, folder, 'arrays'), exist_ok=True)
-            os.makedirs(os.path.join(path_to_create, folder, 'maps'), exist_ok=True)
+        for folder in ['fcs', 'source', 'target']:
+            os.makedirs(os.path.join(path_to_create, folder), exist_ok=True)
         path_config = path_to_create + 'config_' + self.config['output_tag'] + '.json'
         with open(path_config, 'w') as f:
             json.dump(self.config,f)
             
-    def compute_voxelwise_fc(self, sub, mask_source_path, mask_target_path, load_from_file, save_results=True):
+    def compute_voxelwise_fc(self, sub, standardize=True, load_from_file=True, save_results=True):
         '''
         To compute functional connectivity between each voxel of mask_source to all voxels of mask_target
         Can be done using Pearson correlation or Mutual Information
@@ -82,14 +90,14 @@ class FC_Parcellation:
         ------------
         sub : str 
             subject on which to run the correlations
-        mask_source/target_path : str
-            paths of masks defining the regions to consider
+        standardize : bool, optional
+            if set to True, timeseries are z-scored (defautl = True)
         load_from_file : boolean
-            if set to True, fc loaded from file directly
+            if set to True, fc loaded from file directly (default = True)
         save_results : boolean
-            if set to True, fc saved to .npy file (Default = True)
+            if set to True, fc saved to .npy file (default = True)
         njobs: int
-            number of jobs for parallelization (Default = 10)
+            number of jobs for parallelization (default = 10)
 
         Output
         ------------
@@ -99,19 +107,17 @@ class FC_Parcellation:
             connectivity -> matrix to use as input for the clustering (typically an array with dimensions n_sc_voxels x n_br_voxels)
         '''
         
-        print(f"COMPUTE VOXELWISE FC")
+        print(f"\033[1mCOMPUTE VOXELWISE FC\033[0m")
+        print(f"\033[37mStandardize = {standardize}\033[0m")
+        print(f"\033[37mLoading from file = {load_from_file}\033[0m")
+        print(f"\033[37mSaving results = {save_results}\033[0m")
         
-        # Read mask data
-        self.mask_source_path = mask_source_path
-        self.mask_target_path = mask_target_path
-        self.mask_source = nib.load(self.mask_source_path).get_data().astype(bool)
-        self.mask_target = nib.load(self.mask_target_path).get_data().astype(bool)
-
+        print(self.data_source[sub][self.mask_source].shape)
         # Compute FC
         # We can load it from file if it exists
-        if load_from_file and os.path.isfile(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy'):
+        if load_from_file and os.path.isfile(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/fcs/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy'):
             print(f"... Load FC from file")
-            fc = np.load(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy')
+            fc = np.load(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/fcs/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy')
         else: # Otherwise we compute FC    
             print(f"... Computing FC for all possibilities")
             
@@ -120,6 +126,10 @@ class FC_Parcellation:
             data_source_masked = self.data_source[sub][self.mask_source]
             data_target_masked = self.data_target[sub][self.mask_target] 
     
+            if standardize:
+                data_source_masked = stats.zscore(data_source_masked, axis=1).astype(np.float32)
+                data_target_masked = stats.zscore(data_target_masked, axis=1).astype(np.float32)
+
             if self.fc_metric == 'corr':
                 print("... Metric: correlation")
                 fc = self._corr2_coeff(data_source_masked,data_target_masked)
@@ -142,121 +152,333 @@ class FC_Parcellation:
                     fc[i, :] /= np.max(fc[i, :])
             
             if save_results == True:            
-                np.save(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy',fc)
+                np.save(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/fcs/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy',fc)
             
         dict_fc = {}
         dict_fc['id'] = sub
-        dict_fc['connectivity'] = fc
+        dict_fc['connectivity'] = fc.astype(np.float32)
         
+        print("\n\033[1mDONE\033[0m")
+
         return dict_fc
 
-    def run_clustering(self, dict_fc, k, algorithm, load_from_file, save_results=True):
+    def run_clustering(self, dict_fc, k_range, algorithm, overwrite=False, save_results=True):
         '''  
-        Run clustering for a specific number of clusters
-        (See define_n_clusters to help pick this)
-        
+        Run clustering for a range of k values
+        Saving validity metrics using two methods:
+        - SSE
+        - Silhouette coefficients
+
         Inputs
         ------------
         dict_fc: dict
             dictionary containing two fields
             id -> subject tag for saving (e.g., name, 'mean', ...)
             connectivity -> matrix to use as input for the clustering (typically an array with dimensions n_sc_voxels x n_br_voxels)
-        k : int
+        k_range : int, array or range
             number of clusters  
         algorithm : str
             defines which algorithm to use ('kmeans' or 'agglom')
-        load_from_file : boolean
-            if set to True, labels loaded from file directly
+        overwrite : boolean
+            if set to True, labels are overwritten (default = False)
         save_results : boolean
-            if set to True, cluster labels are saved to .npy file (Default = True)
+            if set to True, cluster labels are saved to .npy file (default = True)
         
         Output
         ------------
-        labels :  arr
-            labels corresponding to the clustering 
+        dict_clustering_indiv :  dict
+            labels corresponding to the clustering for each k (e.g., dict_clustering_indiv['5'] contains labels of a particular subject for k=5)
+            Note: there is one dict per subject, saved as a .pkl file for easy access
         '''
 
-        self.k = k 
-        self.algorithm = algorithm # So that the algorithm is defined based on last run of clustering
-
-        if load_from_file and os.path.isfile(self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/labels/arrays/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_labels_k' + str(self.k) + '.npy'):
-            print(f"... Load labels from file")
-            labels = np.load(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/labels/arrays/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_labels_k' + str(self.k) + '.npy')
+        print(f"\033[1mCLUSTERING AT THE INDIVIDUAL LEVEL\033[0m")
+        print(f"\033[37mAlgorithm = {algorithm}\033[0m")
+        print(f"\033[37mK value(s) = {k_range}\033[0m")
+        print(f"\033[37mOverwrite results = {overwrite}\033[0m")
+        print(f"\033[37mSaving results = {save_results}\033[0m\n")
         
-        else:
-            if algorithm == 'kmeans':
-                print(f"RUN K-MEANS CLUSTERING FOR K = {self.k}")
-                
-                # Dict containing k means parameters
-                kmeans_kwargs = {'n_clusters': self.k, 'init': self.init, 'max_iter': self.max_iter, 'n_init': self.n_init}
+        # If only one k value is given, convert to range
+        k_range = range(k_range,k_range+1) if isinstance(k_range,int) else k_range
 
-                kmeans_clusters = KMeans(**kmeans_kwargs)
-                kmeans_clusters.fit(dict_fc['connectivity'])
+        # Path to create folder structure
+        path_source = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/'
+        path_internal_validity = path_source + self.config['output_tag'] + '_' + algorithm + '_internal_validity.pkl'
+        # Load file with metrics to define K (SSE, silhouette, ...)
+        if not overwrite and os.path.isfile(path_internal_validity):
+            internal_validity_df = pd.read_pickle(path_internal_validity) 
+        else: # Create an empty dataframe with the needed columns
+            columns = ["sub", "SSE", "silhouette", "k"]
+            internal_validity_df = pd.DataFrame(columns=columns)
 
-                labels = kmeans_clusters.labels_
+        # Check if file already exists
+        for k in k_range:
+            print(f"K = {k}")
+            
+            # Create folder structure if needed
+            for folder in ['indiv_labels','indiv_labels_relabeled','group_labels']:
+                os.makedirs(os.path.join(path_source, 'K'+str(k), folder), exist_ok=True)
 
-            elif algorithm == 'agglom':
-                print(f"RUN AGGLOMERATIVE CLUSTERING FOR K = {self.k}")
-                # Dict containing parameters
-                agglom_kwargs = {'n_clusters': self.k, 'linkage': self.linkage, 'affinity': self.affinity}
-
-                agglom_clusters = AgglomerativeClustering(**agglom_kwargs)
-                agglom_clusters.fit(dict_fc['connectivity'])
-
-                labels = agglom_clusters.labels_
-
+            # Check if file already exists
+            if not overwrite and os.path.isfile(path_source + 'K' + str(k) + '/indiv_labels/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_labels_k' + str(k) + '.npy'):
+                print(f"... Labels already computed")
+            
+            # Otherwise, we compute them
             else:
-                raise(Exception(f'Algorithm {algorithm} is not a vadid option.'))
+                if algorithm == 'kmeans':
+                    print(f"... Running k-means clustering")
+    
+                    # Dict containing k means parameters
+                    kmeans_kwargs = {'n_clusters': k, 'init': self.init, 'max_iter': self.max_iter, 'n_init': self.n_init}
 
-            if save_results == True:
-                # Save arrays
-                np.save(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/labels/arrays/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_labels_k' + str(self.k) + '.npy', labels)
+                    # Compute clustering
+                    kmeans_clusters = KMeans(**kmeans_kwargs)
+                    kmeans_clusters.fit(dict_fc['connectivity'])
+                    labels = kmeans_clusters.labels_
+
+                    # Compute validity metrics and add them to dataframe
+                    internal_validity_df.loc[len(internal_validity_df)] = [dict_fc['id'], kmeans_clusters.inertia_, silhouette_score(dict_fc['connectivity'], kmeans_clusters.labels_), k]
                 
-        return labels
+                elif algorithm == 'agglom':
+                    print(f"... Running agglomerative clustering")
+                    # Dict containing parameters
+                    agglom_kwargs = {'n_clusters': self.k, 'linkage': self.linkage, 'affinity': self.affinity}
 
-    def group_clustering(self,indiv_labels,linkage="complete"):
+                    agglom_clusters = AgglomerativeClustering(**agglom_kwargs)
+                    agglom_clusters.fit(dict_fc['connectivity'])
+                    labels = agglom_clusters.labels_
+
+                    # Compute validity metrics and add them to dataframe
+                    # Note that SSE is not relevant for this type of clustering
+                    internal_validity_df.loc[len(internal_validity_df)] = [dict_fc['id'], 0, silhouette_score(dict_fc['connectivity'], kmeans_clusters.labels_), k]
+                    
+                else:
+                    raise(Exception(f'Algorithm {algorithm} is not a valid option.'))
+
+                if save_results == True:
+                    # Save arrays
+                    np.save(path_source + 'K' + str(k) + '/indiv_labels/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_labels_k' + str(k) + '.npy', labels.astype(int))
+
+        if save_results == True:
+            # Save metrics to define K as .pkl
+            internal_validity_df.to_pickle(path_internal_validity ) 
+
+        print("\n")
+       
+    def group_clustering(self, k_range, indiv_algorithm='kmeans', linkage="complete", overwrite=False, save_results=True):
         '''  
         Perform group-level clustering using the individual labels
         BASED ON CBP toolbox
 
-        Input
+        Inputs
         ------------
-        indiv_labels : array
-            labels for each individual and source voxels (dimension: nb_sujects x nb_voxel_source)
-
+        k_range : int, array or range
+            number of clusters  
+        indiv_algorithm : str
+            algorithm that was used at the subject level (default = "kmeans")
+        linkage : str
+            define type of linkage to use for hierarchical clustering (default = "complete")
+        overwrite : boolean
+            if set to True, labels are overwritten (default = False)
+        save_results : boolean
+            if set to True, cluster labels are saved to .npy file (default = True)
+       
         Output
         ------------
-        group_labels : array
-            labels for the group
+        Saving relabeled labels for each individual participant (as .npy)
+        Saving group labels (as .npy and .nii.gz)
+
         '''
-        print(f"RUN GROUP CLUSTERING")
+        print(f"\033[1mCLUSTERING AT THE GROUP LEVEL\033[0m")
+        print(f"\033[37mK value(s) = {k_range}\033[0m")
+        print(f"\033[37mOverwrite results = {overwrite}\033[0m")
+        print(f"\033[37mSaving results = {save_results}\033[0m\n")
+       
+        if overwrite == False or save_results:
+            print("\033[38;5;208mWARNING: THESE RESULTS CHANGE IF GROUP CHANGES, MAKE SURE YOU ARE USING THE SAME SUBJECTS\033[0m\n")
 
-        # Hierarchical clustering on all labels
-        x = indiv_labels.T
-        y = pdist(x, metric='hamming')
-        z = hierarchy.linkage(y, method=linkage, metric='hamming')
-        group_labels = hierarchy.cut_tree(z, n_clusters=len(np.unique(x)))
-        group_labels = np.squeeze(group_labels)  # (N, 1) to (N,)
+        # If only one k value is given, convert to range
+        k_range = range(k_range,k_range+1) if isinstance(k_range,int) else k_range
 
-        # Use the hierarchical clustering as a reference to relabel individual
-        # participant clustering results
-        relabeled = np.empty((0, indiv_labels.shape[1]), int)
-        accuracy = []
-
-        # iterate over individual participant labels (rows)
-        for label in indiv_labels:
-            x, acc = self._relabel(reference=group_labels, x=label)
-            relabeled = np.vstack([relabeled, x])
-            accuracy.append(acc)
-
-        indiv_labels_relabeled = relabeled
+        path_source = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/'
+        path_group_validity = path_source + self.config['output_tag'] + '_' + indiv_algorithm + '_group_validity.pkl'
+        path_cophenetic_correlation = path_source + self.config['output_tag'] + '_' + indiv_algorithm + '_cophenetic_correlation.pkl'
         
-        mode, _ = stats.mode(indiv_labels_relabeled, axis=0, keepdims=False)
+        # Load file with metrics to similarity indiv vs group labels
+        if not overwrite and os.path.isfile(path_group_validity):
+            group_validity_df = pd.read_pickle(path_group_validity) 
+        else: # Create an empty dataframe with the needed columns
+            columns = ["sub", "ami", "ari","k"]
+            group_validity_df = pd.DataFrame(columns=columns)
 
-        # Set group labels to mode for mapping
-        group_labels = np.squeeze(mode)
-        print("DONE")
-        return group_labels, indiv_labels_relabeled
+        # Load file with cophenetic correlations
+        if not overwrite and os.path.isfile(path_cophenetic_correlation):
+            cophenetic_correlation_df = pd.read_pickle(path_cophenetic_correlation) 
+        else: # Create an empty dataframe with the needed columns
+            columns = ["corr", "k"]
+            cophenetic_correlation_df = pd.DataFrame(columns=columns)
+        
+        # Loop through K values
+        for k in k_range:
+            print(f"K = {k}")
+            
+            # We assume that if group_labels exist, the rest is done too
+            group_labels_path = path_source + 'K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_k' + str(k)
+            if not overwrite and os.path.isfile(group_labels_path + '.npy'):
+                print(f"... Group labeling already done!")
+            else:
+                print(f"... Computing hierarchical clustering and relabeling")
+                # Load subjects data
+                # Prepare empty structure
+                nvox_source = np.count_nonzero(self.mask_source)
+                indiv_labels_all = np.zeros((len(self.config['list_subjects']),nvox_source))
+
+                for sub_id,sub in enumerate(self.config['list_subjects']):
+                    indiv_labels_path =  path_source + '/K' + str(k) + '/indiv_labels/' + self.config['output_tag'] + '_' + sub + '_' + indiv_algorithm + '_labels_k' + str(k) + '.npy'    
+                    if os.path.isfile(indiv_labels_path):
+                        indiv_labels_all[sub_id,:] = np.load(indiv_labels_path)    
+                    else:      
+                        raise(Exception(f'Subject {sub} is missing for algorithm {indiv_algorithm} and K={k}.'))
+                    
+                # Hierarchical clustering on all labels
+                x = indiv_labels_all.T
+                y = pdist(x, metric='hamming')
+                z = hierarchy.linkage(y, method=linkage, metric='hamming')
+                
+                # Group labels from the agglomerative clustering
+                group_labels = hierarchy.cut_tree(z, n_clusters=len(np.unique(x)))
+                group_labels = np.squeeze(group_labels)  # (N, 1) to (N,)
+
+                # Measure of how well the distances are preserved and add to dataframe
+                cophenetic_correlation, *_ = hierarchy.cophenet(z, y)
+                cophenetic_correlation_df.loc[len(cophenetic_correlation_df)] = [cophenetic_correlation, k]
+                
+                # Use the hierarchical clustering as a reference to relabel individual
+                # participant clustering results
+                indiv_labels_relabeled = np.empty((0, indiv_labels_all.shape[1]), int)
+
+                # iterate over individual participant labels (rows)
+                for label in indiv_labels_all:
+                    x, acc = self._relabel(reference=group_labels, x=label)
+                    indiv_labels_relabeled = np.vstack([indiv_labels_relabeled , x])
+                
+                mode, _ = stats.mode(indiv_labels_relabeled, axis=0, keepdims=False)
+
+                # Set group labels to mode for mapping
+                group_labels = np.squeeze(mode)
+
+                for sub_id, sub in self.config['list_subjects']: 
+                    ami = adjusted_mutual_info_score(labels_true=group_labels,labels_pred=indiv_labels_relabeled[sub_id,:])
+                    ari = adjusted_rand_score(labels_true=group_labels,labels_pred=indiv_labels_relabeled[sub_id,:])
+                    group_validity_df.loc[len(group_validity_df)] = [sub, ami, ari, k]
+
+                if save_results:
+                    # Arrays and df
+                    np.save(path_source + 'K' + str(k) + '/indiv_labels_relabeled/' + self.config['output_tag'] + '_' + indiv_algorithm + '_labels_relabeled_k' + str(k) + '.npy',indiv_labels_relabeled.astype(int))
+                    cophenetic_correlation_df.to_pickle(path_source + self.config['output_tag'] + '_' + indiv_algorithm + '_cophenetic_correlation.pkl')
+                    group_validity_df.to_pickle(path_source + self.config['output_tag'] + '_' + indiv_algorithm + '_group_validity.pkl')
+
+                    # Maps
+                    np.save(group_labels_path + '.npy', group_labels.astype(int))
+                    seed = NiftiMasker(self.mask_source_path).fit()
+                    labels_img = seed.inverse_transform(group_labels+1) # +1 because labels start from 0 
+                    labels_img.to_filename(group_labels_path + '.nii.gz')
+
+        print("\n\033[1mDONE\033[0m")
+
+    def prepare_target_maps(self, label_type, k_range, overwrite=False, save_results=True, indiv_algorithm='kmeans'):
+        '''  
+        To obtain images of the connectivity profiles assigned to each label
+        (i.e., mean over the connectivity profiles of the voxel of this K)
+
+        Inputs
+        ------------
+        label_type : str
+            defines the type of labels to use to define connectivity patterns (target)
+            'indiv': relabeled labels (i.e., specific to each participant)
+            'group': group labels (i.e., same for all participants)
+        k_range : array
+            Number of clusters to include in the comparison
+        overwrite : boolean
+            if set to True, maps are overwritten (default = False)
+        save_results : boolean
+            if set to True, maps are saved to .npy file (default = True)
+        indiv_algorithm : str
+            algorithm that was used at the participant level (default = "kmeans")
+       
+        Outputs
+        ------------
+        target_maps : array
+            array containing the brain maps for each label and participant (nb_participants x K x n_vox_target)
+        K nifti images
+            one image for each mean connectivity profile (i.e., one per K)
+            (e.g., "brain_pattern_K4_1.nii.gz" for the first cluster out of 4 total clusters)
+            
+        '''
+
+        print(f"\033[1mPREPARE TARGET MAPS\033[0m")
+        print(f"\033[37mType of source labels = {label_type}\033[0m")
+        print(f"\033[37mK value(s) = {k_range}\033[0m")
+        print(f"\033[37mOverwrite results = {overwrite}\033[0m")
+        print(f"\033[37mSaving results = {save_results}\033[0m\n")
+
+        # If only one k value is given, convert to range
+        k_range = range(k_range,k_range+1) if isinstance(k_range,int) else k_range
+        
+        # Path to create folder structure
+        path_target = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/target/'
+       
+        # Loop through K values
+        for k in k_range:
+            print(f"K = {k}")    
+
+            target_npy_path = path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/' + self.config['output_tag'] + '_' + indiv_algorithm + '_targetmaps_k' + str(k) + '.npy'
+            
+            if not overwrite and os.path.isfile(target_npy_path):
+                print(f"... Target maps already computed")
+            else:
+                print(f"... Computing target maps")
+                # Create folder structure if needed
+                for folder in ['maps_indiv','maps_mean']:
+                    os.makedirs(os.path.join(path_target, 'K'+str(k), label_type + '_labels', folder), exist_ok=True)
+                
+                # Initialize array to save target data
+                target_maps = np.zeros((len(self.config['list_subjects']),k,np.count_nonzero(self.mask_target)))
+                for sub_id,sub in enumerate(self.config['list_subjects']):
+                    print(f"...... Subject {sub}")
+                    
+                    # Load labels
+                    if label_type == 'indiv':
+                        labels = np.load(self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/indiv_labels_relabeled/' + self.config['output_tag'] + '_' + indiv_algorithm + '_labels_relabeled_k' + str(k) + '.npy')
+                        labels =  np.squeeze(labels[sub_id,:].T)
+                    elif label_type == 'group':
+                        labels = np.load(self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_k' + str(k) + '.npy')
+                    else:
+                        raise(Exception(f'Label type {label_type} is not a valid option.'))
+
+                    # Load FC
+                    fc = np.load(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/fcs/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy')
+                    
+                    # Compute mean map per label
+                    for label in range(0,k):
+                        target_maps[sub_id,label,:] = np.mean(fc[np.where(labels==label),:],axis=1)
+                        
+                    # Save indiv maps as nifti files
+                    target_mask = NiftiMasker(self.mask_target_path).fit()
+                    
+                    for label in np.unique(labels):
+                        target_map_img = target_mask.inverse_transform(target_maps[sub_id,label,:])
+                        target_map_img.to_filename(path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_indiv' + '/' +  self.config['output_tag'] + '_' + sub + '_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(label+1) + '.nii.gz')
+
+                # Save mean maps as nifti files
+                for label in np.unique(labels):      
+                    target_map_mean_img = target_mask.inverse_transform(np.mean(target_maps[:,label,:],axis=0))
+                    target_map_mean_img.to_filename(path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_mean' + '/' +  self.config['output_tag'] + '_mean_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(label+1) + '.nii.gz')
+
+                if save_results == True:
+                    # Save array
+                    np.save(target_npy_path, target_maps)
+            
+        print("\033[1mDONE\033[0m\n")
 
     def define_n_clusters(self, dict_fc, k_range, algorithm='kmeans', save_results=True):
         '''  
@@ -274,9 +496,9 @@ class FC_Parcellation:
         k_range : array
             Number of clusters to include in the comparison
         algorithm: str
-            defines which algorithm to use ('kmeans' or 'agglom') (Default = 'kmeans')
+            defines which algorithm to use ('kmeans' or 'agglom') (default = 'kmeans')
         save_results : boolean
-            Results are saved as npy and png if set to True (Default = True)
+            Results are saved as npy and png if set to True (default = True)
          
         '''
         
@@ -290,7 +512,7 @@ class FC_Parcellation:
         elif algorithm == 'agglom':
             kwargs = {'linkage': self.linkage, 'affinity': self.affinity}
         else:
-            raise(Exception(f'Algorithm {algorithm} is not a vadid option.'))
+            raise(Exception(f'Algorithm {algorithm} is not a valid option.'))
 
         sse = []
         silhouette_coefficients = []
@@ -336,91 +558,7 @@ class FC_Parcellation:
             # Save figure
             plt.savefig(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/define_K/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_define_K.png')
 
-        print("DONE")
-
-    def prepare_seed_map(self, labels):
-        '''  
-        To obtain images of the labels in the seed region
-
-        Input
-        ------------
-        labels : array
-            labels to put in nifti
-        
-        Outputs
-        ------------
-        nifti image
-            image in which each voxel is labeled based on the results
-            from the clustering (i.e., based on the connectivity profile)
-            (e.g., "labels_K4.nii.gz" for 4 clusters)
-            
-        '''
-            
-        print("PREPARE SEED MAP")
-
-        seed = NiftiMasker(self.mask_source_path).fit()
-        labels_img = seed.inverse_transform(labels+1) # +1 because labels start from 0 
-        labels_img.to_filename(self.config['main_dir'] + self.config['output_dir']  + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/labels/maps/' + self.config['output_tag'] + '_' + self.algorithm + '_labels_k' + str(self.k) + '.nii.gz')
-
-        print("DONE")
-
-    def prepare_target_maps(self, labels, load_from_file, save_results=True):
-        '''  
-        To obtain images of the connectivity profiles assigned to each label
-        (i.e., mean over the connectivity profiles of the voxel of this K)
-
-        Inputs
-        ------------
-        labels : array
-            Labels (source) to use to define connectivity patterns (target) (nb_subjects x nb_vox_source)
-            Normally, relabeled labelled of each subject
-        load_from_file : boolean
-            if set to True, maps loaded from file directly
-        save_results : boolean
-            if set to True, maps are saved to .npy file (Default = True)
-        
-        Outputs
-        ------------
-        target_maps : array
-            array containing the brain maps for each label and subject (nb_subjects x K x n_vox_target)
-        K nifti images
-            one image for each mean connectivity profile (i.e., one per K)
-            (e.g., "brain_pattern_K4_1.nii.gz" for the first cluster out of 4 total clusters)
-            
-        '''
-            
-        print("PREPARE TARGET MAPS")
-        if load_from_file and os.path.isfile(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/target/arrays/' + self.config['output_tag'] + '_target_maps.npy'):
-            print(f"... Load target maps from file")
-            target_maps = np.load(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/target/arrays/' + self.config['output_tag'] + '_target_maps.npy')
-            
-        else:
-            # Initialize array to save target data
-            target_maps = np.zeros((labels.shape[0],len(np.unique(labels)),np.count_nonzero(self.mask_target)))
-            for sub in range(0,labels.shape[0]):
-                print(f"Subject {self.config['list_subjects'][sub]}")
-                print(f"... Load FC")
-                fc = np.load(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/' + self.config['output_tag'] + '_' + self.config['list_subjects'][sub] + '_' + self.fc_metric + '.npy')
-                print(f"... Compute mean map per label")
-                for label in np.unique(labels):
-                    target_maps[sub,label,:] = np.mean(fc[np.where(labels[sub,:]==label),:],axis=1)
-                    
-                print("... Save as nifti files")
-                target_mask = NiftiMasker(self.mask_target_path).fit()
-                
-                for label in np.unique(labels):
-                    if os.path.isfile(self.config['main_dir'] + self.config['output_dir']  + '/' + self.fc_metric  + '/'  + self.config['output_tag'] + '/' + self.config['output_tag'] + '/target/maps/' + self.config['output_tag'] + '_sub_' + self.config['list_subjects'][sub] + '_' + self.algorithm + '_brain_pattern_K' + str(self.k) + '_' + str(label+1) + '.nii.gz'):
-                        raise(Exception(f'Maps already exist!'))
-                    else:
-                        target_map_img = target_mask.inverse_transform(target_maps[sub,label,:])
-                        target_map_img.to_filename(self.config['main_dir'] + self.config['output_dir']  + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/target/maps/' + self.config['output_tag'] + '_sub_' + self.config['list_subjects'][sub] + '_' + self.algorithm + '_brain_pattern_K' + str(self.k) + '_' + str(label+1) + '.nii.gz')
-            
-            if save_results == True:
-                # Save array
-                np.save(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/target/arrays/' + self.config['output_tag'] + '_target_maps.npy', target_maps)
-         
-        
-        print("DONE")
+        print("\n\033[1mDONE\033[0m")
 
     def _corr2_coeff(self, arr_source, arr_target):
         # Rowwise mean of input arrays & subtract from input arrays themselves
