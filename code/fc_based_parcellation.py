@@ -236,7 +236,7 @@ class FC_Parcellation:
                     labels = kmeans_clusters.labels_
 
                     # Compute validity metrics and add them to dataframe
-                    internal_validity_df.loc[len(internal_validity_df)] = [dict_fc['id'], kmeans_clusters.inertia_, silhouette_score(dict_fc['connectivity'], kmeans_clusters.labels_), davies_bouldin_score(dict_fc['connectivity'], kmeans_clusters.labels_), calinski_harabasz_score(dict_fc['connectivity'], kmeans_clusters.labels_), k]
+                    internal_validity_df.loc[len(internal_validity_df)] = [dict_fc['id'], kmeans_clusters.inertia_, silhouette_score(dict_fc['connectivity'], labels), davies_bouldin_score(dict_fc['connectivity'], labels), calinski_harabasz_score(dict_fc['connectivity'], labels), k]
                 
                 elif algorithm == 'agglom':
                     print(f"... Running agglomerative clustering")
@@ -249,7 +249,7 @@ class FC_Parcellation:
 
                     # Compute validity metrics and add them to dataframe
                     # Note that SSE is not relevant for this type of clustering
-                    internal_validity_df.loc[len(internal_validity_df)] = [dict_fc['id'], 0,  silhouette_score(dict_fc['connectivity'], kmeans_clusters.labels_), davies_bouldin_score(dict_fc['connectivity'], kmeans_clusters.labels_), calinski_harabasz_score(dict_fc['connectivity'], kmeans_clusters.labels_), k]
+                    internal_validity_df.loc[len(internal_validity_df)] = [dict_fc['id'], 0,  silhouette_score(dict_fc['connectivity'], labels), davies_bouldin_score(dict_fc['connectivity'], labels), calinski_harabasz_score(dict_fc['connectivity'], labels), k]
                     
                 else:
                     raise(Exception(f'Algorithm {algorithm} is not a valid option.'))

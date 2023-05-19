@@ -102,7 +102,7 @@ class Plotting:
 
     # ======= SPINAL CORD ========
     
-    def sc_plot(self, k_per_line=None, lthresh=None, uthresh=4.0, auto_thresh=False, perc_thresh=90, template=None, centering_method='max', similarity_method='Dice', show_spinal_levels=False, colormap_one='autumn', colormap_two=['autumn','winter'], save_results=False):
+    def sc_plot(self, k_per_line=None, lthresh=None, uthresh=4.0, perc_thresh=90, template=None, centering_method='max', similarity_method='Dice', plot_mip=False, show_spinal_levels=False, colormap_one='autumn', colormap_two=['autumn','winter'], save_results=False):
         ''' Plot components overlaid on PAM50 template (coronal and axial views are shown)
         
         Inputs
@@ -111,11 +111,8 @@ class Plotting:
             Number of maps to display per line (default = will be set to total number of 4th dimension in the 4D image)
         lthresh : float
             Lower threshold value to display the maps 
-            ! is not taken into account if auto_thresh = True
         uthresh : float
             Upper threshold value to display the maps (default = 4.0)
-        auto_thresh : boolean / perc_thresh : int
-            If sets to True, lower threshold is computed automatically (default = False) based on z distribution (i.e., taking the perc_thres percentile, default = 90)
         template : str
             To change the background if needed (default = None)
             If None, the template image defined in the config file is used
@@ -125,6 +122,9 @@ class Plotting:
                 'middle' to center in the middle of the volume
         similarity_method : str
             Method to compute similarity if there are two datasets (default = Dice)
+        plot_mip: boolean
+            If set to True, we plot the Maximum Intensity Projection (default = False)
+            ! Only possible for one dataset and centering at middle
         show_spinal_levels : boolean
             Defines whether spinal levels are displayed or not (default = False)
         colormap_one : str
@@ -136,20 +136,15 @@ class Plotting:
         
         print("The plotting will be displayed in neurological orientation (Left > Right)")
 
-        if lthresh==None:
-            lthresh=self.lthresh[self.name1]
+        lthresh=self.lthresh[self.name1] if lthresh == None else lthresh
             
-            if lthresh==None:
-                auto_thresh=True
-        
-        # Overwrite threshold if automatic thresholding is set to True
-        # Now: based on first dataset only
-        if auto_thresh == True:
-            lthresh = Threshold_map(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[self.name1]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0],
-                        mask=self.config['main_dir']+ self.config["masks"]["spinalcord"],
-                        percentile=perc_thresh)
-
         colormaps={};alpha={}
+
+        if plot_mip and len(self.k.keys())==2: 
+            raise(Exception('Only one dataset can be plotted using the maximum intensity projection'))
+        if plot_mip and centering_method != "middle":
+            print("When using the maximum intensity projection, centering method is set to 'middle'")
+            centering_method = "middle" # "force" centering method
 
         # Define main and secondary dataset (useful for plotting, matching, etc.) and assign colormaps
         if len(self.k.keys())==2: 
@@ -217,11 +212,7 @@ class Plotting:
             if len(self.k.keys())==2: 
                 if i<self.k[secondary_dataset]:
                     axs[row_coronal,col].set_title('Main #' + str(self.map_order[main_dataset][order2[i]]+1) + '\n Sec. #' + str(self.map_order[secondary_dataset][i]+1),fontsize=18,pad=20)# + '\n Level ' + str(self.spinal_levels_sorted[secondary_dataset][i]+1),fontsize=18,pad=20)
-                #else:
-                 #   axs[row_coronal,col].set_title('Main #' + str(self.map_order[main_dataset][order2[i]]+1) + '\n Level ' + str(self.spinal_levels_matched[main_dataset][i]+1),fontsize=18,pad=20)
-            #else:
-             #   axs[row_coronal,col].set_title('#' + str(self.map_order[main_dataset][i]+1) + '\n Level ' + str(self.spinal_levels_sorted[main_dataset][i]+1),fontsize=18,pad=20)
-
+            
             if centering_method == 'max':
                 if len(self.k.keys())==2 and i<self.k[secondary_dataset]: # If maps present in both, define max based on the overlap
                     overlap_map=self._overlap_maps(i,main_dataset,secondary_dataset)  
@@ -251,7 +242,16 @@ class Plotting:
                 else:
                     axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_sorted[main_dataset][i]]),cmap='gray')
             # Show components
-            axs[row_coronal,col].imshow(np.rot90(map_masked[main_dataset][:,max_y,:,i].T,2),vmin=lthresh, vmax=uthresh,cmap=colormaps[main_dataset],alpha=alpha[main_dataset])
+            if plot_mip:
+                # Compute projection
+                mip = np.nansum(map_masked[main_dataset][:,:,:,i].T,axis=1)
+                # Threshold
+                mip = np.where(mip > lthresh, mip, np.nan)
+                axs[row_coronal,col].imshow(np.rot90(mip,2),vmin=lthresh, vmax=uthresh,cmap=colormaps[main_dataset],alpha=alpha[main_dataset])
+            else:
+                axs[row_coronal,col].imshow(np.rot90(map_masked[main_dataset][:,max_y,:,i].T,2),vmin=lthresh, vmax=uthresh,cmap=colormaps[main_dataset],alpha=alpha[main_dataset])
+            
+            
             if len(self.k.keys())==2 and i<self.k[secondary_dataset]: # If maps present in both
                 axs[row_coronal,col].imshow(np.rot90(map_masked[secondary_dataset][:,max_y,:,i].T,2),vmin=lthresh, vmax=uthresh,cmap=colormaps[secondary_dataset],alpha=alpha[secondary_dataset])
                     
