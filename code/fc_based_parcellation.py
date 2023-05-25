@@ -16,6 +16,7 @@ from multiprocessing import Pool
 from functools import partial
 import json
 import pandas as pd
+import time
 
 class FC_Parcellation:
     '''
@@ -301,7 +302,7 @@ class FC_Parcellation:
 
         path_source = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/'
         path_group_validity = path_source + 'validity/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_validity.pkl'
-        path_cophenetic_correlation = path_source + self.config['output_tag'] + '_' + indiv_algorithm + '_cophenetic_correlation.pkl'
+        path_cophenetic_correlation = path_source + 'validity/' + self.config['output_tag'] + '_' + indiv_algorithm + '_cophenetic_correlation.pkl'
         
         # Load file with metrics to similarity indiv vs group labels
         if not overwrite and os.path.isfile(path_group_validity):
@@ -331,7 +332,8 @@ class FC_Parcellation:
                 # Prepare empty structure
                 nvox_source = np.count_nonzero(self.mask_source)
                 indiv_labels_all = np.zeros((len(self.config['list_subjects']),nvox_source))
-
+                
+                print(f"...... Loading all subjects")                
                 for sub_id,sub in enumerate(self.config['list_subjects']):
                     indiv_labels_path =  path_source + '/K' + str(k) + '/indiv_labels/' + self.config['output_tag'] + '_' + sub + '_' + indiv_algorithm + '_labels_k' + str(k) + '.npy'    
                     if os.path.isfile(indiv_labels_path):
@@ -340,6 +342,7 @@ class FC_Parcellation:
                         raise(Exception(f'Subject {sub} is missing for algorithm {indiv_algorithm} and K={k}.'))
                     
                 # Hierarchical clustering on all labels
+                print(f"...... Clustering on all labels")
                 x = indiv_labels_all.T
                 y = pdist(x, metric='hamming')
                 z = hierarchy.linkage(y, method=linkage, metric='hamming')
@@ -348,6 +351,7 @@ class FC_Parcellation:
                 group_labels = hierarchy.cut_tree(z, n_clusters=len(np.unique(x)))
                 group_labels = np.squeeze(group_labels)  # (N, 1) to (N,)
 
+                print(f"...... Computing cophenetic correlation")
                 # Measure of how well the distances are preserved and add to dataframe
                 cophenetic_correlation, *_ = hierarchy.cophenet(z, y)
                 cophenetic_correlation_df.loc[len(cophenetic_correlation_df)] = [cophenetic_correlation, k]
@@ -356,6 +360,7 @@ class FC_Parcellation:
                 # participant clustering results
                 indiv_labels_relabeled = np.empty((0, indiv_labels_all.shape[1]), int)
 
+                print(f"...... Relabeling")
                 # iterate over individual participant labels (rows)
                 for label in indiv_labels_all:
                     x, acc = self._relabel(reference=group_labels, x=label)
@@ -366,6 +371,7 @@ class FC_Parcellation:
                 # Set group labels to mode for mapping
                 group_labels = np.squeeze(mode)
 
+                print(f"...... Computing validity")
                 for sub_id, sub in enumerate(self.config['list_subjects']): 
                     ami = adjusted_mutual_info_score(labels_true=group_labels,labels_pred=indiv_labels_relabeled[sub_id,:])
                     ari = adjusted_rand_score(labels_true=group_labels,labels_pred=indiv_labels_relabeled[sub_id,:])
@@ -374,8 +380,8 @@ class FC_Parcellation:
                 if save_results:
                     # Arrays and df
                     np.save(path_source + 'K' + str(k) + '/indiv_labels_relabeled/' + self.config['output_tag'] + '_' + indiv_algorithm + '_labels_relabeled_k' + str(k) + '.npy',indiv_labels_relabeled.astype(int))
-                    cophenetic_correlation_df.to_pickle(path_source + self.config['output_tag'] + '_' + indiv_algorithm + '_cophenetic_correlation.pkl')
-                    group_validity_df.to_pickle(path_source + self.config['output_tag'] + '_' + indiv_algorithm + '_group_validity.pkl')
+                    cophenetic_correlation_df.to_pickle(path_cophenetic_correlation)
+                    group_validity_df.to_pickle(path_group_validity)
 
                     # Maps
                     np.save(group_labels_path + '.npy', group_labels.astype(int))
@@ -534,9 +540,13 @@ class FC_Parcellation:
         path_validity = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/validity/'
        
         # Open all dataframes
-        internal_df = pd.read_pickle(path_validity + self.config['output_tag'] + '_' + indiv_algorithm + '_internal_validity.pkl')
-        group_df = pd.read_pickle(path_validity + self.config['output_tag'] + '_' + indiv_algorithm + '_group_validity.pkl')
-        corr_df = pd.read_pickle(path_validity + self.config['output_tag'] + '_' + indiv_algorithm + '_cophenetic_correlation.pkl')
+        
+        if internal:
+            internal_df = pd.read_pickle(path_validity + self.config['output_tag'] + '_' + indiv_algorithm + '_internal_validity.pkl')
+        if any(metric in group for metric in ['ami', 'ari']):
+            group_df = pd.read_pickle(path_validity + self.config['output_tag'] + '_' + indiv_algorithm + '_group_validity.pkl')
+        if any(metric in group for metric in ['corr']):
+            corr_df = pd.read_pickle(path_validity + self.config['output_tag'] + '_' + indiv_algorithm + '_cophenetic_correlation.pkl')
 
         sns.set(style="ticks",  font='sans-serif');
 
@@ -584,7 +594,7 @@ class FC_Parcellation:
         permutations = itertools.permutations(np.unique(x))
         accuracy = 0.
         relabeled = None
-
+    
         for permutation in permutations:
             d = dict(zip(np.unique(x), permutation))
             y = np.zeros(x.shape).astype(int)
