@@ -18,7 +18,6 @@ from scipy import stats
 from tqdm import tqdm
 # to improve---------------------------
 # loop per seed
-# brain > sc or sc to brain
 
 # extract fct: 
 # plotting
@@ -60,13 +59,15 @@ class Seed2voxels:
 
     
         #>>> Select mask: -------------------------------------
-        self.mask_target=self.config["main_dir"] + self.config["targeted_voxels"]["target_dir"]+ self.target + ".nii.gz" # mask of the voxels tareted for the analysis
+        self.mask_target=glob.glob(self.config["main_dir"] + self.config["targeted_voxels"]["target_dir"]+ self.target + ".nii.gz")[0] # mask of the voxels tareted for the analysis
+        print("Start the analysis on: " + str(len(self.subject_names))+ " participants")
         print("targeted voxel's mask: " + self.target)
         #print(self.mask_target)
         
         self.mask_seeds={}
         for seed_name in self.seed_names:
-            self.mask_seeds[seed_name]=self.config["main_dir"] + self.config["seeds"]["seed_dir"]+ seed_name + ".nii.gz" # mask of the voxels tareted for the analysis
+            print(self.config["main_dir"] + self.config["seeds"]["seed_dir"]+ seed_name + ".nii.gz")
+            self.mask_seeds[seed_name]=glob.glob(self.config["main_dir"] + self.config["seeds"]["seed_dir"]+ seed_name + ".nii.gz")[0] # mask of the voxels tareted for the analysis
             #print(self.mask_seeds[seed_name])
         
         #>>> Select data: -------------------------------------
@@ -76,7 +77,10 @@ class Seed2voxels:
             
             # images selected for extraction:
             self.data_seed.append(glob.glob(self.config["input_func"]["seed_dir"] + subject_name +'/'+ self.seed_structure +'/*'+ config["input_func"]["seed_tag"] +'*')[0])
+           
             self.data_target.append(glob.glob(self.config["input_func"]["target_dir"] + subject_name +'/'+ self.target_structure +'/*'+ config["input_func"]["target_tag"] +'*')[0])
+             
+                
         
     def extract_data(self,smoothing_seed=None,smoothing_target=None,redo=False,n_jobs=0):
         
@@ -120,7 +124,7 @@ class Seed2voxels:
         ts_target_dir=self.config['main_dir'] + self.config['seed2vox_dir'] + '/1_first_level/'+self.target+'/timeseries/' # output diretory for targeted voxel's mask
         for seed_name in self.seed_names:
             ts_seeds_dir[seed_name]=self.config['main_dir'] + self.config['seed2vox_dir'] + '/1_first_level/'+seed_name+'/timeseries/' # output diretory for seeds mask
-        
+           
         for subject_name in self.subject_names:
             ts_target_txt.append(ts_target_dir + '/sub_' + subject_name + '_mask_' + self.target + '_timeseries') # output file for targeted voxel's mask
         
@@ -135,6 +139,8 @@ class Seed2voxels:
         if self.signal == 'raw':
             
             ## a. Extract or load data in the targeted voxel mask ___________________________________________
+
+            
             ts_target=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(self.mask_target,self.data_target[subject_nb],ts_target_txt[subject_nb],redo,smoothing_target)
                                         for subject_nb in range(len(self.subject_names)))
             
@@ -152,7 +158,7 @@ class Seed2voxels:
                 timeseries_seeds["raw"][seed_name]=[]; timeseries_seeds["zscored"][seed_name]=[]; timeseries_seeds["mean"][seed_name]=[]; timeseries_seeds["zmean"][seed_name]=[];
                 timeseries_seeds["PC1"][seed_name]=[];
                 
-                
+
                 ts_seeds=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(self.mask_seeds[seed_name],self.data_seed[subject_nb],ts_seeds_txt[seed_name][subject_nb],smoothing_seed)
                                             for subject_nb in range(len(self.subject_names)))
                 
@@ -282,8 +288,8 @@ class Seed2voxels:
 
 
 
-            for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'):
-                os.remove(tmp) # remove temporary 3D images files
+            #for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'):
+               # os.remove(tmp) # remove temporary 3D images files
 
             np.savetxt(os.path.dirname(output_img) + '/subjects_labels.txt',self.subject_names,fmt="%s") # copy the config file that store subject info
 
@@ -359,10 +365,10 @@ class Seed2voxels:
                                                                  smoothing_output)
                                            for subject_nb in range(len(self.subject_names)))
             
-            for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii'):
+            for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'):
                 os.remove(tmp) # remove temporary 3D images files
-                os.remove(tmp + '.gz') # remove temporary 3D images files
-                np.savetxt(os.path.dirname(output_img) + '/subjects_labels.txt',self.subject_names,fmt="%s") # copy the config file that store subject info
+                #os.remove(tmp + '.gz') # remove temporary 3D images files
+            np.savetxt(os.path.dirname(output_img) + '/subjects_labels.txt',self.subject_names,fmt="%s") # copy the config file that store subject info
 
            
         
@@ -372,14 +378,21 @@ class Seed2voxels:
         '''
         Run the mutual information analysis:
         https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.mutual_info_regression.html#r37d39d7589e2-2
-        discrete_features=True
+        see also: Cliff et al. 2022 https://arxiv.org/pdf/2201.11941.pdf
+        " The Kraskov technique (ksg) combines nearest-neighbor estimators for mutual information based measures"
+        
+        discrete_features='auto' # will test the sparsity of the data, if the distribution is dense then continuous will be selected
+        n_neighbors= 4 # same as Cliff et al. 2022
        
         '''
         
         seed_to_voxel_mi = np.zeros((voxels_ts.shape[1], 1)) # np.zeros(number of voxels,1)
-        seed_to_voxel_mi = mutual_info_regression(voxels_ts,seed_ts,n_neighbors=8)
-        seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi)
+        voxels_ts=np.nan_to_num(voxels_ts,0);seed_ts=np.nan_to_num(seed_ts,0)
+        seed_to_voxel_mi = mutual_info_regression(voxels_ts,np.nan_to_num(seed_ts,0),n_neighbors=4)
+        #seed_to_voxel_mi=np.nan_to_num(seed_to_voxel_mi,nan=0.0) # replace NaN value by zero
+        seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi) # normalize to the max intensity
         #seed_to_voxel_mi_z=scipy.stats.zscore(seed_to_voxel_mi)# zscored the MI
+        
         
         return seed_to_voxel_mi
     
@@ -432,8 +445,8 @@ class Seed2voxels:
 
             
             
-            for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii'):
-                os.remove(tmp) # remove temporary 3D images files
+            #for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii'):
+             #   os.remove(tmp) # remove temporary 3D images files
 
             np.savetxt(os.path.dirname(output_img) + '/subjects_labels.txt',self.subject_names,fmt="%s") # copy the config file that store subject info
 
@@ -468,8 +481,8 @@ class Seed2voxels:
         if smoothing is not None:
             seed_to_voxel_img=image.smooth_img(seed_to_voxel_img, smoothing)
             
-        seed_to_voxel_img.to_filename(os.path.dirname(output_img) + '/tmp_' + str(subject_nb).zfill(3) +'.nii') # create temporary 3D files
-        string='fslmaths ' + os.path.dirname(output_img) + '/tmp_' + str(subject_nb).zfill(3) +'.nii' + ' -mas ' + self.mask_target + ' ' + os.path.dirname(output_img) + '/tmp_' + str(subject_nb).zfill(3) +'.nii.gz'
+        seed_to_voxel_img.to_filename(os.path.dirname(output_img) + '/tmp_' + str(subject_nb).zfill(3) +'.nii.gz') # create temporary 3D files
+        string='fslmaths ' + os.path.dirname(output_img) + '/tmp_' + str(subject_nb).zfill(3) +'.nii.gz' + ' -mas ' + self.mask_target + ' ' + os.path.dirname(output_img) + '/tmp_' + str(subject_nb).zfill(3) +'.nii.gz'
         os.system(string)
         
         image.concat_imgs(sorted(glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'))).to_filename(output_img + '.nii')

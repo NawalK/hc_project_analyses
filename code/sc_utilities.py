@@ -75,7 +75,7 @@ def match_levels(config, data, method="CoM"):
     '''
     # Find list of spinal levels to consider (defined in config)
         
-    levels_list = levels_list = sorted(glob.glob(config['main_dir'] + config['templates']["sc_levels_path"] + 'spinal_level_*.nii.gz')) # Sorted is used to make sure files are listed f # Sorted is used to make sure files are listed from low to high number (i.e., rostro-caudally)
+    levels_list = sorted(glob.glob(config['main_dir'] + config['templates']["sc_levels_path"] + 'spinal_level_*.nii.gz')) # Sorted is used to make sure files are listed f # Sorted is used to make sure files are listed from low to high number (i.e., rostro-caudally)
         
     # Prepare structures
     levels_data = np.zeros((data.shape[0],data.shape[1],data.shape[2],len(levels_list))) # To store spinal levels, based on size of 4D data (corresponding to template) & number of spinal levels in template
@@ -111,7 +111,10 @@ def match_levels(config, data, method="CoM"):
             # Take this point for each level (we focus on rostrocaudal position and take center of FOV for the other dimensions)
             level_vals = levels_data[levels_data.shape[0]//2,levels_data.shape[1]//2,max_intensity[i],:]
             spinal_levels[i] = np.argsort(level_vals)[-1] if np.sum(level_vals) !=0 else -1 # Take level with maximum values (if no match, use -1)
-               
+    
+            
+           
+        
     else:
         raise(Exception(f'{method} is not a supported matching method.'))
  

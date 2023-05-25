@@ -8,7 +8,7 @@
  "templates":{"brain":"/templates/MNI/3mm_resolution/MNI_T1w_AverageHCs_3mm.nii.gz",
              "spinalcord": "/templates/PAM50/template/PAM50_t2.nii.gz",
             "sc_axialdiv_path":"/templates/PAM50/template/",
-            "sc_levels_path": "/templates/PAM50/spinal_levels/",
+            "sc_levels_path": "/hc_project_analyses/mask/spinalcord/",
             "spinalcord_seeds": "/templates/PAM50/rois/",
             "brain_seeds": "/templates/MNI/rois/"},
  
@@ -20,10 +20,13 @@
 "output_dir": "/ICA/results_spine_only/results/",
 "output_tag": "Indiv",
  
-"data":{"brain_sc":{"icap":
-                {"spinalcord":
-                    {"dir":"/iCAP/results_brsc_project/spinalcord/",
-                    "tag_filename":"_z.nii"}}},
+"data":{"atlas":{"Prepross":
+                    {"dir":"/cerebro/cerebro1/dataset/caroline/2022_SPiCiCAP_NK_CL/CL_analyses/preprocessing/"},
+                    "icap":
+                    {"spinalcord":
+                     {"dir":"/Atlas_Frostell/",
+                "tag_filename":".nii.gz"}}},
+        
         "mtl":
         {"Prepross":
          {"dir_bmpd":"/cerebro/cerebro1/dataset/bmpd/derivatives/spinalcord_processing/",

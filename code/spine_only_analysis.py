@@ -171,7 +171,7 @@ class SpineOnlyAnalysis:
                 for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[self.name1]]):
                     self.data[self.name2][k2][sub]=self.data_indiv[self.name1][k2][sub]
           
-            # Compute the similarity coefficient and its mean for either selected method : 'Cosine', 'Dice' or 'Euclidean distance'
+            # Compute the similarity coefficient and its mean for either selected method : 'Cosine', 'Dice', 'Euclidean distance', 'Overlap'
             if similarity_method == 'Cosine': # We need masks
                 mask1 = nib.load(self.config['main_dir']+self.config['masks'][self.dataset[self.name1]]['spinalcord']).get_fdata()
                 mask2 = nib.load(self.config['main_dir']+self.config['masks'][self.dataset[self.name2]]['spinalcord']).get_fdata()
