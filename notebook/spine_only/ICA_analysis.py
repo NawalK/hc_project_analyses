@@ -73,7 +73,7 @@ for structure in structures:
         files_func[structure].append(glob.glob(config["data"][dataset]["inputs_ica"]["dir"]+ '/sub-' + subject_name + '/'  + structure + '/*' + config["data"][dataset]["inputs_ica"][structure]["tag_filename_" + ana] + '*')[0])
   
 redo=True
-config["ica_ana"]["k_range"]["spinalcord"]=[3]
+
 for k in config["ica_ana"]["k_range"]["spinalcord"]:
     config["ica_ana"]["n_comp"]=k # usefull if you want to test only on k
     print(config["ica_ana"]["iter"])

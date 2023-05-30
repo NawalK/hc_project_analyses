@@ -29,7 +29,7 @@ import sys
 import json
 import time
 
-sys.path.append('/media/miplab-nas2/Data3/BMPD/hc_project/analysis/code/')
+#sys.path.append('/media/miplab-nas2/Data3/BMPD/hc_project/analysis/code/')
 
 import glob, os
 from nilearn.maskers import NiftiMasker

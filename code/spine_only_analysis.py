@@ -196,6 +196,7 @@ class SpineOnlyAnalysis:
         
             # Plot similarity matrix
             if self.load_subjects != True:
+                print(np.diagonal(similarity_matrix))
                 plt.figure(figsize=(7,7))
                 sns.heatmap(similarity_matrix, linewidths=.5, square=True, cmap='YlOrBr', vmin=0, vmax=1, xticklabels=orderY+1, yticklabels=np.array(range(1,k1+1)),cbar_kws={'shrink' : 0.8, 'label': similarity_method});
                 plt.xlabel(self.name2)
@@ -257,6 +258,7 @@ class SpineOnlyAnalysis:
                 else:
                     similarity_matrix,_,_ = compute_similarity(self.config, self.data[self.name1][k], self.data[self.name2][k], thresh1=self.threshold[self.name1], thresh2=self.threshold[self.name2], method=similarity_method, match_compo=True, verbose=False)
                 mean_similarity[k_ind] = np.mean(np.diagonal(similarity_matrix)) 
+            
             fig, ax = plt.subplots(figsize=(10,4))
             ax.plot(range(1,len(k_range)+1), mean_similarity, linewidth=2, markersize=10, marker='.')
             ax.set_xticks(range(1,len(k_range)+1))
