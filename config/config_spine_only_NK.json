@@ -58,7 +58,12 @@
                 {"dir":"/spine_only/mtl/",
                  "spinalcord": {
                   "tag_filename_spinalcord":"moco_HP_sc_inTemplate_s.nii.gz"}}},
-       "gva":
+            "mtl_retest":
+                  {"icap_duration":
+                      {"spinalcord": {
+                      "dir":"/spine_only/mtl_retest/icap_runs/",
+                      "tag_filename":"iCAPs"}}},
+        "gva":
             {"ica":
                 {"spinalcord": {
                 "dir":"/spine_only/gva/ica/",
@@ -92,8 +97,14 @@
             "inputs_ica":
                 {"dir":"/spine_only/gva/",
                  "spinalcord": {
-                  "tag_filename_spinalcord":"moco_HP_sc_inTemplate_s.nii.gz"}}}          
-        },
+                  "tag_filename_spinalcord":"moco_HP_sc_inTemplate_s.nii.gz"}}},         
+        "atlas":
+                {"forstell":
+                      {"spinalcord": {
+                      "dir":"/spine_only/gva/ica/",
+                      "tag_filename":"4D_"}}
+            
+                },
 "ica_ana":{
     "iter": 500,
     "n_comp":0,
