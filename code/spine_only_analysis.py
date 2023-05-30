@@ -76,9 +76,10 @@ class SpineOnlyAnalysis:
             if self.t_range[set] == None:
                 for k_ind,k in enumerate(self.k_range[set]): # For each k
                     if self.subject[set] == None:
+        
                         self.data[set][k] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
 
-                        if self.load_subjects == True:
+                        if self.load_subjects == True and set==self.name2:
                             print(f"Subject loading for {set}...")
                             self.data_indiv[set][k] = {}
                             for sub in self.config['list_subjects'][self.dataset[set]]:
@@ -95,7 +96,7 @@ class SpineOnlyAnalysis:
                     for t in self.t_range[set]:
                         print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + t + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')
                         self.data[set][t] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + t + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
-                        #self.data[set][t] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + str(t) + 'min/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
+                       
 
     def spatial_similarity(self, k1=None, k2=None, k_range=None, t_range1=None, t_range2=None, similarity_method='Dice', sorting_method='rostrocaudal', return_mean=False, save_results=False,save_figure=False, verbose=True):
         '''
@@ -163,16 +164,18 @@ class SpineOnlyAnalysis:
             print(f'METHOD 1: Comparing two sets of components at specific K values \n{self.name1} at K = {k1} vs {self.name2} at K = {k2} \n')
             map_order = sort_maps(self.data[self.name1][k1], sorting_method=sorting_method) # The 1st dataset is sorted
             data_sorted = self.data[self.name1][k1][:,:,:,map_order]
-            
+
             # Here we add the possibility to compare the group component to each individuals
             if self.load_subjects == True:
-                if self.subject[self.name1] != None or self.subject[self.name2] == None:
-                    raise(Exception(f'Something went wrong! no subject should be define in the first dataset param'))
+                #if self.subject[self.name1] != None or self.subject[self.name2] == None:
+                #    raise(Exception(f'Something went wrong! no subject should be define in the first dataset param'))
                     
                 self.data[self.name2][k2]={}
-                for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[self.name1]]):
-                    self.data[self.name2][k2][sub]=self.data_indiv[self.name1][k2][sub]
-          
+                #for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[self.name1]]):
+                 #   self.data[self.name2][k2][sub]=self.data_indiv[self.name1][k2][sub]
+                for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[self.name2]]):
+                    self.data[self.name2][k2][sub]=self.data_indiv[self.name2][k2][sub]
+            
             # Compute the similarity coefficient and its mean for either selected method : 'Cosine', 'Dice', 'Euclidean distance', 'Overlap'
             if similarity_method == 'Cosine': # We need masks
                 mask1 = nib.load(self.config['main_dir']+self.config['masks'][self.dataset[self.name1]]['spinalcord']).get_fdata()
@@ -182,6 +185,7 @@ class SpineOnlyAnalysis:
                     mean_similarity = mean(x for x in np.diagonal(similarity_matrix) if x !=-1) # If ks are different, we avoid taking -1 values (no correspondance)
                 elif self.load_subjects == True:
                     similarity_matrix={}
+
                     for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[self.name1]]):
                         similarity_matrix[sub],_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2][sub], mask1=mask1, mask2=mask2, thresh1=2, thresh2=2, method=similarity_method, match_compo=True, verbose=False)
                         mean_similarity[sub] = mean(x for x in np.diagonal(similarity_matrix[sub]) if x !=-1) # If ks are different, we avoid taking -1 values (no correspondance)
@@ -192,9 +196,11 @@ class SpineOnlyAnalysis:
                     mean_similarity = mean(x for x in np.diagonal(similarity_matrix) if x !=-1) # If ks are different, we avoid taking -1 values (no correspondance)
                 elif self.load_subjects == True:
                     similarity_matrix={}; mean_similarity={}
-                    for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[self.name1]]):
+                    
+                    for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[self.name2]]):
                         similarity_matrix[sub],_, orderY = compute_similarity(self.config, data_sorted, self.data[self.name2][k2][sub], thresh1=self.threshold[self.name1], thresh2=self.threshold[self.name2], method=similarity_method, match_compo=True, verbose=False)                        
                         mean_similarity[sub] = mean(x for x in np.diagonal(similarity_matrix[sub]) if x !=-1) # If ks are different, we avoid taking -1 values (no correspondance)
+                        
         
             # Plot similarity matrix
             if self.load_subjects != True:
@@ -209,14 +215,14 @@ class SpineOnlyAnalysis:
             
             elif self.load_subjects == True:                
                 # Create a dataframe that will contain similarity index for each individual
-                mean_similarity_df = pd.DataFrame(columns = ['subj_name','dataset', 'analysis',similarity_method],index = range(0,len(self.config['list_subjects'][self.dataset[self.name1]]))) # create dataframe to save the data of each individuals
-                similarity_df = pd.DataFrame(columns = ['subj_name','components','dataset','analysis',similarity_method],index = range(0,k1*len(self.config['list_subjects'][self.dataset[self.name1]]))) # create dataframe to save the data of each individuals and each components
+                mean_similarity_df = pd.DataFrame(columns = ['subj_name','dataset', 'analysis',similarity_method],index = range(0,len(self.config['list_subjects'][self.dataset[self.name2]]))) # create dataframe to save the data of each individuals
+                similarity_df = pd.DataFrame(columns = ['subj_name','components','dataset','analysis',similarity_method],index = range(0,k2*len(self.config['list_subjects'][self.dataset[self.name2]]))) # create dataframe to save the data of each individuals and each components
                 subj_iter=0
                 
-                for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[self.name1]]):
+                for sub_ind,sub in enumerate(self.config['list_subjects'][self.dataset[self.name2]]):
                     mean_similarity_df['subj_name'][sub_ind]=str("sub-" + sub)
-                    mean_similarity_df['analysis'][sub_ind]=self.analysis[self.name1]
-                    mean_similarity_df['dataset'][sub_ind]=self.dataset[self.name1]
+                    mean_similarity_df['analysis'][sub_ind]=self.analysis[self.name2]
+                    mean_similarity_df['dataset'][sub_ind]=self.dataset[self.name2]
                     mean_similarity_df[similarity_method][sub_ind]=mean_similarity[sub]
                     similarity_df['subj_name'][subj_iter:subj_iter+k1]=str("sub-" + sub)
                     
@@ -229,8 +235,8 @@ class SpineOnlyAnalysis:
                         similarity_df['components'][i]="C" + str(level)
                         if level>8:
                             similarity_df['components'][i]="T" + str(level-8)
-                        similarity_df['analysis'][i]=self.analysis[self.name1]
-                        similarity_df['dataset'][i]=self.dataset[self.name1]
+                        similarity_df['analysis'][i]=self.analysis[self.name2]
+                        similarity_df['dataset'][i]=self.dataset[self.name2]
                         similarity_df[similarity_method][i]=np.diagonal(similarity_matrix[sub])[i-subj_iter]
                     
                     subj_iter=k1+subj_iter
