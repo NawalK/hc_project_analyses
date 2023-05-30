@@ -153,15 +153,18 @@ class Seed2voxels:
                 timeseries_target["PC1"].append(ts_target[subject_nb][3]);
 
             ## 2. Extract data in seeds ___________________________________________
+            
             for seed_nb in tqdm(range(0,len(self.seed_names)), desc ="data extracted"):
                 seed_name=self.seed_names[seed_nb]
+                print(seed_name)
                 timeseries_seeds["raw"][seed_name]=[]; timeseries_seeds["zscored"][seed_name]=[]; timeseries_seeds["mean"][seed_name]=[]; timeseries_seeds["zmean"][seed_name]=[];
                 timeseries_seeds["PC1"][seed_name]=[];
                 
-
+                
                 ts_seeds=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(self.mask_seeds[seed_name],self.data_seed[subject_nb],ts_seeds_txt[seed_name][subject_nb],smoothing_seed)
                                             for subject_nb in range(len(self.subject_names)))
-                
+
+
                 with open(os.path.dirname(ts_seeds_txt[seed_name][0]) + '/seed2voxels_analysis_config.json', 'w') as fp:
                     json.dump(self.config, fp)
 
@@ -268,14 +271,12 @@ class Seed2voxels:
         '''
 
         if not os.path.exists(output_img) or redo==True:
-            
             correlations = Parallel(n_jobs=n_jobs)(delayed(self._compute_correlation)(subject_nb,
                                                                                           seed_ts[subject_nb],
                                                                                           voxels_ts[subject_nb],
                                                                                           output_img,
                                                                                           Fisher,
-                                                                                          partial,
-                                                                                          save_maps)
+                                                                                          partial)
                                            for subject_nb in range(len(self.subject_names)))
 
 
@@ -287,9 +288,11 @@ class Seed2voxels:
                                            for subject_nb in range(len(self.subject_names)))
 
 
-
-            #for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'):
-               # os.remove(tmp) # remove temporary 3D images files
+            # rename individual outputs
+            for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'):
+                new_name=os.path.dirname(output_img) + "/corr"+tmp.split('tmp')[-1]
+                os.rename(tmp,new_name)
+                #os.remove(tmp) # remove temporary 3D images files
 
             np.savetxt(os.path.dirname(output_img) + '/subjects_labels.txt',self.subject_names,fmt="%s") # copy the config file that store subject info
 
@@ -300,7 +303,8 @@ class Seed2voxels:
     
         return correlations 
     
-    def _compute_correlation(self,subject_nb,seed_ts,voxels_ts,output_img,Fisher,partial,save_maps):
+    def _compute_correlation(self,subject_nb,seed_ts,voxels_ts,output_img,Fisher,partial):
+
         '''
         Run the correlation analyses.
         The correlation can be Fisher transformed (Fisher == True) or not  (Fisher == False)
@@ -356,19 +360,21 @@ class Seed2voxels:
         
         seed_to_voxel_mi=Parallel(n_jobs=n_jobs)(delayed(self._compute_mutual_info)(voxels_ts[subject_nb],seed_ts[subject_nb])
                                            for subject_nb in range(len(self.subject_names)))
+       
         
-        print(voxels_ts[0].shape)
-        print(seed_ts[0].shape)
+
         if save_maps==True:
             Parallel(n_jobs=n_jobs)(delayed(self._save_maps)(subject_nb,seed_to_voxel_mi[subject_nb],
                                                                  output_img,
                                                                  smoothing_output)
                                            for subject_nb in range(len(self.subject_names)))
             
+            
+            # rename individual outputs
             for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'):
-                os.remove(tmp) # remove temporary 3D images files
-                #os.remove(tmp + '.gz') # remove temporary 3D images files
-            np.savetxt(os.path.dirname(output_img) + '/subjects_labels.txt',self.subject_names,fmt="%s") # copy the config file that store subject info
+                new_name=os.path.dirname(output_img) + "/mi"+tmp.split('tmp')[-1]
+                os.rename(tmp,new_name)
+        np.savetxt(os.path.dirname(output_img) + '/subjects_labels.txt',self.subject_names,fmt="%s") # copy the config file that store subject info
 
            
         
@@ -385,11 +391,11 @@ class Seed2voxels:
         n_neighbors= 4 # same as Cliff et al. 2022
        
         '''
-        
+          
         seed_to_voxel_mi = np.zeros((voxels_ts.shape[1], 1)) # np.zeros(number of voxels,1)
-        voxels_ts=np.nan_to_num(voxels_ts,0);seed_ts=np.nan_to_num(seed_ts,0)
-        seed_to_voxel_mi = mutual_info_regression(voxels_ts,np.nan_to_num(seed_ts,0),n_neighbors=4)
-        #seed_to_voxel_mi=np.nan_to_num(seed_to_voxel_mi,nan=0.0) # replace NaN value by zero
+        voxels_ts=np.nan_to_num(voxels_ts,nan=0.0);seed_ts=np.nan_to_num(seed_ts,nan=0.0) # replace NaN value by zero
+        seed_to_voxel_mi = mutual_info_regression(voxels_ts,seed_ts,n_neighbors=4)
+        #seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi, where=~np.isnan(seed_to_voxel_mi)) 
         seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi) # normalize to the max intensity
         #seed_to_voxel_mi_z=scipy.stats.zscore(seed_to_voxel_mi)# zscored the MI
         
@@ -445,7 +451,9 @@ class Seed2voxels:
 
             
             
-            #for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii'):
+            for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'):
+                new_name=os.path.dirname(output_img) + "/dcorr"+tmp.split('tmp')[-1]
+                os.rename(tmp,new_name)
              #   os.remove(tmp) # remove temporary 3D images files
 
             np.savetxt(os.path.dirname(output_img) + '/subjects_labels.txt',self.subject_names,fmt="%s") # copy the config file that store subject info
@@ -471,6 +479,14 @@ class Seed2voxels:
                   
         return seed_to_voxel_distCorr
     
+    def _transfert_entropy(self,seed_ts,voxels_ts,output_img,save_maps):
+        '''
+        Run the distance entropy analyse.
+       ----------
+       '''
+        seed_to_voxel_distCorr 
+        
+    
     def _save_maps(self,subject_nb,maps_array,output_img,smoothing):
         '''
         Save maps in a 4D image (one for each participant)
@@ -481,10 +497,10 @@ class Seed2voxels:
         if smoothing is not None:
             seed_to_voxel_img=image.smooth_img(seed_to_voxel_img, smoothing)
             
-        seed_to_voxel_img.to_filename(os.path.dirname(output_img) + '/tmp_' + str(subject_nb).zfill(3) +'.nii.gz') # create temporary 3D files
-        string='fslmaths ' + os.path.dirname(output_img) + '/tmp_' + str(subject_nb).zfill(3) +'.nii.gz' + ' -mas ' + self.mask_target + ' ' + os.path.dirname(output_img) + '/tmp_' + str(subject_nb).zfill(3) +'.nii.gz'
+        seed_to_voxel_img.to_filename(os.path.dirname(output_img) + '/tmp_sub-'+self.subject_names[subject_nb]+'.nii.gz') # create temporary 3D files
+        string='fslmaths ' + os.path.dirname(output_img) + '/tmp_sub-'+self.subject_names[subject_nb]+'.nii.gz' + ' -mas ' + self.mask_target + ' ' + os.path.dirname(output_img) + '/tmp_sub-'+self.subject_names[subject_nb]+'.nii.gz'
         os.system(string)
         
-        image.concat_imgs(sorted(glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'))).to_filename(output_img + '.nii')
+        image.concat_imgs(sorted(glob.glob(os.path.dirname(output_img) + '/tmp_sub-'+self.subject_names[subject_nb]+'.nii.gz'))).to_filename(output_img + '.nii')
         
         
