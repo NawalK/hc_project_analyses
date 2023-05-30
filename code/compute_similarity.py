@@ -134,6 +134,7 @@ def compute_similarity(config, data1, data2, thresh1=1.6, thresh2=1.6, mask1=Non
         # if the same composantes match
         similarity_matrix = similarity_matrix[:,orderY]
     else:
+        orderX = np.array(range(0,k))
         orderY = np.array(range(0,k))
 
     # Plot similarity matrix

@@ -57,13 +57,8 @@
             "inputs_ica":
                 {"dir":"/spine_only/mtl/",
                  "spinalcord": {
-                  "tag_filename_spinalcord":"moco_HP_sc_inTemplate_s.nii.gz"}},
-            "atlas":
-                  {"spinalcord": {
-                    "dir":"/analysis/mask/spinalcord/",
-                     "tag_filename":"PAM50_cord_frostell_C1toT1"}
-                      }},
-        "mtl_retest":
+                  "tag_filename_spinalcord":"moco_HP_sc_inTemplate_s.nii.gz"}}},
+            "mtl_retest":
                   {"icap_duration":
                       {"spinalcord": {
                       "dir":"/spine_only/mtl_retest/icap_runs/",
@@ -102,12 +97,14 @@
             "inputs_ica":
                 {"dir":"/spine_only/gva/",
                  "spinalcord": {
-                  "tag_filename_spinalcord":"moco_HP_sc_inTemplate_s.nii.gz"}},         
-            "atlas":
-                {"spinalcord": {
-                    "dir":"/analysis/mask/spinalcord/",
-                    "tag_filename":"PAM50_cord_frostell_C5toT1"}}
-                }},
+                  "tag_filename_spinalcord":"moco_HP_sc_inTemplate_s.nii.gz"}}},         
+        "atlas":
+                {"forstell":
+                      {"spinalcord": {
+                      "dir":"/spine_only/gva/ica/",
+                      "tag_filename":"4D_"}}
+            
+                },
 "ica_ana":{
     "iter": 500,
     "n_comp":0,
