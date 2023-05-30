@@ -97,7 +97,7 @@ class SpineOnlyAnalysis:
                         self.data[set][t] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + t + '/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
                         #self.data[set][t] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']['dir'] + str(t) + 'min/K_' + str(self.k_range[set][k_ind]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]]['spinalcord']["tag_filename"] + '*')[0]).get_fdata()
 
-    def spatial_similarity(self, k1=None, k2=None, k_range=None, t_range1=None, t_range2=None, similarity_method='Dice', sorting_method='rostrocaudal', save_results=False,save_figure=False, verbose=True):
+    def spatial_similarity(self, k1=None, k2=None, k_range=None, t_range1=None, t_range2=None, similarity_method='Dice', sorting_method='rostrocaudal', return_mean=False, save_results=False,save_figure=False, verbose=True):
         '''
         Compares spatial similarity for different sets of components.
         Can be used for different purposes:
@@ -123,6 +123,8 @@ class SpineOnlyAnalysis:
         sorting_method : str
             Method used to sort maps (default = 'rostrocaudal')
             Note: only used for method 1
+        return_mean : boolean
+            Set to True to return the mean diagonal similarity (default = False)
         save_results : boolean
             Results are saved as npy or txt if set to True (Default = False)
         save_figure : boolean
@@ -288,6 +290,9 @@ class SpineOnlyAnalysis:
                 std_similarity[t_ind] = np.std(np.diagonal(similarity_matrix))
 
                 print(f'{mean_similarity[t_ind]}  ±  {np.round(std_similarity[t_ind],2)}')
+      
+                if return_mean:
+                    return mean_similarity[t_ind]
                 if save_figure == True:
                     plt.savefig(output_fname + "_" + t)
 #            fig, ax = plt.subplots(figsize=(10,4))
@@ -305,10 +310,7 @@ class SpineOnlyAnalysis:
                     mean_similarity_df['dataset'][duration_ind]=self.dataset[self.name1]
                     mean_similarity_df[similarity_method][duration_ind]=mean_similarity[duration_ind]
                
-                mean_similarity_df.to_csv(output_fname +'.txt',index=False, sep=' ')
-                
-           
-                       
+                mean_similarity_df.to_csv(output_fname +'.txt',index=False, sep=' ')            
 
         else: 
             raise(Exception(f'Something went wrong! No method was assigned...'))
