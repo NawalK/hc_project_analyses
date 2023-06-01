@@ -287,7 +287,9 @@ class Seed2voxels:
                                                                  smoothing_output)
                                            for subject_nb in range(len(self.subject_names)))
 
-
+            # Create 4D image included all participants maps
+            image.concat_imgs(sorted(glob.glob(os.path.dirname(output_img) + '/tmp_sub-*.nii.gz'))).to_filename(output_img + '.nii')
+     
             # rename individual outputs
             for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'):
                 new_name=os.path.dirname(output_img) + "/corr"+tmp.split('tmp')[-1]
@@ -370,7 +372,10 @@ class Seed2voxels:
                                            for subject_nb in range(len(self.subject_names)))
             
             
-            # rename individual outputs
+        # Create 4D image included all participants maps
+            image.concat_imgs(sorted(glob.glob(os.path.dirname(output_img) + '/tmp_sub-*.nii.gz'))).to_filename(output_img + '.nii')
+            
+        # rename individual outputs
             for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'):
                 new_name=os.path.dirname(output_img) + "/mi"+tmp.split('tmp')[-1]
                 os.rename(tmp,new_name)
@@ -450,7 +455,9 @@ class Seed2voxels:
                                            for subject_nb in range(len(self.subject_names)))
 
             
-            
+            # Create 4D image included all participants maps
+            image.concat_imgs(sorted(glob.glob(os.path.dirname(output_img) + '/tmp_sub-*.nii.gz'))).to_filename(output_img + '.nii')
+     
             for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'):
                 new_name=os.path.dirname(output_img) + "/dcorr"+tmp.split('tmp')[-1]
                 os.rename(tmp,new_name)
@@ -501,6 +508,5 @@ class Seed2voxels:
         string='fslmaths ' + os.path.dirname(output_img) + '/tmp_sub-'+self.subject_names[subject_nb]+'.nii.gz' + ' -mas ' + self.mask_target + ' ' + os.path.dirname(output_img) + '/tmp_sub-'+self.subject_names[subject_nb]+'.nii.gz'
         os.system(string)
         
-        image.concat_imgs(sorted(glob.glob(os.path.dirname(output_img) + '/tmp_sub-'+self.subject_names[subject_nb]+'.nii.gz'))).to_filename(output_img + '.nii')
         
         

@@ -6,7 +6,7 @@
 "seeds":{"seed_dir":"/hc_project_analyses/mask/spinalcord/iCAPs/thr2.5/",
          "seed_dir2":"/hc_project_analyses/mask/brain/",
          "seed_names2":["spinalcord_C1","spinalcord_C2","spinalcord_C3","spinalcord_C4","spinalcord_C5","spinalcord_C6","spinalcord_C7","spinalcord_C8","spinalcord_T1"],
-          "seed_names":["spinalcord_C7"],
+          "seed_names":["spinalcord_C2","spinalcord_C3"],
          "seed_structure":"spinalcord"},
  
 "targeted_voxels":{"target_dir":"/hc_project_analyses/mask/brain/",
@@ -32,6 +32,8 @@
  
          
  "seed2vox_dir": "/seed_to_voxels/spring_2023/",
+ "first_level":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/spring_2023/1_first_level/",
+ "second_level":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/spring_2023/2_second_level/",
  "ica_dir": "/seed_to_voxels/spring_2023/",
  "tools_dir":{"main_codes":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/codes/",
              "sct_toolbox":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spinalcordtoolbox-5.0.0",
