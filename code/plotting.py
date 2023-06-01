@@ -289,6 +289,7 @@ class Plotting:
             if len(self.k.keys())==2:
                 plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.region + '_' + main_dataset + '_' + (self.subject[self.name1] if self.subject[self.name1] != None else 'group') + ('_' + self.duration[self.name1] if self.duration[self.name1] != None else '') + '_vs_' + secondary_dataset + '_' + (self.subject[self.name2] if self.subject[self.name2] != None else 'group') + ('_' + self.duration[self.name2] if self.duration[self.name2] != None else '') + '_thr' + str(lthresh)+ 'to' + str(uthresh) + '.png')
             elif len(self.k.keys())==1:
+                print(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.region + '_' + main_dataset + '_' + (self.subject[self.name1] if self.subject[self.name1] != None else 'group') + ('_' + self.duration[self.name1] if self.duration[self.name1] != None else '') + '_thr' + str(lthresh)+ 'to' + str(uthresh) + '.png')
                 plt.savefig(self.config['main_dir'] + self.config['output_dir'] + self.config['output_tag'] + '_' + self.region + '_' + main_dataset + '_' + (self.subject[self.name1] if self.subject[self.name1] != None else 'group') + ('_' + self.duration[self.name1] if self.duration[self.name1] != None else '') + '_thr' + str(lthresh)+ 'to' + str(uthresh) + '.png')
     
     
