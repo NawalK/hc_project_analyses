@@ -24,7 +24,12 @@
          "gva":
             {"spinalcord": "/templates/PAM50_hc_project/template/PAM50_cord_C5toC8.nii"}},
  
-"data":{"mtl":
+"data":{"atlas":
+            {"icap":
+                {"spinalcord":{
+                    "dir":"/templates/PAM50_hc_project/atlas_frostell/",
+                    "tag_filename":".nii.gz"}}},
+        "mtl":
             {"ica":
                 {"spinalcord": {
                 "dir":"/spine_only/mtl/spinalcord/",
@@ -97,14 +102,7 @@
             "inputs_ica":
                 {"dir":"/spine_only/gva/",
                  "spinalcord": {
-                  "tag_filename_spinalcord":"moco_HP_sc_inTemplate_s.nii.gz"}}},         
-        "atlas":
-                {"forstell":
-                      {"spinalcord": {
-                      "dir":"/spine_only/gva/ica/",
-                      "tag_filename":"4D_"}}
-            
-                },
+                  "tag_filename_spinalcord":"moco_HP_sc_inTemplate_s.nii.gz"}}}}, 
 "ica_ana":{
     "iter": 500,
     "n_comp":0,
