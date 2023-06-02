@@ -92,8 +92,8 @@ def compute_similarity(config, data1, data2, thresh1=1.6, thresh2=1.6, mask1=Non
                         elif nb_el_2 == nb_el_1:
                             similarity_matrix[k1,k2] = 2*nb_el_inters / (nb_el_1+nb_el_2)
                             print("the two cluster are equal, 'Dice' methods was applied instead of 'Dice_smaller'")
-                            
-                        
+                        similarity_matrix[k1,k2] = similarity_matrix[k1,k2]*100
+                    
                 else: # Else, we just set it to -1
                     similarity_matrix[k1,k2] = -1
             elif method == 'Euclidean distance' or method == 'Euclidean distance abs' :
