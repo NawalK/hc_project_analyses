@@ -74,7 +74,7 @@ class FC_Parcellation:
         with open(path_config, 'w') as f:
             json.dump(self.config,f)
             
-    def compute_voxelwise_fc(self, sub, standardize=True, load_from_file=True, save_results=True):
+    def compute_voxelwise_fc(self, sub, standardize=True, overwrite=False, njobs=40):
         '''
         To compute functional connectivity between each voxel of mask_source to all voxels of mask_target
         Can be done using Pearson correlation or Mutual Information
@@ -85,31 +85,26 @@ class FC_Parcellation:
             subject on which to run the correlations
         standardize : bool, optional
             if set to True, timeseries are z-scored (defautl = True)
-        load_from_file : boolean
-            if set to True, fc loaded from file directly (default = True)
-        save_results : boolean
-            if set to True, fc saved to .npy file (default = True)
+        overwrite : boolean
+            if set to True, labels are overwritten (default = False)
         njobs: int
-            number of jobs for parallelization (default = 10)
+            number of jobs for parallelization [for MI only] (default = 40)
 
         Output
         ------------
-        dict_fc : dict
-            dictionary containing two fields
-            id -> subject tag for saving (e.g., name, 'mean', ...)
-            connectivity -> matrix to use as input for the clustering (typically an array with dimensions n_sc_voxels x n_br_voxels)
+        fc : array
+            one array per subject (n_source_voxels x n_target_voxels), saved as a .npy file
         '''
         
         print(f"\033[1mCOMPUTE VOXELWISE FC\033[0m")
         print(f"\033[37mStandardize = {standardize}\033[0m")
-        print(f"\033[37mLoading from file = {load_from_file}\033[0m")
-        print(f"\033[37mSaving results = {save_results}\033[0m")
+        print(f"\033[37mOverwrite results = {overwrite}\033[0m")
         
         # Compute FC
         # We can load it from file if it exists
-        if load_from_file and os.path.isfile(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/fcs/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy'):
-            print(f"... Load FC from file")
-            fc = np.load(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/fcs/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy')
+        if not overwrite and os.path.isfile(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/fcs/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy'):
+            print(f"... FC already computed")
+        
         else: # Otherwise we compute FC    
             print(f"... Loading data")
             data_source = nib.load(self.config['main_dir'] + self.config['smooth_dir'] + 'sub-'+ sub + '/' + self.struct_source + '/sub-' + sub + self.config['coreg_tag'][self.struct_source] + '.nii.gz').get_fdata() # Read the data as a matrix
@@ -132,13 +127,14 @@ class FC_Parcellation:
                 # Set values slightly below 1 or above -1 (for use with, e.g., arctanh) [FROM CBP TOOLS]
                 fc[fc >= 1] = np.nextafter(np.float32(1.), np.float32(-1))
                 fc[fc <= -1] = np.nextafter(np.float32(-1.), np.float32(1))
+                fc = fc.astype(np.float32)
                 fc = np.arctanh(fc)
             elif self.fc_metric == 'mi':
                 print("... Metric: mutual information")
                 #for vox_source in tqdm(range(np.shape(data_source_masked)[0])):
                 #    fc[vox_source,:] = mutual_info_regression(data_target_masked.T, data_source_masked[vox_source,:].T, n_neighbors=8) 
                 #    fc[vox_source,:] = np.max(fc[vox_source,:])
-                pool = Pool(40)
+                pool = Pool(njobs)
                 vox_source_list = list(range(np.shape(data_source_masked)[0]))
                 result_list = []
                 for result in tqdm(pool.imap_unordered(partial(self._compute_mi, data_source_masked=data_source_masked, data_target_masked=data_target_masked), vox_source_list), total=len(vox_source_list)):
@@ -147,40 +143,32 @@ class FC_Parcellation:
                 pool.join()
                 for i, result in enumerate(result_list):
                     fc[i, :] = result
-                    fc[i, :] /= np.max(fc[i, :])
-            
-            if save_results == True:            
-                np.save(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/fcs/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy',fc)
-            
-        dict_fc = {}
-        dict_fc['id'] = sub
-        dict_fc['connectivity'] = fc.astype(np.float32)
+                    fc[i, :] /= np.max(fc[i, :])    
+                fc = fc.astype(np.float32)
+                
+            np.save(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/fcs/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy',fc)
         
         print("\n\033[1mDONE\033[0m")
 
-        return dict_fc
-
-    def run_clustering(self, dict_fc, k_range, algorithm, overwrite=False, save_results=True):
+    def run_clustering(self, sub, k_range, algorithm, overwrite=False):
         '''  
         Run clustering for a range of k values
         Saving validity metrics using two methods:
-        - SSE
+        - SSE (not if 'agglom' is used)
         - Silhouette coefficients
+        - Davies-Bouldin index 
+        - Calinski-Harabasz index
 
         Inputs
         ------------
-        dict_fc: dict
-            dictionary containing two fields
-            id -> subject tag for saving (e.g., name, 'mean', ...)
-            connectivity -> matrix to use as input for the clustering (typically an array with dimensions n_sc_voxels x n_br_voxels)
+        sub : str 
+            subject on which to run the correlations
         k_range : int, array or range
             number of clusters  
         algorithm : str
             defines which algorithm to use ('kmeans' or 'agglom')
         overwrite : boolean
             if set to True, labels are overwritten (default = False)
-        save_results : boolean
-            if set to True, cluster labels are saved to .npy file (default = True)
         
         Output
         ------------
@@ -193,7 +181,6 @@ class FC_Parcellation:
         print(f"\033[37mAlgorithm = {algorithm}\033[0m")
         print(f"\033[37mK value(s) = {k_range}\033[0m")
         print(f"\033[37mOverwrite results = {overwrite}\033[0m")
-        print(f"\033[37mSaving results = {save_results}\033[0m\n")
         
         # If only one k value is given, convert to range
         k_range = range(k_range,k_range+1) if isinstance(k_range,int) else k_range
@@ -206,7 +193,7 @@ class FC_Parcellation:
         if os.path.isfile(path_internal_validity): # Take it if it exists
             internal_validity_df = pd.read_pickle(path_internal_validity)
             if overwrite: # Overwrite subject if already done and option is set
-                internal_validity_df = internal_validity_df[internal_validity_df['sub'] != dict_fc['id']]
+                internal_validity_df = internal_validity_df[internal_validity_df['sub'] != sub]
         else: # Create an empty dataframe with the needed columns
             columns = ["sub", "SSE", "silhouette", "davies", "calinski", "k"]
             internal_validity_df = pd.DataFrame(columns=columns)
@@ -220,11 +207,19 @@ class FC_Parcellation:
                 os.makedirs(os.path.join(path_source, 'K'+str(k), folder), exist_ok=True)
 
             # Check if file already exists
-            if not overwrite and os.path.isfile(path_source + 'K' + str(k) + '/indiv_labels/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_labels_k' + str(k) + '.npy'):
+            if not overwrite and os.path.isfile(path_source + 'K' + str(k) + '/indiv_labels/' + self.config['output_tag'] + '_' + sub + '_' + algorithm + '_labels_k' + str(k) + '.npy'):
                 print(f"... Labels already computed")
             
             # Otherwise, we compute them
             else:
+                
+                print(f"... Loading FC from file")
+                path_fc = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/fcs/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy'
+                if os.path.isfile(path_fc):
+                    fc = np.load(path_fc)
+                else:
+                    raise(Exception(f'FC cannot be found.'))
+                
                 if algorithm == 'kmeans':
                     print(f"... Running k-means clustering")
     
@@ -233,11 +228,11 @@ class FC_Parcellation:
 
                     # Compute clustering
                     kmeans_clusters = KMeans(**kmeans_kwargs)
-                    kmeans_clusters.fit(dict_fc['connectivity'])
+                    kmeans_clusters.fit(fc)
                     labels = kmeans_clusters.labels_
 
                     # Compute validity metrics and add them to dataframe
-                    internal_validity_df.loc[len(internal_validity_df)] = [dict_fc['id'], kmeans_clusters.inertia_, silhouette_score(dict_fc['connectivity'], labels), davies_bouldin_score(dict_fc['connectivity'], labels), calinski_harabasz_score(dict_fc['connectivity'], labels), k]
+                    internal_validity_df.loc[len(internal_validity_df)] = [sub, kmeans_clusters.inertia_, silhouette_score(fc, labels), davies_bouldin_score(fc, labels), calinski_harabasz_score(fc, labels), k]
                 
                 elif algorithm == 'agglom':
                     print(f"... Running agglomerative clustering")
@@ -245,27 +240,23 @@ class FC_Parcellation:
                     agglom_kwargs = {'n_clusters': self.k, 'linkage': self.linkage, 'affinity': self.affinity}
 
                     agglom_clusters = AgglomerativeClustering(**agglom_kwargs)
-                    agglom_clusters.fit(dict_fc['connectivity'])
+                    agglom_clusters.fit(fc)
                     labels = agglom_clusters.labels_
 
                     # Compute validity metrics and add them to dataframe
                     # Note that SSE is not relevant for this type of clustering
-                    internal_validity_df.loc[len(internal_validity_df)] = [dict_fc['id'], 0,  silhouette_score(dict_fc['connectivity'], labels), davies_bouldin_score(dict_fc['connectivity'], labels), calinski_harabasz_score(dict_fc['connectivity'], labels), k]
+                    internal_validity_df.loc[len(internal_validity_df)] = [sub, 0,  silhouette_score(fc, labels), davies_bouldin_score(fc, labels), calinski_harabasz_score(fc, labels), k]
                     
                 else:
                     raise(Exception(f'Algorithm {algorithm} is not a valid option.'))
 
-                if save_results == True:
-                    # Save arrays
-                    np.save(path_source + 'K' + str(k) + '/indiv_labels/' + self.config['output_tag'] + '_' + dict_fc['id'] + '_' + algorithm + '_labels_k' + str(k) + '.npy', labels.astype(int))
+                np.save(path_source + 'K' + str(k) + '/indiv_labels/' + self.config['output_tag'] + '_' + sub + '_' + algorithm + '_labels_k' + str(k) + '.npy', labels.astype(int))
 
-        if save_results == True:
-            # Save metrics to define K as .pkl
-            internal_validity_df.to_pickle(path_internal_validity ) 
+        internal_validity_df.to_pickle(path_internal_validity ) 
 
         print("\n")
        
-    def group_clustering(self, k_range, subsample_target=False, indiv_algorithm='kmeans', linkage="complete", overwrite=False, save_results=True):
+    def group_clustering(self, k_range, subsample_target=False, indiv_algorithm='kmeans', linkage="complete", overwrite=False):
         '''  
         Perform group-level clustering using the individual labels
         BASED ON CBP toolbox
@@ -280,8 +271,6 @@ class FC_Parcellation:
             define type of linkage to use for hierarchical clustering (default = "complete")
         overwrite : boolean
             if set to True, labels are overwritten (default = False)
-        save_results : boolean
-            if set to True, cluster labels are saved to .npy file (default = True)
        
         Output
         ------------
@@ -292,9 +281,8 @@ class FC_Parcellation:
         print(f"\033[1mCLUSTERING AT THE GROUP LEVEL\033[0m")
         print(f"\033[37mK value(s) = {k_range}\033[0m")
         print(f"\033[37mOverwrite results = {overwrite}\033[0m")
-        print(f"\033[37mSaving results = {save_results}\033[0m\n")
        
-        if overwrite == False or save_results:
+        if overwrite == False:
             print("\033[38;5;208mWARNING: THESE RESULTS CHANGE IF GROUP CHANGES, MAKE SURE YOU ARE USING THE SAME SUBJECTS\033[0m\n")
 
         # If only one k value is given, convert to range
@@ -377,21 +365,20 @@ class FC_Parcellation:
                     ari = adjusted_rand_score(labels_true=group_labels,labels_pred=indiv_labels_relabeled[sub_id,:])
                     group_validity_df.loc[len(group_validity_df)] = [sub, ami, ari, k]
 
-                if save_results:
-                    # Arrays and df
-                    np.save(path_source + 'K' + str(k) + '/indiv_labels_relabeled/' + self.config['output_tag'] + '_' + indiv_algorithm + '_labels_relabeled_k' + str(k) + '.npy',indiv_labels_relabeled.astype(int))
-                    cophenetic_correlation_df.to_pickle(path_cophenetic_correlation)
-                    group_validity_df.to_pickle(path_group_validity)
+                # Arrays and df
+                np.save(path_source + 'K' + str(k) + '/indiv_labels_relabeled/' + self.config['output_tag'] + '_' + indiv_algorithm + '_labels_relabeled_k' + str(k) + '.npy',indiv_labels_relabeled.astype(int))
+                cophenetic_correlation_df.to_pickle(path_cophenetic_correlation)
+                group_validity_df.to_pickle(path_group_validity)
 
-                    # Maps
-                    np.save(group_labels_path + '.npy', group_labels.astype(int))
-                    seed = NiftiMasker(self.mask_source_path).fit()
-                    labels_img = seed.inverse_transform(group_labels+1) # +1 because labels start from 0 
-                    labels_img.to_filename(group_labels_path + '.nii.gz')
+                # Maps
+                np.save(group_labels_path + '.npy', group_labels.astype(int))
+                seed = NiftiMasker(self.mask_source_path).fit()
+                labels_img = seed.inverse_transform(group_labels+1) # +1 because labels start from 0 
+                labels_img.to_filename(group_labels_path + '.nii.gz')
 
         print("\n\033[1mDONE\033[0m")
 
-    def prepare_target_maps(self, label_type, k_range, overwrite=False, save_results=True, indiv_algorithm='kmeans'):
+    def prepare_target_maps(self, label_type, k_range, overwrite=False, indiv_algorithm='kmeans'):
         '''  
         To obtain images of the connectivity profiles assigned to each label
         (i.e., mean over the connectivity profiles of the voxel of this K)
@@ -406,8 +393,6 @@ class FC_Parcellation:
             number of clusters  
         overwrite : boolean
             if set to True, maps are overwritten (default = False)
-        save_results : boolean
-            if set to True, maps are saved to .npy file (default = True)
         indiv_algorithm : str
             algorithm that was used at the participant level (default = "kmeans")
        
@@ -425,7 +410,6 @@ class FC_Parcellation:
         print(f"\033[37mType of source labels = {label_type}\033[0m")
         print(f"\033[37mK value(s) = {k_range}\033[0m")
         print(f"\033[37mOverwrite results = {overwrite}\033[0m")
-        print(f"\033[37mSaving results = {save_results}\033[0m\n")
 
         # If only one k value is given, convert to range
         k_range = range(k_range,k_range+1) if isinstance(k_range,int) else k_range
@@ -480,9 +464,8 @@ class FC_Parcellation:
                     target_map_mean_img = target_mask.inverse_transform(np.mean(target_maps[:,label,:],axis=0))
                     target_map_mean_img.to_filename(path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_mean' + '/' +  self.config['output_tag'] + '_mean_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(label+1) + '.nii.gz')
 
-                if save_results == True:
-                    # Save array
-                    np.save(target_npy_path, target_maps)
+                # Save array
+                np.save(target_npy_path, target_maps)
             
         print("\033[1mDONE\033[0m\n")
 
