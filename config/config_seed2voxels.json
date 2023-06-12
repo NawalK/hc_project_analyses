@@ -6,7 +6,7 @@
 "seeds":{"seed_dir":"/hc_project_analyses/mask/spinalcord/levels/frostell/gm/",
          "seed_indiv_dir":"/hc_project_analyses/mask/spinalcord/Indiv/",
          "seed_names2":["spinalcord_C1","spinalcord_C2","spinalcord_C3","spinalcord_C4","spinalcord_C5","spinalcord_C6","spinalcord_C7","spinalcord_C8","spinalcord_T1"],
-          "seed_names":["frost_C2_gm","frost_C3_gm","frost_C4_gm","frost_C5_gm","frost_C6_gm","frost_C7_gm","frost_C8_gm","frost_T1_gm","frost_C1_gm"],
+          "seed_names":["frost_C2_V_gm","frost_C3_V_gm","frost_C4_V_gm","frost_C5_V_gm","frost_C6_V_gm","frost_C7_V_gm","frost_C8_V_gm","frost_T1_V_gm"],
          "seed_structure":"spinalcord"},
  
 "targeted_voxels":{"target_dir":"/hc_project_analyses/mask/brain/",
@@ -30,10 +30,10 @@
             "spinalcord_seeds": "/templates/PAM50/rois/",
             "brain_seeds": "/templates/MNI/rois/"},
          
- "seed2vox_dir": "/seed_to_voxels/spring_2023/",
+ "seed2vox_dir": "/seed_to_voxels/summer_2023/",
  "first_level":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/summer_2023/1_first_level/",
  "second_level":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/summer_2023/2_second_level/",
- "ica_dir": "/seed_to_voxels/spring_2023/",
+ "ica_dir": "/seed_to_voxels/summer_2023/",
  "tools_dir":{"main_codes":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/codes/",
              "sct_toolbox":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spinalcordtoolbox-5.0.0",
             "spm_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spm12/"},
