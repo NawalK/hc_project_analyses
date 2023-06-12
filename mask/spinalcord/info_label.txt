@@ -1,0 +1,34 @@
+# Labels in the mask/spinalcord folder
+
+# mask/spinalcord/full/
+#note that C1T1 in the filenames is for: from C1 to T1 levels and C5T1 for: from C5 to T1 levels 
+# filename, description
+/gm/C1T1_gm.nii.gz, GM
+/gm/C1T1_D_gm.nii.gz, GM dorsal
+/gm/C1T1_V_gm.nii.gz, GM ventral 
+/gm/C1T1_R_gm.nii.gz, GM right
+/gm/C1T1_L_gm.nii.gz, GM left
+/gm/C1T1_I_gm.nii.gz, GM intermediate zone
+/gmwm/C1T1_gm.nii.gz, GMWM
+/gmwm/C5T1_gm.nii.gz, GMWM from C1 to T1
+/gmwm/C1T1_D_gm.nii.gz, GMWM dorsal
+/gmwm/C1T1_V_gm.nii.gz, GMWM ventral 
+/gmwm/C1T1_R_gm.nii.gz, GMWM right
+/gmwm/C1T1_L_gm.nii.gz, GMWM left
+
+# mask/spinalcord/levels/
+# /frostell/ : mask derived from frostell levels
+# /icaps/ :  masks derieved from group level icaps analysis (31 young participants, june 2023)
+
+/gm/*_C*_gm.nii.gz,gm.nii.gz, GM dorsal for each level
+/gm/*_C*_D_gm.nii.gz, GM dorsal for each level
+/gm/*_C*_V_gm.nii.gz, GM ventral for each level
+/gm/*_C*_R_gm.nii.gz, GM right for each level
+/gm/*_C*_L_gm.nii.gz, GM left for each level
+
+/gmwm/*_C*_gmwm.nii.gz,gm.nii.gz, GM dorsal for each level
+/gmwm/*_C*_D_gmwm.nii.gz, GM dorsal for each level
+/gmwm/*_C*_V_gmwm.nii.gz, GM ventral for each level
+/gmwm/*_C*_R_gmwm.nii.gz, GM right for each level
+/gmwm/*_C*_L_gmwm.nii.gz, GM left for each level
+

@@ -33,9 +33,10 @@ class Seed2voxels:
         type of signal ('raw' for bold or 'ai' for deconvoluted)
     '''
     
-    def __init__(self, config, signal):
+    def __init__(self, config, signal,seed_indiv):
         self.config = config # load config info
         self.signal=signal # define if the signal is raw or ai
+        self.seed_indiv=seed_indiv # sould be "True" or "False"
         self.subject_names= config["list_subjects"]
         self.outputdir= self.config["main_dir"] +self.config["seed2vox_dir"]
         self.seed_names=self.config["seeds"]["seed_names"]
@@ -61,14 +62,20 @@ class Seed2voxels:
         #>>> Select mask: -------------------------------------
         self.mask_target=glob.glob(self.config["main_dir"] + self.config["targeted_voxels"]["target_dir"]+ self.target + ".nii.gz")[0] # mask of the voxels tareted for the analysis
         print("Start the analysis on: " + str(len(self.subject_names))+ " participants")
-        print("targeted voxel's mask: " + self.target)
+        print("targeted voxel's group mask: " + self.target)
         #print(self.mask_target)
         
         self.mask_seeds={}
         for seed_name in self.seed_names:
-            print(self.config["main_dir"] + self.config["seeds"]["seed_dir"]+ seed_name + ".nii.gz")
-            self.mask_seeds[seed_name]=glob.glob(self.config["main_dir"] + self.config["seeds"]["seed_dir"]+ seed_name + ".nii.gz")[0] # mask of the voxels tareted for the analysis
-            #print(self.mask_seeds[seed_name])
+            self.mask_seeds[seed_name]=[]
+            for subject_name in config['list_subjects']:
+                subject_name='sub-' +  subject_name
+                if self.seed_indiv==False:
+                    self.mask_seeds[seed_name].append(glob.glob(self.config["main_dir"] + self.config["seeds"]["seed_dir"]+ seed_name + ".nii.gz")[0]) # mask of the voxels tareted for the analysis
+                elif self.seed_indiv==True:
+                    self.mask_seeds[seed_name].append(glob.glob(self.config["main_dir"] + self.config["seeds"]["seed_indiv_dir"]+ subject_name + "*" +seed_name + "*.nii.gz")[0]) # mask of the voxels tareted for the analysis
+  
+            print(self.mask_seeds[seed_name][0])
         
         #>>> Select data: -------------------------------------
         self.data_seed=[];self.data_target=[]; 
@@ -161,7 +168,7 @@ class Seed2voxels:
                 timeseries_seeds["PC1"][seed_name]=[];
                 
                 
-                ts_seeds=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(self.mask_seeds[seed_name],self.data_seed[subject_nb],ts_seeds_txt[seed_name][subject_nb],smoothing_seed)
+                ts_seeds=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(self.mask_seeds[seed_name][subject_nb],self.data_seed[subject_nb],ts_seeds_txt[seed_name][subject_nb],smoothing_seed)
                                             for subject_nb in range(len(self.subject_names)))
 
 

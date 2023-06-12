@@ -1,0 +1,17 @@
+{"main_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/",
+ 
+"templates":{"spinalcord": "/templates/PAM50/template/PAM50_t2.nii.gz",
+            "sc_axialdiv_path":"/templates/PAM50/template/",
+            "sc_levels_path": "/hc_project_analyses/mask/spinalcord/"},
+ 
+
+"data":{"young":
+       {"icap":{"spinalcord":{"dir":"/iCAP/results_brsc_project/young/spinalcord/",
+          "tag_filename": "_z.nii"}}}},    
+
+ "list_subjects":["P099","P030","A006","A007","A008","A009","A038","A025"],
+                    
+
+
+ "SPM_Dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spm12/"
+} 
