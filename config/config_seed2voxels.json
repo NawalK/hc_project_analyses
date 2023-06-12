@@ -6,7 +6,7 @@
 "seeds":{"seed_dir":"/hc_project_analyses/mask/spinalcord/levels/frostell/gm/",
          "seed_indiv_dir":"/hc_project_analyses/mask/spinalcord/Indiv/",
          "seed_names2":["spinalcord_C1","spinalcord_C2","spinalcord_C3","spinalcord_C4","spinalcord_C5","spinalcord_C6","spinalcord_C7","spinalcord_C8","spinalcord_T1"],
-          "seed_names":["frost_C2_V_gm","frost_C3_V_gm","frost_C4_V_gm","frost_C5_V_gm","frost_C6_V_gm","frost_C7_V_gm","frost_C8_V_gm","frost_T1_V_gm"],
+          "seed_names":["frost_C2_D_gm","frost_C3_D_gm","frost_C4_D_gm","frost_C5_D_gm","frost_C6_D_gm","frost_C7_D_gm","frost_C8_D_gm","frost_T1_D_gm","frost_C2_R_gm","frost_C3_R_gm","frost_C4_R_gm","frost_C5_R_gm","frost_C6_R_gm","frost_C7_R_gm","frost_C8_R_gm","frost_T1_R_gm","frost_C2_L_gm","frost_C3_L_gm","frost_C4_L_gm","frost_C5_L_gm","frost_C6_L_gm","frost_C7_L_gm","frost_C8_L_gm","frost_T1_L_gm"],
          "seed_structure":"spinalcord"},
  
 "targeted_voxels":{"target_dir":"/hc_project_analyses/mask/brain/",
