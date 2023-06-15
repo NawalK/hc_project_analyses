@@ -301,7 +301,6 @@ class Seed2voxels:
             for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'):
                 new_name=os.path.dirname(output_img) + "/corr"+tmp.split('tmp')[-1]
                 os.rename(tmp,new_name)
-                #os.remove(tmp) # remove temporary 3D images files
 
             np.savetxt(os.path.dirname(output_img) + '/subjects_labels.txt',self.subject_names,fmt="%s") # copy the config file that store subject info
 
@@ -384,7 +383,8 @@ class Seed2voxels:
             
         # rename individual outputs
             for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'):
-                new_name=os.path.dirname(output_img) + "/mi"+tmp.split('tmp')[-1]
+                new_name=os.path.dirname(output_img) + "/mi"+tmp.split('tmp')[-1] + "_z"
+                
                 os.rename(tmp,new_name)
         np.savetxt(os.path.dirname(output_img) + '/subjects_labels.txt',self.subject_names,fmt="%s") # copy the config file that store subject info
 
@@ -408,8 +408,12 @@ class Seed2voxels:
         voxels_ts=np.nan_to_num(voxels_ts,nan=0.0);seed_ts=np.nan_to_num(seed_ts,nan=0.0) # replace NaN value by zero
         seed_to_voxel_mi = mutual_info_regression(voxels_ts,seed_ts,n_neighbors=4)
         #seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi, where=~np.isnan(seed_to_voxel_mi)) 
-        seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi) # normalize to the max intensity
+        #seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi) # normalize to the max intensity
         #seed_to_voxel_mi_z=scipy.stats.zscore(seed_to_voxel_mi)# zscored the MI
+        
+        seed_to_voxel_mi =seed_to_voxel_mi-seed_to_voxel_mi.mean(axis=0) #demean the MI maps
+        seed_to_voxel_mi/= np.std(seed_to_voxel_mi) #demean the MI maps
+        #seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi) # normalize to the max intensity
         
         
         return seed_to_voxel_mi
@@ -490,7 +494,11 @@ class Seed2voxels:
                 seed_to_voxel_distCorr[v] = dcor.distance_correlation(seed_ts,voxels_ts[:, v])
                 
                 #voxels_ts.shape[1]
-                  
+        
+        seed_to_voxel_distCorr =seed_to_voxel_distCorr-seed_to_voxel_distCorr.mean(axis=0) #demean the MI maps
+        seed_to_voxel_distCorr/= np.std(seed_to_voxel_distCorr) #demean the MI maps
+       
+    
         return seed_to_voxel_distCorr
     
     def _transfert_entropy(self,seed_ts,voxels_ts,output_img,save_maps):

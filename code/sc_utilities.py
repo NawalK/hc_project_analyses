@@ -1,4 +1,4 @@
-import glob, os, sys
+import glob, os, sys, gzip
 import numpy as np
 import nibabel as nib
 from scipy.ndimage import center_of_mass,label
@@ -180,6 +180,53 @@ def tSNR(config,input_files,dataset=None, mask_files=None,outputdir=None,redo=Fa
         tSNR_means.append(mean_func_tSNR_masked)
     return tSNR_files, tSNR_means
 
+def unzip_file(self,input_files,ext=".nii",zip_file=False, redo=False):
+        '''
+        unzip the file to match with SPM
+        Attributes
+        ----------
+        input_files: list
+            list of input files (one for each participants)
+        ext: extension after unzip
+            default: ".nii", put ".nii.gz" to zip a file
+        zip_file: Bolean
+            zip the file instead of unzip a file
+        redo: Bolean
+                optional, to rerun the analysis put True (default: False)
+        return
+        ----------
+        output_files: list
+            list of unziped or zipped files (one for each participants)
+        '''
+        output_files=[]
+        for file_nb in range(0,len(input_files)):
+            if zip_file== False:
+                if not os.path.exists(input_files[file_nb].split('.')[0] + ext) or redo==True:
+                    input = gzip.GzipFile(input_files[file_nb], 'rb') # load the  .nii.gz
+                    s = input.read(); input.close()
+                    unzip = open(input_files[file_nb].split('.')[0] + ext, 'wb') # save the .nii
+                    unzip.write(s); unzip.close()
+                    print('Unzip done for: ' + os.path.basename(input_files[file_nb]))
+                else:
+                    print("Unzip was already done please put redo=True to redo that step")
+
+                output_files.append(input_files[file_nb].split('.')[0] + ext)
+            
+            elif zip_file== True:
+                if not os.path.exists(input_files[file_nb].split('.')[0] + ext) or redo==True:
+                    string= 'gzip ' + input_files[file_nb]
+                    os.environ(string)
+                #else:
+                    #print("Zip was already done please put redo=True to redo that step")
+
+                output_files.append(input_files[file_nb].split('.')[0] + ext)
+         
+               
+  
+        
+        
+        return output_files
+    
 class Preproc:
     def __init__(self,config):
         self.config = config # load config info
