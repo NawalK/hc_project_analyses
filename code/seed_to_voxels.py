@@ -68,6 +68,7 @@ class Seed2voxels:
         self.mask_seeds={}
         for seed_name in self.seed_names:
             self.mask_seeds[seed_name]=[]
+            #print(self.config["main_dir"] + self.config["seeds"]["seed_dir"]+ seed_name + ".nii.gz")
             for subject_name in config['list_subjects']:
                 subject_name='sub-' +  subject_name
                 if self.seed_indiv==False:

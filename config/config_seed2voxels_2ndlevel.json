@@ -1,0 +1,17 @@
+{"main_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/",
+
+
+"seeds":{"C5_VRVL_gm":["frost_C5_VR_gm"],
+        "VL_gmwm":["frost_C5_VL_gmwm","frost_C6_VL_gmwm","frost_C7_VL_gmwm","frost_C8_VL_gmwm","frost_T1_VL_gmwm"]},
+"model":"OneSampleT",
+"mask_path":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/mask/brain/MNI_GM_3mm_SMC.nii.gz",
+"measure":"Corr",
+ "target_1rstlevel": "MNI_GM_3mm",
+ "seed2vox_dir": "/seed_to_voxels/summer_2023/",
+ "first_level":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/summer_2023/1_first_level/",
+ "second_level":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/summer_2023/2_second_level/",
+"tools_dir":{"main_codes":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/codes/",
+             "sct_toolbox":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spinalcordtoolbox-5.0.0",
+            "spm_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spm12/"},
+ 
+"list_subjects":["P030","P099","A006","A007","A008","A009","A011","A013","A023","A024","A025","A026","A027","A028","A029","A030","A032","A033","A034","A036","A037","A038","A039","A043","A044","A045","A046","A048","A050","A051","A052"]} 
