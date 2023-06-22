@@ -1,0 +1,21 @@
+{
+
+"main_dir":"/media/miplab-nas2/Data3/BMPD/hc_project/",
+
+"output_dir": "/brain&spine/results/",
+"output_tag": "stability",
+    
+ 
+"data":{"mtl":
+            {"icap":
+                {"spinalcord": {
+                    "dir":"/brain&spine/spine_icaps/",
+                    "tag_filename":"iCAPs_z"}},
+            "icap_perm":
+                {"spinalcord": {
+                    "dir":{
+                        "10":"/brain&spine/iCAPs_results/perm_10sub/PAM50_perm"},
+                "comp_folder":"",
+                "tag_filename":"iCAPs_z"}}}}
+            
+} 
