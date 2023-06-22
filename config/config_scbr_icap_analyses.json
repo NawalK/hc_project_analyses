@@ -4,7 +4,12 @@
 
 "output_dir": "/brain&spine/results/",
 "output_tag": "stability",
-    
+
+"list_subjects":{"mtl": ["P030", "P099","A006","A007","A008","A009","A011","A013","A023","A024","A025","A026","A027","A028","A029","A030","A032","A033","A034","A036","A037","A038","A039","A043","A044","A045","A046","A048","A050","A051","A052"]},
+
+"templates":{"spinalcord": "/templates/PAM50_hc_project/template/PAM50_t2.nii.gz",
+            "sc_levels_path": "/templates/PAM50_hc_project/spinal_levels/",
+            "sc_axialdiv_path": "/templates/PAM50_hc_project/template/"},
  
 "data":{"mtl":
             {"icap":
