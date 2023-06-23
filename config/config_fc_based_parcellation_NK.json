@@ -1,8 +1,8 @@
 {   "main_dir":"/media/miplab-nas2/Data3/BMPD/hc_project/",
     "coreg_dir":"/",
     "smooth_dir":"/brain&spine/",
-    "coreg_tag":{"brain":"_task-rest_bold_stc_brain_moco_brsc_BP_reg_SPM_inTemplate_s",
-             "spinalcord":"_task-rest_bold_stc_sc_moco_brsc_BP_inTemplate_s"},
+    "file_tag":{"brain":"XXXX",
+             "spinalcord":"XXXX"},
     
     "output_dir": "/brain&spine/results/fc_parcellation/",
     "output_tag": "XXXX",

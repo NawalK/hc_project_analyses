@@ -107,8 +107,8 @@ class FC_Parcellation:
         
         else: # Otherwise we compute FC    
             print(f"... Loading data")
-            data_source = nib.load(self.config['main_dir'] + self.config['smooth_dir'] + 'sub-'+ sub + '/' + self.struct_source + '/sub-' + sub + self.config['coreg_tag'][self.struct_source] + '.nii.gz').get_fdata() # Read the data as a matrix
-            data_target = nib.load(self.config['main_dir'] + self.config['smooth_dir'] + 'sub-'+ sub + '/' + self.struct_target + '/sub-' + sub + self.config['coreg_tag'][self.struct_target] + '.nii.gz').get_fdata() 
+            data_source = nib.load(self.config['main_dir'] + self.config['smooth_dir'] + 'sub-'+ sub + '/' + self.struct_source + '/sub-' + sub + self.config['file_tag'][self.struct_source]).get_fdata() # Read the data as a matrix
+            data_target = nib.load(self.config['main_dir'] + self.config['smooth_dir'] + 'sub-'+ sub + '/' + self.struct_target + '/sub-' + sub + self.config['file_tag'][self.struct_target]).get_fdata() 
 
             print(f"... Computing FC for all possibilities")
             # Create empty array
@@ -237,7 +237,7 @@ class FC_Parcellation:
                 elif algorithm == 'agglom':
                     print(f"... Running agglomerative clustering")
                     # Dict containing parameters
-                    agglom_kwargs = {'n_clusters': self.k, 'linkage': self.linkage, 'affinity': self.affinity}
+                    agglom_kwargs = {'n_clusters': k, 'linkage': self.linkage, 'affinity': self.affinity}
 
                     agglom_clusters = AgglomerativeClustering(**agglom_kwargs)
                     agglom_clusters.fit(fc)
@@ -256,7 +256,7 @@ class FC_Parcellation:
 
         print("\n")
        
-    def group_clustering(self, k_range, subsample_target=False, indiv_algorithm='kmeans', linkage="complete", overwrite=False):
+    def group_clustering(self, k_range, indiv_algorithm, linkage="complete", overwrite=False):
         '''  
         Perform group-level clustering using the individual labels
         BASED ON CBP toolbox
@@ -266,7 +266,7 @@ class FC_Parcellation:
         k_range : int, array or range
             number of clusters  
         indiv_algorithm : str
-            algorithm that was used at the subject level (default = "kmeans")
+            algorithm that was used at the subject level
         linkage : str
             define type of linkage to use for hierarchical clustering (default = "complete")
         overwrite : boolean
@@ -378,7 +378,7 @@ class FC_Parcellation:
 
         print("\n\033[1mDONE\033[0m")
 
-    def prepare_target_maps(self, label_type, k_range, overwrite=False, indiv_algorithm='kmeans'):
+    def prepare_target_maps(self, label_type, k_range, indiv_algorithm, overwrite=False):
         '''  
         To obtain images of the connectivity profiles assigned to each label
         (i.e., mean over the connectivity profiles of the voxel of this K)
@@ -391,11 +391,11 @@ class FC_Parcellation:
             'group': group labels (i.e., same for all participants)
         k_range : int, array or range
             number of clusters  
+        indiv_algorithm : str
+            algorithm that was used at the participant level
         overwrite : boolean
             if set to True, maps are overwritten (default = False)
-        indiv_algorithm : str
-            algorithm that was used at the participant level (default = "kmeans")
-       
+        
         Outputs
         ------------
         target_maps : array
