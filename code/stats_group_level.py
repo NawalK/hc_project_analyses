@@ -360,6 +360,7 @@ class Stats:
             contrasts["Main " + self.seed_names[0]]=np.hstack(([1] * len(self.config['list_subjects']), [0] * len(self.config['list_subjects']))) # Main contrast for the first factor
             contrasts["Main " + self.seed_names[1]]=np.hstack(([0] * len(self.config['list_subjects']), [1] * len(self.config['list_subjects']))) # Main contrast for the second factor
             contrasts[self.seed_names[0] + " vs " + self.seed_names[1]]=np.hstack(([1] * len(self.config['list_subjects']), [-1] * len(self.config['list_subjects']))) # contrast between the two
+            contrasts[self.seed_names[1] + " vs " + self.seed_names[0]]=np.hstack(([-1] * len(self.config['list_subjects']), [1] * len(self.config['list_subjects']))) # contrast between the two
             contrasts["All effect"]=np.hstack(([1] * len(self.config['list_subjects']), [1] * len(self.config['list_subjects'])))
         
         

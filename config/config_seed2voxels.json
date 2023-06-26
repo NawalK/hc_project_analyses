@@ -3,11 +3,11 @@
 "masks":{"brain":"/templates/MNI/3mm_resolution/MNI_T1w_GM_AverageHCs_3mm_bin_corrected.nii.gz",
          "spinalcord": "/templates/PAM50/template/PAM50_cord.nii.gz"},
 
-"seeds":{"seed_dir":"/hc_project_analyses/mask/spinalcord/levels/frostell/gmwm/",
+"seeds":{"seed_dir":"/hc_project_analyses/mask/spinalcord/full/gmwm/",
          "seed_indiv_dir":"/hc_project_analyses/mask/spinalcord/Indiv/",
          "seed_names2":["frost_C6_DL_gm","frost_C8_DL_gm","frost_T1_DL_gm","frost_C5_DL_gm","frost_C4_DL_","frost_C3_DL_gmwm","frost_C2_DL_gmwm","frost_C1_DL_gmwm",
                        "frost_C6_DR_gm","frost_C8_DR_gm","frost_T1_DR_gm","frost_C5_DR_gm","frost_C4_DR_gmwm","frost_C3_DR_gmwm","frost_C2_DR_gmwm","frost_C1_DR_gmwm"],
-          "seed_names":["frost_C1_DL_gmwm","frost_C2_DL_gmwm","frost_C3_DL_gmwm","frost_C4_DL_gmwm","frost_C5_DL_gmwm","frost_C6_DL_gmwm","frost_C7_DL_gmwm","frost_C8_DL_gmwm","frost_T1_DL_gmwm"],
+          "seed_names":["C1T1_DR_gmwm","C1T1_VR_gmwm","C1T1_VL_gmwm","C1T1_DL_gmwm"],
          "seed_structure":"spinalcord"},
  
 "targeted_voxels":{"target_dir":"/hc_project_analyses/mask/brain/",
