@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import glob, os, json
+import glob, os, json, math
 import sc_utilities as util
 import matlab.engine
 import pandas as pd
@@ -85,13 +85,15 @@ class Stats:
                 self.data_1rstlevel[seed_name].append(glob.glob(self.config["first_level"] +'/'+ seed_name+'/'+ self.target +'_fc_maps/'+ self.measure + "/*" + subject_name + "*.nii.gz")[0])
 
                     
-    def design_matrix(self,plot_matrix= False,save_matrix=False):
+    def design_matrix(self,contrast_name=None,plot_matrix= False,save_matrix=False):
         '''
         Create and plot the design matrix for "OneSampleT" or  "TwoSampT_unpaired" or "TwoSampT_paired"
         For one matrix per contrast is created
         
         Attributes
         ----------
+        contrast_name: str 
+        
         plot_matrix: bool (default: False)
             To plot the design matrix
         
@@ -117,6 +119,7 @@ class Stats:
         '''
         
         #>>>>>>>>  Initiate variables
+        self.contrast_name=contrast_name
         if save_matrix==True:
             plot_matrix==True # matrix cannot be saved if them has not been plot
         
@@ -137,6 +140,7 @@ class Stats:
         elif self.model=="TwoSampT_paired" or self.model=="HigherOrder_paired":
             contrasts=self._generate_contrast()
             subjects = self.config["list_subjects"]
+            
             # Add subject effect:
             for i, (contrast,values) in enumerate(contrasts.items()):
                 Design_matrix[contrast]=pd.DataFrame(np.hstack((values[:, np.newaxis],np.concatenate([np.eye(n_subjects)] * len(self.seed_names), axis=0))), columns=[contrast] + subjects)
@@ -154,7 +158,7 @@ class Stats:
                     num_subplots = int(len(Design_matrix)) # Define the number of subplots and their layout
                     fig, axes = plt.subplots(1, num_subplots ,figsize=(len(Design_matrix)*4,5)) # # Create a figure and subplots
                 else:  
-                    num_subplots = int(np.round(len(Design_matrix)/2)) # Define the number of subplots and their layout
+                    num_subplots = int(math.ceil(len(Design_matrix)/2)) # Define the number of subplots and their layout
                     fig, axes = plt.subplots(2, num_subplots ,figsize=(len(Design_matrix)*3,10)) # # Create a figure and subplots
 
             if num_subplots == 1:
@@ -345,9 +349,11 @@ class Stats:
         return table
         
     def _generate_contrast(self):
+        
+        contrast_name=self.contrast_name
         contrasts={}
         
-        if self.model== "OneSampleT": 
+        if self.model== "OneSampleT" and contrast_name==None: 
             contrasts["Main " + self.seed_names[0]]=np.hstack(([1] * len(self.config['list_subjects'])))
             
         elif self.model=="TwoSampT_paired" or self.model=="TwoSampT_unpaired" :
@@ -357,7 +363,7 @@ class Stats:
             contrasts["All effect"]=np.hstack(([1] * len(self.config['list_subjects']), [1] * len(self.config['list_subjects'])))
         
         
-        elif len(self.seed_names)==4:
+        elif len(self.seed_names)==4 and contrast_name==None:
             for seed_nb in range(0,len(self.seed_names)):
                 contrasts["Main test " + self.seed_names[seed_nb]]=np.hstack(([0] * len(self.config['list_subjects']) * seed_nb, [1] * len(self.config['list_subjects']), [0] * len(self.config['list_subjects'])* (len(self.seed_names)-(seed_nb+1))))
             contrasts["Ventral Effect"]=np.hstack(([1] * len(self.config['list_subjects']) *2, [0] * len(self.config['list_subjects']) * 2))
@@ -370,12 +376,33 @@ class Stats:
             contrasts["Left vs Righ"]=np.hstack((np.tile(([[-1] * len(self.config['list_subjects'])+ [1] * len(self.config['list_subjects'])]),2)))
             contrasts["All effect"]=np.hstack(([1] * len(self.config['list_subjects']) * len(self.seed_names)))
                     
-        elif len(self.seed_names)>4:
+        elif len(self.seed_names)>4 and contrast_name==None:
             for seed_nb in range(0,len(self.seed_names)):
                 contrasts["Main test " + self.seed_names[seed_nb]]=np.hstack(([0] * len(self.config['list_subjects']) * seed_nb, [1] * len(self.config['list_subjects']), [0] * len(self.config['list_subjects'])* (len(self.seed_names)-(seed_nb+1))))
-                  
-    
             contrasts["All effect"]=np.hstack(([1] * len(self.config['list_subjects']) * len(self.seed_names)))
+            
+        elif contrast_name=="4quad_9levels":
+            #for seed_nb in range(0,len(self.seed_names)):
+                #contrasts["Main test " + self.seed_names[seed_nb]]=np.hstack(([0] * len(self.config['list_subjects']) * seed_nb, [1] * len(self.config['list_subjects']), [0] * len(self.config['list_subjects'])* (len(self.seed_names)-(seed_nb+1))))
+            contrasts["Ventral Effect"]=np.hstack(([1] * len(self.config['list_subjects']) *9*2, [0] * len(self.config['list_subjects']) * 9*2))
+            contrasts["Dorsal Effect"]=np.hstack(([0] * len(self.config['list_subjects'])*9*2, [1] * len(self.config['list_subjects']) * 9*2))
+            contrasts["Right Effect"]=np.hstack((np.tile(([[1] * len(self.config['list_subjects'])+ [0] * len(self.config['list_subjects'])]),9*2)))
+            contrasts["Left Effect"]=np.hstack((np.tile(([[0] * len(self.config['list_subjects'])+ [1] * len(self.config['list_subjects'])]),9*2)))
+            contrasts["Ventral vs Dorsal"]=np.hstack(([1] * len(self.config['list_subjects']) *9*2, [-1] * len(self.config['list_subjects']) * 9*2))
+            contrasts["Dorsal vs Ventral"]=np.hstack(([-1] * len(self.config['list_subjects'])*9*2, [1] * len(self.config['list_subjects']) * 9*2))
+            contrasts["Right vs Left"]=np.hstack((np.tile(([[1] * len(self.config['list_subjects'])+ [-1] * len(self.config['list_subjects'])]),9*2)))
+            contrasts["Left vs Right"]=np.hstack((np.tile(([[-1] * len(self.config['list_subjects'])+ [1] * len(self.config['list_subjects'])]),9*2)))
+            contrasts["All effect"]=np.hstack(([1] * len(self.config['list_subjects']) * len(self.seed_names)))
+            
+        elif contrast_name=="D-RL_9levels":
+            for seed_nb in range(0,len(self.seed_names)):
+                contrasts["Main test " + self.seed_names[seed_nb]]=np.hstack(([0] * len(self.config['list_subjects']) * seed_nb, [1] * len(self.config['list_subjects']), [0] * len(self.config['list_subjects'])* (len(self.seed_names)-(seed_nb+1))))
+            contrasts["Right Effect"]=np.hstack((np.tile(([[1] * len(self.config['list_subjects'])+ [0] * len(self.config['list_subjects'])]),9)))
+            contrasts["Left Effect"]=np.hstack((np.tile(([[0] * len(self.config['list_subjects'])+ [1] * len(self.config['list_subjects'])]),9)))
+            contrasts["Right vs Left"]=np.hstack((np.tile(([[1] * len(self.config['list_subjects'])+ [-1] * len(self.config['list_subjects'])]),9)))
+            contrasts["Left vs Right"]=np.hstack((np.tile(([[-1] * len(self.config['list_subjects'])+ [1] * len(self.config['list_subjects'])]),9)))
+            contrasts["All effect"]=np.hstack(([1] * len(self.config['list_subjects']) * len(self.seed_names)))
+                    
         
         
         return contrasts
