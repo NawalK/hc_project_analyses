@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans, AgglomerativeClustering
+from sklearn.cluster import KMeans, SpectralClustering, AgglomerativeClustering
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score, adjusted_mutual_info_score, adjusted_rand_score
 from sklearn.feature_selection import mutual_info_regression
 from scipy.spatial.distance import pdist
@@ -38,15 +38,22 @@ class FC_Parcellation:
     params_kmeans : dict
         parameters for k-means clustering
         - init: method for initialization (default = 'k-means++')
-        - n_init: number of times the algorithm is run with different centroid seeds (default = 100)
-        - max_iter: maximum number of iterations of the k-means algorithm for a single run (default = 300)
+        - n_init: number of times the algorithm is run with different centroid seeds (default = 256)
+        - max_iter: maximum number of iterations of the k-means algorithm for a single run (default = 10000)
+    params_spectral : dict
+        parameters for spectral clustering
+        - n_init: number of times the algorithm is run with different centroid seeds (default = 256)
+        - kernel: Kernel coefficient for rbf, poly, sigmoid, laplacian and chi2 kernels. Ignored for affinity='nearest_neighbors'. (default = 'nearest_neighbors')
+        - assign_labels: trategy for assigning labels in the embedding space (default = 'kmeans')
+        - eigen_solver: eigenvalue decomposition strategy to use (default = 'arpack')
+        - eigen_tol: stopping criterion for eigendecomposition of the Laplacian matrix (default = 1.0e-5)
     params_agglom : dict
         parameters for agglomerative clustering
         - linkage: distance to use between sets of observations (default = 'ward')
         - affinity: metric used to compute the linkage (default = 'euclidean')
     '''
     
-    def __init__(self, config, struct_source='spinalcord', struct_target='brain', fc_metric='corr', params_kmeans={'init':'k-means++', 'n_init':100, 'max_iter':300}, params_agglom={'linkage':'ward', 'affinity':'euclidean'}):
+    def __init__(self, config, struct_source='spinalcord', struct_target='brain', fc_metric='corr', params_kmeans={'init':'k-means++', 'n_init':256, 'max_iter':10000}, params_spectral={'n_init':256, 'kernel': 'nearest_neighbors', 'assign_labels': 'kmeans', 'eigen_solver': 'arpack', 'eigen_tol': 1.0e-5}, params_agglom={'linkage':'ward', 'affinity':'euclidean'}):
         self.config = config # Load config info
         self.struct_source = struct_source
         self.struct_target = struct_target
@@ -54,10 +61,16 @@ class FC_Parcellation:
         self.clusters = {}
         
         self.init = params_kmeans.get('init')
-        self.n_init = params_kmeans.get('n_init')
+        self.n_init_kmeans = params_kmeans.get('n_init')
         self.max_iter = params_kmeans.get('max_iter')
         self.linkage = params_agglom.get('linkage')
         self.affinity = params_agglom.get('affinity')
+
+        self.n_init_spectral = params_spectral.get('n_init')
+        self.kernel = params_spectral.get('kernel')
+        self.assign_labels = params_spectral.get('assign_labels')
+        self.eigen_solver = params_spectral.get('eigen_solver')
+        self.eigen_tol = params_spectral.get('eigen_tol')
 
         # Read mask data
         self.mask_source_path = self.config['main_dir']+self.config['masks'][struct_source]
@@ -166,7 +179,7 @@ class FC_Parcellation:
         k_range : int, array or range
             number of clusters  
         algorithm : str
-            defines which algorithm to use ('kmeans' or 'agglom')
+            defines which algorithm to use ('kmeans', 'spectral', or 'agglom')
         overwrite : boolean
             if set to True, labels are overwritten (default = False)
         
@@ -224,7 +237,7 @@ class FC_Parcellation:
                     print(f"... Running k-means clustering")
     
                     # Dict containing k means parameters
-                    kmeans_kwargs = {'n_clusters': k, 'init': self.init, 'max_iter': self.max_iter, 'n_init': self.n_init}
+                    kmeans_kwargs = {'n_clusters': k, 'init': self.init, 'max_iter': self.max_iter, 'n_init': self.n_init_kmeans}
 
                     # Compute clustering
                     kmeans_clusters = KMeans(**kmeans_kwargs)
@@ -234,6 +247,17 @@ class FC_Parcellation:
                     # Compute validity metrics and add them to dataframe
                     internal_validity_df.loc[len(internal_validity_df)] = [sub, kmeans_clusters.inertia_, silhouette_score(fc, labels), davies_bouldin_score(fc, labels), calinski_harabasz_score(fc, labels), k]
                 
+                elif algorithm == 'spectral':
+                    print(f"... Running spectral clustering")
+                    spectral_kwargs = {'n_clusters': k, 'n_init': self.n_init_spectral, 'affinity': self.kernel,
+                            'assign_labels': self.assign_labels, 'eigen_solver': self.eigen_solver, 'eigen_tol': self.eigen_tol}
+                    
+                    spectral_clusters = SpectralClustering(**spectral_kwargs)
+                    spectral_clusters.fit(fc)
+                    labels = spectral_clusters.labels_
+                    
+                    internal_validity_df.loc[len(internal_validity_df)] = [sub, 0, silhouette_score(fc, labels), davies_bouldin_score(fc, labels), calinski_harabasz_score(fc, labels), k]
+
                 elif algorithm == 'agglom':
                     print(f"... Running agglomerative clustering")
                     # Dict containing parameters
