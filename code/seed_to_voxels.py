@@ -348,7 +348,7 @@ class Seed2voxels:
         return  seed_to_voxel_correlations_fisher_z if Fisher==True else seed_to_voxel_correlations
     
 
-    def mutual_info_maps(self,seed_ts,voxels_ts,output_img=None,save_maps=True,smoothing_output=False,redo=False, n_jobs=1):
+    def mutual_info_maps(self,seed_ts,voxels_ts,z_scored=False,output_img=None,save_maps=True,smoothing_output=False,redo=False, n_jobs=1):
         '''
         Create  mutual information maps
         seed_ts: list
@@ -366,8 +366,7 @@ class Seed2voxels:
    
         ----------
         '''
-        
-        seed_to_voxel_mi=Parallel(n_jobs=n_jobs)(delayed(self._compute_mutual_info)(voxels_ts[subject_nb],seed_ts[subject_nb])
+        seed_to_voxel_mi=Parallel(n_jobs=n_jobs)(delayed(self._compute_mutual_info)(voxels_ts[subject_nb],seed_ts[subject_nb],z_scored)
                                            for subject_nb in range(len(self.subject_names)))
        
         
@@ -384,7 +383,11 @@ class Seed2voxels:
             
         # rename individual outputs
             for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'):
-                new_name=os.path.dirname(output_img) + "/mi"+tmp.split('tmp')[-1] + "_z"
+                if z_scored==True:
+                    new_name=os.path.dirname(output_img) + "/mi_z"+tmp.split('tmp')[-1]
+                elif z_scored==False:
+                    new_name=os.path.dirname(output_img) + "/mi"+tmp.split('tmp')[-1] 
+                print(new_name)
                 
                 os.rename(tmp,new_name)
         np.savetxt(os.path.dirname(output_img) + '/subjects_labels.txt',self.subject_names,fmt="%s") # copy the config file that store subject info
@@ -393,7 +396,7 @@ class Seed2voxels:
         
         return seed_to_voxel_mi
     
-    def _compute_mutual_info(self,voxels_ts,seed_ts):
+    def _compute_mutual_info(self,voxels_ts,seed_ts,z_scored):
         '''
         Run the mutual information analysis:
         https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.mutual_info_regression.html#r37d39d7589e2-2
@@ -409,13 +412,15 @@ class Seed2voxels:
         voxels_ts=np.nan_to_num(voxels_ts,nan=0.0);seed_ts=np.nan_to_num(seed_ts,nan=0.0) # replace NaN value by zero
         seed_to_voxel_mi = mutual_info_regression(voxels_ts,seed_ts,n_neighbors=4)
         #seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi, where=~np.isnan(seed_to_voxel_mi)) 
-        #seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi) # normalize to the max intensity
-        #seed_to_voxel_mi_z=scipy.stats.zscore(seed_to_voxel_mi)# zscored the MI
+        #
         
-        seed_to_voxel_mi =seed_to_voxel_mi-seed_to_voxel_mi.mean(axis=0) #demean the MI maps
-        seed_to_voxel_mi/= np.std(seed_to_voxel_mi) #demean the MI maps
-        #seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi) # normalize to the max intensity
-        
+        if z_scored== True:
+            seed_to_voxel_mi =seed_to_voxel_mi-seed_to_voxel_mi.mean(axis=0) #demean the MI maps
+            seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi) # normalize to the max intensity
+        #seed_to_voxel_mi =1-np.log(seed_to_voxel_mi)# log transfo
+        #(X — X.median) / IQR
+        #seed_to_voxel_mi/= np.nanmax(seed_to_voxel_mi) #demean the MI maps
+          #
         
         return seed_to_voxel_mi
     
