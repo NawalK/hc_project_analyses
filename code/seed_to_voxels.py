@@ -29,13 +29,10 @@ class Seed2voxels:
     Attributes
     ----------
     config : dict
-    signal: str
-        type of signal ('raw' for bold or 'ai' for deconvoluted)
     '''
     
-    def __init__(self, config, signal,seed_indiv):
+    def __init__(self, config, seed_indiv):
         self.config = config # load config info
-        self.signal=signal # define if the signal is raw or ai
         self.seed_indiv=seed_indiv # sould be "True" or "False"
         self.subject_names= config["list_subjects"]
         self.outputdir= self.config["main_dir"] +self.config["seed2vox_dir"]
@@ -95,15 +92,16 @@ class Seed2voxels:
         '''
         Extracts time series in a mask or load them from text files
         At least 2 masks should be provided 1 for the target and one for the seed.
-        More than one mask could be provide for the seeds.
+        More than one mask could be provided for the seeds.
         
         Inputs
         ----------
         smoothing_fwhm: array
             to apply smoothing during the extraction (ex: [6,6,6])
         redo: 
-            if True the extraction will be rerun else if the timeseries were already extracted, the file conaining the data will be load
-        n_jobs: "extract", "load"
+            if True the extraction will be rerun else if the timeseries were already extracted, the file containing the data will be loaded
+        n_jobs: 
+            Number of jobs for parallelization
              
         Returns
         ----------
@@ -143,65 +141,48 @@ class Seed2voxels:
                 
     # 2. Extract signal (timeseries) _____________________________________
     # Signals are extracted differently for ica and icaps
-
-        if self.signal == 'raw':
             
-            ## a. Extract or load data in the targeted voxel mask ___________________________________________
-
+        ## a. Extract or load data in the targeted voxel mask ___________________________________________
+    
+        ts_target=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(self.mask_target,self.data_target[subject_nb],ts_target_txt[subject_nb],redo,smoothing_target)
+                                    for subject_nb in range(len(self.subject_names)))
             
-            ts_target=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(self.mask_target,self.data_target[subject_nb],ts_target_txt[subject_nb],redo,smoothing_target)
+        with open(os.path.dirname(ts_target_txt[0]) + '/seed2voxels_analysis_config.json', 'w') as fp:
+            json.dump(self.config, fp)
+
+        for subject_nb in range(len(self.subject_names)):
+            timeseries_target["raw"].append(ts_target[subject_nb][0]); timeseries_target["zscored"].append(ts_target[subject_nb][1]);
+            timeseries_target["mean"].append(ts_target[subject_nb][2]); timeseries_target["zmean"].append(ts_target[subject_nb][2]);
+            timeseries_target["PC1"].append(ts_target[subject_nb][3]);
+
+        ## 2. Extract data in seeds ___________________________________________
+            
+        for seed_nb in tqdm(range(0,len(self.seed_names)), desc ="data extracted"):
+            seed_name=self.seed_names[seed_nb]
+            print(seed_name)
+            timeseries_seeds["raw"][seed_name]=[]; timeseries_seeds["zscored"][seed_name]=[]; timeseries_seeds["mean"][seed_name]=[]; timeseries_seeds["zmean"][seed_name]=[];
+            timeseries_seeds["PC1"][seed_name]=[];
+                
+            ts_seeds=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(self.mask_seeds[seed_name][subject_nb],self.data_seed[subject_nb],ts_seeds_txt[seed_name][subject_nb],smoothing_seed)
                                         for subject_nb in range(len(self.subject_names)))
-            
-            with open(os.path.dirname(ts_target_txt[0]) + '/seed2voxels_analysis_config.json', 'w') as fp:
+
+
+            with open(os.path.dirname(ts_seeds_txt[seed_name][0]) + '/seed2voxels_analysis_config.json', 'w') as fp:
                 json.dump(self.config, fp)
 
             for subject_nb in range(len(self.subject_names)):
-                timeseries_target["raw"].append(ts_target[subject_nb][0]); timeseries_target["zscored"].append(ts_target[subject_nb][1]);
-                timeseries_target["mean"].append(ts_target[subject_nb][2]); timeseries_target["zmean"].append(ts_target[subject_nb][2]);
-                timeseries_target["PC1"].append(ts_target[subject_nb][3]);
+                timeseries_seeds["raw"][seed_name].append(ts_seeds[subject_nb][0])
+                timeseries_seeds["zscored"][seed_name].append(ts_seeds[subject_nb][1])
+                timeseries_seeds["mean"][seed_name].append(ts_seeds[subject_nb][2])
+                timeseries_seeds["zmean"][seed_name].append(ts_seeds[subject_nb][3])
+                timeseries_seeds["PC1"][seed_name].append(ts_seeds[subject_nb][4])
 
-            ## 2. Extract data in seeds ___________________________________________
-            
-            for seed_nb in tqdm(range(0,len(self.seed_names)), desc ="data extracted"):
-                seed_name=self.seed_names[seed_nb]
-                print(seed_name)
-                timeseries_seeds["raw"][seed_name]=[]; timeseries_seeds["zscored"][seed_name]=[]; timeseries_seeds["mean"][seed_name]=[]; timeseries_seeds["zmean"][seed_name]=[];
-                timeseries_seeds["PC1"][seed_name]=[];
-                
-                
-                ts_seeds=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(self.mask_seeds[seed_name][subject_nb],self.data_seed[subject_nb],ts_seeds_txt[seed_name][subject_nb],smoothing_seed)
-                                            for subject_nb in range(len(self.subject_names)))
-
-
-                with open(os.path.dirname(ts_seeds_txt[seed_name][0]) + '/seed2voxels_analysis_config.json', 'w') as fp:
-                    json.dump(self.config, fp)
-
-                for subject_nb in range(len(self.subject_names)):
-                    timeseries_seeds["raw"][seed_name].append(ts_seeds[subject_nb][0])
-                    timeseries_seeds["zscored"][seed_name].append(ts_seeds[subject_nb][1])
-                    timeseries_seeds["mean"][seed_name].append(ts_seeds[subject_nb][2])
-                    timeseries_seeds["zmean"][seed_name].append(ts_seeds[subject_nb][3])
-                    timeseries_seeds["PC1"][seed_name].append(ts_seeds[subject_nb][4])
-
-            
-        elif self.signal == 'ai':
-            print("Warning: that part of the script should be update")
-            if run == "load":
-                timeseries=Parallel(n_jobs=n_jobs)(delayed(np.loadtxt)(timeseries_txt[subject_nb] + '.txt') for subject_nb in range(len(self.subject_names)))
-
-            elif run == "extract":
-                print('Note: when using "ai", signals can only be extracted for targets.')
-                timeseries = Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(mask[subject_nb],img[subject_nb],timeseries_txt[subject_nb],smoothing_fwhm)
-                                            for subject_nb in range(len(self.subject_names)))
-
-                with open(os.path.dirname(timeseries_txt[0]) + '/seed2voxels_analysis_config.json', 'w') as fp:
-                        json.dump(self.config, fp)
-        
+    
         print("Ouptuts have the following contain:")
         print("1: timeseries_target={'raw':[],'zscored':[],'mean':[],'zmean':[],'PC1':[]}")
         print("2: timeseries_seeds={'raw':[],'zscored':[],'mean':[],'zmean':[],'PC1':[]}")
         
-        return timeseries if self.signal=='ai' else (timeseries_target,timeseries_seeds)
+        return timeseries_target,timeseries_seeds
 
 
     def _extract_ts(self,mask,img,ts_txt,redo,smoothing=None):
@@ -210,41 +191,39 @@ class Seed2voxels:
         '''
         
         if not os.path.exists(ts_txt + '.npy') or redo==True:
-            masker= NiftiMasker(mask,smoothing_fwhm=smoothing, t_r=1.55,low_pass=None, high_pass=None if self.signal == 'raw' else None) # seed masker
+            masker= NiftiMasker(mask,smoothing_fwhm=smoothing, t_r=1.55,low_pass=None, high_pass=None) # seed masker
             ts=masker.fit_transform(img) #low_pass=0.1,high_pass=0.01
-            np.savetxt(ts_txt + '.npy',ts)
+            np.save(ts_txt + '.npy',ts,allow_pickle=True)
 
             # Calculate the z-scored time serie
             ts_zscored=stats.zscore(ts,axis=0) # mean time serie
 
-            np.savetxt(ts_txt + '_zscored.npy',ts_zscored)
+            np.save(ts_txt + '_zscored.npy',ts_zscored,allow_pickle=True)
             
             # Calculate the mean time serie
             ts_mean=np.mean(ts,axis=1) # mean time serie
-            np.savetxt(ts_txt + '_mean.npy',ts_mean)
+            np.save(ts_txt + '_mean.npy',ts_mean,allow_pickle=True)
             
             # Calculate the mean time serie
             ts_zmean=np.mean(ts_zscored,axis=1) # mean time serie
-            np.savetxt(ts_txt + '_zmean.npy',ts_zmean)
+            np.save(ts_txt + '_zmean.npy',ts_zmean,allow_pickle=True)
             
             # Calculate the principal component:
             pca=decomposition.PCA(n_components=1)
             pca_components=pca.fit_transform(ts)
             ts_pc1=pca_components[:,0] 
-            np.savetxt(ts_txt + '_PC1.npy',ts_pc1)
-            
-            
-        
+            np.save(ts_txt + '_PC1.npy',ts_pc1,allow_pickle=True)
+                    
         else:
-            ts=np.loadtxt(ts_txt + '.npy')
-            ts_zscored=np.loadtxt(ts_txt + '_zscored.npy')
-            ts_zmean=np.loadtxt(ts_txt + '_zmean.npy')
-            ts_mean=np.loadtxt(ts_txt + '_mean.npy')
-            ts_pc1=np.loadtxt(ts_txt + '_PC1.npy')
+            ts=np.load(ts_txt + '.npy')
+            ts_zscored=np.load(ts_txt + '_zscored.npy')
+            ts_zmean=np.load(ts_txt + '_zmean.npy')
+            ts_mean=np.load(ts_txt + '_mean.npy')
+            ts_pc1=np.load(ts_txt + '_PC1.npy')
              
        
         
-        return ts if self.signal=='ai' else (ts,ts_zscored, ts_mean, ts_zmean, ts_pc1)
+        return ts,ts_zscored, ts_mean, ts_zmean, ts_pc1
 
     def correlation_maps(self,seed_ts,voxels_ts,output_img=None,Fisher=True,partial=False,save_maps=True,smoothing_output=None,redo=False,n_jobs=1):
         '''
@@ -483,7 +462,7 @@ class Seed2voxels:
             print("The correlation maps were alredy computed please put redo=True to rerun the analysis")
     
     
-    def _compute_distance_corr(self,seed_ts,voxels_ts,output_img,save_maps):
+    def _compute_distance_corr(self,seed_ts,voxels_ts):
         '''
         Run the distance correlation analyse.
        ----------
@@ -501,14 +480,6 @@ class Seed2voxels:
        
     
         return seed_to_voxel_distCorr
-    
-    def _transfert_entropy(self,seed_ts,voxels_ts,output_img,save_maps):
-        '''
-        Run the distance entropy analyse.
-       ----------
-       '''
-        seed_to_voxel_distCorr 
-        
     
     def _save_maps(self,subject_nb,maps_array,output_img,smoothing):
         '''
