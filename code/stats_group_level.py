@@ -80,9 +80,9 @@ class Stats:
             self.data_1rstlevel[seed_name]=[]
             for sbj_nb in range(len(config['list_subjects'])):
                 subject_name='sub-' +  config['list_subjects'][sbj_nb]
-                #tag_files = {"Corr": "corr","MI": "mi"}
-                #self.tag_file = tag_files.get(measure, None)
-                self.data_1rstlevel[seed_name].append(glob.glob(self.config["first_level"] +'/'+ seed_name+'/'+ self.target +'_fc_maps/'+ self.measure + "/*" + subject_name + "*.nii.gz")[0])
+                tag_files = {"Corr": "corr","MI": "mi"}
+                self.tag_file = tag_files.get(self.measure, None)
+                self.data_1rstlevel[seed_name].append(glob.glob(self.config["first_level"] +'/'+ seed_name+'/'+ self.target +'_fc_maps/'+ self.measure + "/" +self.tag_file + "_"+ subject_name + "*.nii.gz")[0])
 
                     
     def design_matrix(self,contrast_name=None,plot_matrix= False,save_matrix=False):
@@ -185,7 +185,7 @@ class Stats:
                 
         return Design_matrix
         
-    def secondlevelmodel(self,Design_matrix,plot_2ndlevel=False,save_img=False):
+    def secondlevelmodel(self,Design_matrix,parametric=True,plot_2ndlevel=False,save_img=False):
         '''
         This function calculate the second level model
         
@@ -212,7 +212,7 @@ class Stats:
         - 'effect_variance'
 
         '''
-        
+        self.parametric=parametric
         # concatenates the files if there are multiple factors:
         input_files=[]
         for seed_name in self.seed_names:
@@ -227,37 +227,73 @@ class Stats:
         for i in range(0,len(input_files)):
             nifti_files.append(nb.load(input_files[i]))
             
-        # fit the model for each matrix and compute the constrast
+        # fit the model for each matrix and compute the constrast for parametrical statistics
+       
         second_level_model={};contrast_map={}
         for i, (title,values) in enumerate(Design_matrix.items()):
-            second_level_model[title] = SecondLevelModel(mask_img=self.mask_img,smoothing_fwhm=None)
+            if parametric==True:
+                second_level_model[title] = SecondLevelModel(mask_img=self.mask_img,smoothing_fwhm=None)
 
-            second_level_model[title] = second_level_model[title].fit(nifti_files, design_matrix=Design_matrix[title])
-            contrast_map[title]=second_level_model[title].compute_contrast(title, second_level_stat_type="t",output_type="all")
+                second_level_model[title] = second_level_model[title].fit(nifti_files, design_matrix=Design_matrix[title])
+                contrast_map[title]=second_level_model[title].compute_contrast(title, second_level_stat_type="t",output_type="all")
+                if save_img==True:
+                    output_uncorr=self.output_dir + "/uncorr/"
+                    if not os.path.exists(output_uncorr):
+                        os.mkdir(output_uncorr)
+                    nb.save(contrast_map[title]['z_score'], output_uncorr +"/zscore_" + title + ".nii.gz")
+                    nb.save(contrast_map[title]['stat'],output_uncorr + "/stat_" + title + ".nii.gz") # t or F statistical value
+                    nb.save(contrast_map[title]['p_value'],output_uncorr + "/pvalue_" + title + ".nii.gz")
+                    nb.save(contrast_map[title]['effect_size'],output_uncorr + "/effectsize_" + title + ".nii.gz")
+                    nb.save(contrast_map[title]['effect_variance'],output_uncorr+ "/effectvar_" + title + ".nii.gz")
+                
+                if plot_2ndlevel==True:
+                        plotting.plot_glass_brain(
+                            contrast_map[title]['stat'],
+                            colorbar=True,
+                            symmetric_cbar=False,
+                            display_mode='lyrz',
+                            threshold=2.5,
+                            vmax=5,
+                            title=title)
+
+                    
+            elif parametric==False:
+                contrast_map[title]=non_parametric_inference(nifti_files,design_matrix=Design_matrix[title],model_intercept=True,n_perm=50, # should be set between 1000 and 10000
+                                         two_sided_test=False,
+                                         mask=None,
+                                         smoothing_fwhm=None,
+                                         tfce=False, # choose tfce=True or threshold is not None
+                                         threshold=0.01,
+                                         n_jobs=8)
+                if save_img==True:
+                    output_uncorr=self.output_dir + "/nonparam/"
+                    if not os.path.exists(output_uncorr):
+                        os.mkdir(output_uncorr)
+                    nb.save(contrast_map[title]['t'], output_uncorr +"/t_" + title + ".nii.gz")
+                    nb.save(contrast_map[title]['size'], output_uncorr +"/size_" + title + ".nii.gz")
+                    nb.save(contrast_map[title]['logp_max_t'],output_uncorr + "/logp_max_t_" + title + ".nii.gz") # t or F statistical value
+                    nb.save(contrast_map[title]['logp_max_size'],output_uncorr + "/logp_max_size_" + title + ".nii.gz")
+                    nb.save(contrast_map[title]['mass'],output_uncorr + "/mass_" + title + ".nii.gz")
+                    nb.save(contrast_map[title]['logp_max_mass'],output_uncorr+ "/logp_max_mass_" + title + ".nii.gz")
+                    #nb.save(contrast_map[title]['tfce'],output_uncorr + "/tfce_" + title + ".nii.gz")
+                    #nb.save(contrast_map[title]['logp_max_tfce'],output_uncorr+ "/logp_max_tfce_" + title + ".nii.gz")
             
-            if plot_2ndlevel==True:
+                if plot_2ndlevel==True:
                     plotting.plot_glass_brain(
-                        contrast_map[title]['stat'],
-                        colorbar=True,
-                        symmetric_cbar=False,
-                        display_mode='lyrz',
-                        threshold=2.5,
-                        vmax=5,
-                        title=title)
-            
-            if save_img==True:
-                output_uncorr=self.output_dir + "/uncorr/"
-                if not os.path.exists(output_uncorr):
-                    os.mkdir(output_uncorr)
-                nb.save(contrast_map[title]['z_score'], output_uncorr +"/zscore_" + title + ".nii.gz")
-                nb.save(contrast_map[title]['stat'],output_uncorr + "/stat_" + title + ".nii.gz") # t or F statistical value
-                nb.save(contrast_map[title]['p_value'],output_uncorr + "/pvalue_" + title + ".nii.gz")
-                nb.save(contrast_map[title]['effect_size'],output_uncorr + "/effectsize_" + title + ".nii.gz")
-                nb.save(contrast_map[title]['effect_variance'],output_uncorr+ "/effectvar_" + title + ".nii.gz")
+                            contrast_map[title]['size'],
+                            colorbar=True,
+                            symmetric_cbar=False,
+                            display_mode='lyrz',
+                            threshold=2.5,
+                            vmax=5,
+                            title=title)
 
+                       
+        # fit the model for each matrix and compute the constrast for non-parametrical statistics
+   
         return contrast_map
     
-    def secondlevel_correction(self,maps,z_thr=1.5,p_value=0.001,corr=None,smoothing=None,parametric=True,plot_stats_corr=False,save_img=False,n_job=1):
+    def secondlevel_correction(self,maps,z_thr=1.5,p_value=0.001,corr=None,smoothing=None,plot_stats_corr=False,save_img=False,n_job=1):
         '''
         One sample t-test
         Attributes
@@ -273,15 +309,14 @@ class Stats:
         '''
     
         for i, (title,values) in enumerate(maps.items()):
-            if parametric== True:
+            if self.parametric== True:
                 cluster_threshold=10
                 thresholded_map, threshold = threshold_stats_img(maps[title]["z_score"],alpha=p_value,threshold=z_thr,height_control=corr,cluster_threshold=cluster_threshold,two_sided=False)
             
                        
         #TO DO:
-        #else:
-         #   img_dict = non_parametric_inference(
-          #      second_level_input,
+                #else:
+                #non_parametric_inference(second_level_input,
            #     design_matrix=design_matrix,
             #    model_intercept=True,
              #   n_perm=50, # should be set between 1000 and 10000
@@ -297,17 +332,17 @@ class Stats:
 
 
             
-            if plot_stats_corr==True:
-                thresholded_map=image.threshold_img(thresholded_map, 0,mask_img=self.mask_img, copy=True)
+        if plot_stats_corr==True:
+            thresholded_map=image.threshold_img(thresholded_map, 0,mask_img=self.mask_img, copy=True)
                 
-                self._plot_stats(thresholded_map, title ,threshold, cluster_threshold)
+            self._plot_stats(thresholded_map, title ,threshold, cluster_threshold)
         
-            if save_img==True:
-                output_corrected=self.output_dir + "/"+corr+"_corrected/"
-                #print(output_corrected + "/" + title + "_" +corr+ "_p"+ str(p_value).split('.')[-1] +".nii.gz")
-                if not os.path.exists(output_corrected):
-                    os.mkdir(output_corrected)
-                nb.save(thresholded_map, output_corrected + "/" + title + "_" +corr+ "_p"+ str(p_value).split('.')[-1] +".nii.gz")
+        if save_img==True:
+            output_corrected=self.output_dir + "/"+corr+"_corrected/"
+            #print(output_corrected + "/" + title + "_" +corr+ "_p"+ str(p_value).split('.')[-1] +".nii.gz")
+            if not os.path.exists(output_corrected):
+                os.mkdir(output_corrected)
+            nb.save(thresholded_map, output_corrected + "/" + title + "_" +corr+ "_p"+ str(p_value).split('.')[-1] +".nii.gz")
                 
         
         
