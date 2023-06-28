@@ -6,7 +6,7 @@ import numpy as np
 from nilearn.maskers import NiftiMasker
 from nilearn import image
 from joblib import Parallel, delayed
-
+import time
 import dcor 
 import pingouin as pg
 import pandas as pd
@@ -140,13 +140,18 @@ class Seed2voxels:
                 ts_seeds_txt[seed_name].append(ts_seeds_dir[seed_name] + '/sub_' + subject_name + '_mask_' + seed_name + '_timeseries') # output file for targeted voxel's mask
                 
     # 2. Extract signal (timeseries) _____________________________________
-    # Signals are extracted differently for ica and icaps
             
         ## a. Extract or load data in the targeted voxel mask ___________________________________________
-    
+
+        start_time = time.time()    
         ts_target=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(self.mask_target,self.data_target[subject_nb],ts_target_txt[subject_nb],redo,smoothing_target)
                                     for subject_nb in range(len(self.subject_names)))
-            
+         
+        end_time = time.time()
+        duration = end_time - start_time
+
+        print("Target extraction", duration, "seconds.")
+
         with open(os.path.dirname(ts_target_txt[0]) + '/seed2voxels_analysis_config.json', 'w') as fp:
             json.dump(self.config, fp)
 
@@ -162,10 +167,14 @@ class Seed2voxels:
             print(seed_name)
             timeseries_seeds["raw"][seed_name]=[]; timeseries_seeds["zscored"][seed_name]=[]; timeseries_seeds["mean"][seed_name]=[]; timeseries_seeds["zmean"][seed_name]=[];
             timeseries_seeds["PC1"][seed_name]=[];
-                
+
+            start_time = time.time()    
             ts_seeds=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(self.mask_seeds[seed_name][subject_nb],self.data_seed[subject_nb],ts_seeds_txt[seed_name][subject_nb],smoothing_seed)
                                         for subject_nb in range(len(self.subject_names)))
+            end_time = time.time()
+            duration = end_time - start_time
 
+            print("Seed extraction", duration, "seconds.")
 
             with open(os.path.dirname(ts_seeds_txt[seed_name][0]) + '/seed2voxels_analysis_config.json', 'w') as fp:
                 json.dump(self.config, fp)
@@ -190,7 +199,7 @@ class Seed2voxels:
         Extracts time series in a mask + calculates the mean and PC
         '''
         
-        if not redo and os.path.isfile(ts_txt + '.npy'):
+        if redo==False:
         # If we do not overwrite and file exists
             ts=np.load(ts_txt + '.npy',allow_pickle=True)
             ts_zscored=np.load(ts_txt + '_zscored.npy',allow_pickle=True)
@@ -212,7 +221,7 @@ class Seed2voxels:
             np.save(ts_txt + '_mean.npy',ts_mean,allow_pickle=True)
                 
             # Calculate the mean time serie
-            ts_zmean=np.mean(ts_zscored,axis=1) # mean time serie
+            ts_zmean=np.nanmean(ts_zscored,axis=1) # mean time serie
             np.save(ts_txt + '_zmean.npy',ts_zmean,allow_pickle=True)
                 
             # Calculate the principal component:

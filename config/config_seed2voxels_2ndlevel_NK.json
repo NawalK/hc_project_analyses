@@ -1,0 +1,14 @@
+{"main_dir":"/media/miplab-nas2/Data3/BMPD/hc_project/",
+
+"seeds_gm":{"frost_C1_gm":["frost_C1_gm"],"frost_C2_gm":["frost_C2_gm"],"frost_C3_gm":["frost_C3_gm"],"frost_C4_gm":["frost_C4_gm"],"frost_C5_gm":["frost_C5_gm"],"frost_C6_gm":["frost_C6_gm"],"frost_C7_gm":["frost_C7_gm"]},
+"seeds":{"frost_C1_gmwm":["frost_C1_gmwm"],"frost_C2_gmwm":["frost_C2_gmwm"],"frost_C3_gmwm":["frost_C3_gmwm"],"frost_C4_gmwm":["frost_C4_gmwm"],"frost_C5_gmwm":["frost_C5_gmwm"],"frost_C6_gmwm":["frost_C6_gmwm"],"frost_C7_gmwm":["frost_C7_gmwm"]},
+
+"model": "OneSampleT",
+"mask_path":"/media/miplab-nas2/Data3/BMPD/hc_project/analysis/mask/brain/julich_pre_and_postcentral.nii.gz",
+"measure":"Corr",
+"target_1rstlevel": "MNI_GM_3mm",
+"seed2vox_dir": "/brain_spine/results/seed_to_voxels/",
+"first_level":"/media/miplab-nas2/Data3/BMPD/hc_project/brain_spine/results/seed_to_voxels/1_first_level/",
+"second_level":"/media/miplab-nas2/Data3/BMPD/hc_project/brain_spine/results/seed_to_voxels/2_second_level/",
+ 
+"list_subjects":["P030","P099","A006","A007","A008","A009","A011","A013","A023","A024","A025","A026","A027","A028","A029","A030","A032","A033","A034","A036","A037","A038","A039","A043","A044","A045","A046","A048","A050","A051","A052"]} 
