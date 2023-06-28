@@ -6,7 +6,7 @@ import numpy as np
 from nilearn.maskers import NiftiMasker
 from nilearn import image
 from joblib import Parallel, delayed
-import time
+
 import dcor 
 import pingouin as pg
 import pandas as pd
@@ -14,6 +14,7 @@ import pandas as pd
 from sklearn.feature_selection import mutual_info_regression
 from sklearn import decomposition
 from scipy import stats
+
 
 from tqdm import tqdm
 # to improve---------------------------
@@ -60,7 +61,7 @@ class Seed2voxels:
         self.mask_target=glob.glob(self.config["main_dir"] + self.config["targeted_voxels"]["target_dir"]+ self.target + ".nii.gz")[0] # mask of the voxels tareted for the analysis
         print("Start the analysis on: " + str(len(self.subject_names))+ " participants")
         print("targeted voxel's group mask: " + self.target)
-        #print(self.mask_target)
+        print(self.mask_target)
         
         self.mask_seeds={}
         for seed_name in self.seed_names:
@@ -140,18 +141,13 @@ class Seed2voxels:
                 ts_seeds_txt[seed_name].append(ts_seeds_dir[seed_name] + '/sub_' + subject_name + '_mask_' + seed_name + '_timeseries') # output file for targeted voxel's mask
                 
     # 2. Extract signal (timeseries) _____________________________________
+    # Signals are extracted differently for ica and icaps
             
         ## a. Extract or load data in the targeted voxel mask ___________________________________________
-
-        start_time = time.time()    
+    
         ts_target=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(self.mask_target,self.data_target[subject_nb],ts_target_txt[subject_nb],redo,smoothing_target)
                                     for subject_nb in range(len(self.subject_names)))
-         
-        end_time = time.time()
-        duration = end_time - start_time
-
-        print("Target extraction", duration, "seconds.")
-
+            
         with open(os.path.dirname(ts_target_txt[0]) + '/seed2voxels_analysis_config.json', 'w') as fp:
             json.dump(self.config, fp)
 
@@ -167,14 +163,10 @@ class Seed2voxels:
             print(seed_name)
             timeseries_seeds["raw"][seed_name]=[]; timeseries_seeds["zscored"][seed_name]=[]; timeseries_seeds["mean"][seed_name]=[]; timeseries_seeds["zmean"][seed_name]=[];
             timeseries_seeds["PC1"][seed_name]=[];
-
-            start_time = time.time()    
+                
             ts_seeds=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(self.mask_seeds[seed_name][subject_nb],self.data_seed[subject_nb],ts_seeds_txt[seed_name][subject_nb],smoothing_seed)
                                         for subject_nb in range(len(self.subject_names)))
-            end_time = time.time()
-            duration = end_time - start_time
 
-            print("Seed extraction", duration, "seconds.")
 
             with open(os.path.dirname(ts_seeds_txt[seed_name][0]) + '/seed2voxels_analysis_config.json', 'w') as fp:
                 json.dump(self.config, fp)
@@ -199,22 +191,21 @@ class Seed2voxels:
         Extracts time series in a mask + calculates the mean and PC
         '''
         
-        if redo==False:
+        if redo==False:# and os.path.isfile(ts_txt + '.npy'):
         # If we do not overwrite and file exists
             ts=np.load(ts_txt + '.npy',allow_pickle=True)
             ts_zscored=np.load(ts_txt + '_zscored.npy',allow_pickle=True)
             ts_zmean=np.load(ts_txt + '_zmean.npy',allow_pickle=True)
             ts_mean=np.load(ts_txt + '_mean.npy',allow_pickle=True)
             ts_pc1=np.load(ts_txt + '_PC1.npy',allow_pickle=True)
+        
         else:
             masker= NiftiMasker(mask,smoothing_fwhm=smoothing, t_r=1.55,low_pass=None, high_pass=None) # seed masker
             ts=masker.fit_transform(img) #low_pass=0.1,high_pass=0.01
-
-            
             np.save(ts_txt + '.npy',ts,allow_pickle=True)
 
             # Calculate the z-scored time serie
-            ts_zscored=stats.zscore(ts,axis=0) # z score timeseries (z-score across time for each voxels)
+            ts_zscored=stats.zscore(ts,axis=0) # mean time serie
 
             np.save(ts_txt + '_zscored.npy',ts_zscored,allow_pickle=True)
                 
@@ -223,7 +214,7 @@ class Seed2voxels:
             np.save(ts_txt + '_mean.npy',ts_mean,allow_pickle=True)
                 
             # Calculate the mean time serie
-            ts_zmean=np.nanmean(ts_zscored,axis=1) # mean of the zscored time serie
+            ts_zmean=np.nanmean(ts_zscored,axis=1) # mean time serie
             np.save(ts_txt + '_zmean.npy',ts_zmean,allow_pickle=True)
                 
             # Calculate the principal component:
@@ -231,6 +222,7 @@ class Seed2voxels:
             pca_components=pca.fit_transform(ts)
             ts_pc1=pca_components[:,0] 
             np.save(ts_txt + '_PC1.npy',ts_pc1,allow_pickle=True)
+        
         
         return ts,ts_zscored, ts_mean, ts_zmean, ts_pc1
 
@@ -397,14 +389,26 @@ class Seed2voxels:
         '''
           
         seed_to_voxel_mi = np.zeros((voxels_ts.shape[1], 1)) # np.zeros(number of voxels,1)
-        #voxels_ts=np.nan_to_num(voxels_ts,nan=0.0);seed_ts=np.nan_to_num(seed_ts,nan=0.0) # replace NaN value by zero
         seed_to_voxel_mi = mutual_info_regression(voxels_ts,seed_ts,n_neighbors=4)
+        
+        seed_to_voxel_mi_nozeros= np.where(seed_to_voxel_mi == 0, np.nan, seed_to_voxel_mi)
+
+        #masknib.load(self.mask_target).get_data().astype(bool)
+        #seed_to_voxel_mi
+        bin_size = 0.001
+        bins = np.arange(min(seed_to_voxel_mi_nozeros), max(seed_to_voxel_mi_nozeros) + bin_size, bin_size)
+        hist, bin_edges = np.histogram(seed_to_voxel_mi_nozeros, bins=bins)# Create the histogram
+        max_count_bins = np.where(hist == np.max(hist))[0] # Find the bin(s) with the highest count
+        mode_values = bin_edges[max_count_bins] # Find the mode value(s) within the bin(s)
+       
+    
+        seed_to_voxel_mi=seed_to_voxel_mi_nozeros-  mode_values
         #seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi, where=~np.isnan(seed_to_voxel_mi)) 
         #
         
-        if z_scored== True:
-            seed_to_voxel_mi =seed_to_voxel_mi-seed_to_voxel_mi.mean(axis=0) #demean the MI maps
-            seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi) # normalize to the max intensity
+        #if z_scored== True:
+        #   seed_to_voxel_mi =seed_to_voxel_mi-seed_to_voxel_mi.mean(axis=0) #demean the MI maps
+        #  seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi) # normalize to the max intensity
         #seed_to_voxel_mi =1-np.log(seed_to_voxel_mi)# log transfo
         #(X — X.median) / IQR
         #seed_to_voxel_mi/= np.nanmax(seed_to_voxel_mi) #demean the MI maps

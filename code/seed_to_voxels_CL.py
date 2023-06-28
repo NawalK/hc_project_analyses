@@ -61,7 +61,7 @@ class Seed2voxels:
         self.mask_target=glob.glob(self.config["main_dir"] + self.config["targeted_voxels"]["target_dir"]+ self.target + ".nii.gz")[0] # mask of the voxels tareted for the analysis
         print("Start the analysis on: " + str(len(self.subject_names))+ " participants")
         print("targeted voxel's group mask: " + self.target)
-        #print(self.mask_target)
+        print(self.mask_target)
         
         self.mask_seeds={}
         for seed_name in self.seed_names:
@@ -390,13 +390,19 @@ class Seed2voxels:
           
         seed_to_voxel_mi = np.zeros((voxels_ts.shape[1], 1)) # np.zeros(number of voxels,1)
         seed_to_voxel_mi = mutual_info_regression(voxels_ts,seed_ts,n_neighbors=4)
-            
+        
+        seed_to_voxel_mi_nozeros= np.where(seed_to_voxel_mi == 0, np.nan, seed_to_voxel_mi)
+
+        #masknib.load(self.mask_target).get_data().astype(bool)
+        #seed_to_voxel_mi
         bin_size = 0.001
-        bins = np.arange(min(seed_to_voxel_mi), max(seed_to_voxel_mi) + bin_size, bin_size)
-        hist, bin_edges = np.histogram(seed_to_voxel_mi, bins=bins)# Create the histogram
+        bins = np.arange(min(seed_to_voxel_mi_nozeros), max(seed_to_voxel_mi_nozeros) + bin_size, bin_size)
+        hist, bin_edges = np.histogram(seed_to_voxel_mi_nozeros, bins=bins)# Create the histogram
         max_count_bins = np.where(hist == np.max(hist))[0] # Find the bin(s) with the highest count
         mode_values = bin_edges[max_count_bins] # Find the mode value(s) within the bin(s)
-        #seed_to_voxel_mi=seed_to_voxel_mi -  mode_values
+       
+    
+        seed_to_voxel_mi=seed_to_voxel_mi_nozeros-  mode_values
         #seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi, where=~np.isnan(seed_to_voxel_mi)) 
         #
         
