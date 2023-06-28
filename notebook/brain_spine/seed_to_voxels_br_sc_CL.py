@@ -48,7 +48,7 @@ seed2voxels=Seed2voxels(config,signal,seed_indiv) # initialize the function
 # In[23]:
 
 
-target_timeseries,seeds_timeseries =seed2voxels.extract_data(redo=False,n_jobs=8) 
+target_timeseries,seeds_timeseries =seed2voxels.extract_data(redo=True,n_jobs=8) 
 
 
 # ## <font color=#B2D732> <span style="background-color: #4424D6"> C/ Correlation analysis
