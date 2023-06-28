@@ -178,7 +178,7 @@ class Seed2voxels:
                 timeseries_seeds["PC1"][seed_name].append(ts_seeds[subject_nb][4])
 
     
-        print("Ouptuts have the following contain:")
+        print("Outputs are organized as:")
         print("1: timeseries_target={'raw':[],'zscored':[],'mean':[],'zmean':[],'PC1':[]}")
         print("2: timeseries_seeds={'raw':[],'zscored':[],'mean':[],'zmean':[],'PC1':[]}")
         
@@ -190,7 +190,14 @@ class Seed2voxels:
         Extracts time series in a mask + calculates the mean and PC
         '''
         
-        if not os.path.exists(ts_txt + '.npy') or redo==True:
+        if not redo and os.path.isfile(ts_txt + '.npy'):
+        # If we do not overwrite and file exists
+            ts=np.load(ts_txt + '.npy',allow_pickle=True)
+            ts_zscored=np.load(ts_txt + '_zscored.npy',allow_pickle=True)
+            ts_zmean=np.load(ts_txt + '_zmean.npy',allow_pickle=True)
+            ts_mean=np.load(ts_txt + '_mean.npy',allow_pickle=True)
+            ts_pc1=np.load(ts_txt + '_PC1.npy',allow_pickle=True)
+        else:
             masker= NiftiMasker(mask,smoothing_fwhm=smoothing, t_r=1.55,low_pass=None, high_pass=None) # seed masker
             ts=masker.fit_transform(img) #low_pass=0.1,high_pass=0.01
             np.save(ts_txt + '.npy',ts,allow_pickle=True)
@@ -199,29 +206,21 @@ class Seed2voxels:
             ts_zscored=stats.zscore(ts,axis=0) # mean time serie
 
             np.save(ts_txt + '_zscored.npy',ts_zscored,allow_pickle=True)
-            
+                
             # Calculate the mean time serie
             ts_mean=np.mean(ts,axis=1) # mean time serie
             np.save(ts_txt + '_mean.npy',ts_mean,allow_pickle=True)
-            
+                
             # Calculate the mean time serie
             ts_zmean=np.mean(ts_zscored,axis=1) # mean time serie
             np.save(ts_txt + '_zmean.npy',ts_zmean,allow_pickle=True)
-            
+                
             # Calculate the principal component:
             pca=decomposition.PCA(n_components=1)
             pca_components=pca.fit_transform(ts)
             ts_pc1=pca_components[:,0] 
             np.save(ts_txt + '_PC1.npy',ts_pc1,allow_pickle=True)
-                    
-        else:
-            ts=np.load(ts_txt + '.npy')
-            ts_zscored=np.load(ts_txt + '_zscored.npy')
-            ts_zmean=np.load(ts_txt + '_zmean.npy')
-            ts_mean=np.load(ts_txt + '_mean.npy')
-            ts_pc1=np.load(ts_txt + '_PC1.npy')
-             
-       
+        
         
         return ts,ts_zscored, ts_mean, ts_zmean, ts_pc1
 
