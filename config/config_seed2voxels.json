@@ -7,7 +7,7 @@
          "seed_indiv_dir":"/hc_project_analyses/mask/spinalcord/Indiv/",
          "seed_names2":["frost_C6_DL_gm","frost_C8_DL_gm","frost_T1_DL_gm","frost_C5_DL_gm","frost_C4_DL_","frost_C3_DL_gmwm","frost_C2_DL_gmwm","frost_C1_DL_gmwm",
                        "frost_C6_DR_gm","frost_C8_DR_gm","frost_T1_DR_gm","frost_C5_DR_gm","frost_C4_DR_gmwm","frost_C3_DR_gmwm","frost_C2_DR_gmwm","frost_C1_DR_gmwm"],
-          "seed_names":["C1C7_DR_gmwm"],
+          "seed_names":["C1C7_DR_gmwm","C1C7_VR_gmwm","C1C7_DL_gmwm","C1C7_VL_gmwm","C1C7_R_gmwm","C1C7_L_gmwm","C1C7_D_gmwm","C1C7_V_gmwm"],
          "seed_structure":"spinalcord"},
  
 "targeted_voxels":{"target_dir":"/hc_project_analyses/mask/brain/",
@@ -39,7 +39,7 @@
              "sct_toolbox":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spinalcordtoolbox-5.0.0",
             "spm_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spm12/"},
  
-"list_subjects":["P030","P099"],
+"list_subjects":["P030","P099","A006","A007","A008","A009","A011","A013","A023","A024","A025","A026","A027","A028","A029","A030","A032","A033","A034","A036","A037","A038","A039","A043","A044","A045","A046","A048","A050","A051","A052"],
                     
                     
 "list_subjects_all":["A006","A007","A008","A009","A011","A013","A023","A024","A025","A026","A027","A028","A029","A030","A032","A033","A034","A036","A037","A038","A039","A043","A044","A045","A046","A048","A050","A051","A052"],

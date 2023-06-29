@@ -313,36 +313,36 @@ class Stats:
                 cluster_threshold=10
                 thresholded_map, threshold = threshold_stats_img(maps[title]["z_score"],alpha=p_value,threshold=z_thr,height_control=corr,cluster_threshold=cluster_threshold,two_sided=False)
             
-                       
-        #TO DO:
-                #else:
-                #non_parametric_inference(second_level_input,
-           #     design_matrix=design_matrix,
-            #    model_intercept=True,
-             #   n_perm=50, # should be set between 1000 and 10000
-              #  two_sided_test=False,
-              #  mask=None,
-               # smoothing_fwhm=None,
-                #tfce=True, # choose tfce=True or threshold is not None
-                #threshold=p_value,
-               # n_jobs=n_job)
 
-            #thresholded_map=img_dict["logp_max_t"] ; threshold=1; cluster_threshold=0#img_dict["tfce"]
+            #TO DO:
+                    #else:
+                    #non_parametric_inference(second_level_input,
+               #     design_matrix=design_matrix,
+                #    model_intercept=True,
+                 #   n_perm=50, # should be set between 1000 and 10000
+                  #  two_sided_test=False,
+                  #  mask=None,
+                   # smoothing_fwhm=None,
+                    #tfce=True, # choose tfce=True or threshold is not None
+                    #threshold=p_value,
+                   # n_jobs=n_job)
+
+                #thresholded_map=img_dict["logp_max_t"] ; threshold=1; cluster_threshold=0#img_dict["tfce"]
 
 
 
-            
-        if plot_stats_corr==True:
-            thresholded_map=image.threshold_img(thresholded_map, 0,mask_img=self.mask_img, copy=True)
-                
-            self._plot_stats(thresholded_map, title ,threshold, cluster_threshold)
-        
-        if save_img==True:
-            output_corrected=self.output_dir + "/"+corr+"_corrected/"
-            #print(output_corrected + "/" + title + "_" +corr+ "_p"+ str(p_value).split('.')[-1] +".nii.gz")
-            if not os.path.exists(output_corrected):
-                os.mkdir(output_corrected)
-            nb.save(thresholded_map, output_corrected + "/" + title + "_" +corr+ "_p"+ str(p_value).split('.')[-1] +".nii.gz")
+
+            if plot_stats_corr==True:
+                thresholded_map=image.threshold_img(thresholded_map, 0,mask_img=self.mask_img, copy=True)
+
+                self._plot_stats(thresholded_map, title ,threshold, cluster_threshold)
+
+            if save_img==True:
+                output_corrected=self.output_dir + "/"+corr+"_corrected/"
+                #print(output_corrected + "/" + title + "_" +corr+ "_p"+ str(p_value).split('.')[-1] +".nii.gz")
+                if not os.path.exists(output_corrected):
+                    os.mkdir(output_corrected)
+                nb.save(thresholded_map, output_corrected + "/" + title + "_" +corr+ "_p"+ str(p_value).split('.')[-1] +".nii.gz")
                 
         
         
