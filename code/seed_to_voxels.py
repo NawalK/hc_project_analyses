@@ -7,6 +7,8 @@ from nilearn.maskers import NiftiMasker
 from nilearn import image
 from joblib import Parallel, delayed
 
+import time
+
 import dcor 
 import pingouin as pg
 import pandas as pd
@@ -144,10 +146,16 @@ class Seed2voxels:
     # Signals are extracted differently for ica and icaps
             
         ## a. Extract or load data in the targeted voxel mask ___________________________________________
-    
+
+        start_time = time.time()
+
         ts_target=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(self.mask_target,self.data_target[subject_nb],ts_target_txt[subject_nb],redo,smoothing_target)
                                     for subject_nb in range(len(self.subject_names)))
-            
+
+        end_time = time.time()
+        execution_time = end_time - start_time
+        print("Target extracted in ", execution_time, "seconds")  
+                 
         with open(os.path.dirname(ts_target_txt[0]) + '/seed2voxels_analysis_config.json', 'w') as fp:
             json.dump(self.config, fp)
 
@@ -163,10 +171,15 @@ class Seed2voxels:
             print(seed_name)
             timeseries_seeds["raw"][seed_name]=[]; timeseries_seeds["zscored"][seed_name]=[]; timeseries_seeds["mean"][seed_name]=[]; timeseries_seeds["zmean"][seed_name]=[];
             timeseries_seeds["PC1"][seed_name]=[];
+
+            start_time = time.time()
                 
             ts_seeds=Parallel(n_jobs=n_jobs)(delayed(self._extract_ts)(self.mask_seeds[seed_name][subject_nb],self.data_seed[subject_nb],ts_seeds_txt[seed_name][subject_nb],smoothing_seed)
                                         for subject_nb in range(len(self.subject_names)))
 
+            end_time = time.time()
+            execution_time = end_time - start_time
+            print("Seeds extracted in ", execution_time, "seconds")  
 
             with open(os.path.dirname(ts_seeds_txt[seed_name][0]) + '/seed2voxels_analysis_config.json', 'w') as fp:
                 json.dump(self.config, fp)
@@ -406,8 +419,8 @@ class Seed2voxels:
         #seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi, where=~np.isnan(seed_to_voxel_mi)) 
         #
         
-        seed_to_voxel_mi_nozeros = seed_to_voxel_mi_nozeros-np.nanmean(seed_to_voxel_mi_nozeros,axis=0) #demean the MI maps
-        seed_to_voxel_mi_nozeros /= np.nanstd(seed_to_voxel_mi_nozeros,axis=0) # normalize to the max intensity
+        #seed_to_voxel_mi_nozeros = seed_to_voxel_mi_nozeros-np.nanmean(seed_to_voxel_mi_nozeros,axis=0) #demean the MI maps
+        seed_to_voxel_mi_nozeros /= np.nanmax(seed_to_voxel_mi_nozeros,axis=0) # normalize to the max intensity
         #seed_to_voxel_mi =1-np.log(seed_to_voxel_mi)# log transfo
         #(X — X.median) / IQR
         #seed_to_voxel_mi/= np.nanmax(seed_to_voxel_mi) #demean the MI maps
