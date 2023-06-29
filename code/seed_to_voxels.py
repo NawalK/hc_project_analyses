@@ -395,26 +395,25 @@ class Seed2voxels:
 
         #masknib.load(self.mask_target).get_data().astype(bool)
         #seed_to_voxel_mi
-        bin_size = 0.001
-        bins = np.arange(min(seed_to_voxel_mi_nozeros), max(seed_to_voxel_mi_nozeros) + bin_size, bin_size)
-        hist, bin_edges = np.histogram(seed_to_voxel_mi_nozeros, bins=bins)# Create the histogram
-        max_count_bins = np.where(hist == np.max(hist))[0] # Find the bin(s) with the highest count
-        mode_values = bin_edges[max_count_bins] # Find the mode value(s) within the bin(s)
+        #bin_size = 0.001
+        #bins = np.arange(min(seed_to_voxel_mi_nozeros), max(seed_to_voxel_mi_nozeros) + bin_size, bin_size)
+        #hist, bin_edges = np.histogram(seed_to_voxel_mi_nozeros, bins=bins)# Create the histogram
+        #max_count_bins = np.where(hist == np.max(hist))[0] # Find the bin(s) with the highest count
+        #mode_values = bin_edges[max_count_bins] # Find the mode value(s) within the bin(s)
        
     
-        seed_to_voxel_mi=seed_to_voxel_mi_nozeros-  mode_values
+        #seed_to_voxel_mi=seed_to_voxel_mi_nozeros-  mode_values
         #seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi, where=~np.isnan(seed_to_voxel_mi)) 
         #
         
-        #if z_scored== True:
-        #   seed_to_voxel_mi =seed_to_voxel_mi-seed_to_voxel_mi.mean(axis=0) #demean the MI maps
-        #  seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi) # normalize to the max intensity
+        seed_to_voxel_mi_nozeros = seed_to_voxel_mi_nozeros-np.nanmean(seed_to_voxel_mi_nozeros,axis=0) #demean the MI maps
+        seed_to_voxel_mi_nozeros /= np.nanstd(seed_to_voxel_mi_nozeros,axis=0) # normalize to the max intensity
         #seed_to_voxel_mi =1-np.log(seed_to_voxel_mi)# log transfo
         #(X — X.median) / IQR
         #seed_to_voxel_mi/= np.nanmax(seed_to_voxel_mi) #demean the MI maps
           #
         
-        return seed_to_voxel_mi
+        return seed_to_voxel_mi_nozeros
     
     def distance_corr_maps(self,seed_ts,voxels_ts,output_img=None,save_maps=True,smoothing_output=None,redo=False,n_jobs=1):
         '''

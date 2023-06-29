@@ -1,10 +1,10 @@
 {   "main_dir":"/media/miplab-nas2/Data3/BMPD/hc_project/",
     "coreg_dir":"/",
-    "smooth_dir":"/brain&spine/",
+    "smooth_dir":"/brain_spine/",
     "file_tag":{"brain":"XXXX",
              "spinalcord":"XXXX"},
     
-    "output_dir": "/brain&spine/results/fc_parcellation/",
+    "output_dir": "/brain_spine/results/fc_parcellation/",
     "output_tag": "XXXX",
     
     "templates":{"brain":"/templates/MNI_hc_project/MNI_T1w_AverageHCs.nii.gz",

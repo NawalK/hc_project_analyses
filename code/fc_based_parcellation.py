@@ -128,7 +128,7 @@ class FC_Parcellation:
             fc = np.zeros((np.count_nonzero(self.mask_source),np.count_nonzero(self.mask_target)))
             data_source_masked = data_source[self.mask_source]
             data_target_masked = data_target[self.mask_target] 
-    
+            
             if standardize:
                 data_source_masked = stats.zscore(data_source_masked, axis=1).astype(np.float32)
                 data_target_masked = stats.zscore(data_target_masked, axis=1).astype(np.float32)
