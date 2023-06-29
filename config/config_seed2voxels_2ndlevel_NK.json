@@ -1,9 +1,10 @@
 {"main_dir":"/media/miplab-nas2/Data3/BMPD/hc_project/",
 
-"seeds":{"frost_C1_gm":["frost_C1_gm"],"frost_C2_gm":["frost_C2_gm"],"frost_C3_gm":["frost_C3_gm"],"frost_C4_gm":["frost_C4_gm"],"frost_C5_gm":["frost_C5_gm"],"frost_C6_gm":["frost_C6_gm"],"frost_C7_gm":["frost_C7_gm"],"frost_C1_gmwm":["frost_C1_gmwm"],"frost_C2_gmwm":["frost_C2_gmwm"],"frost_C3_gmwm":["frost_C3_gmwm"],"frost_C4_gmwm":["frost_C4_gmwm"],"frost_C5_gmwm":["frost_C5_gmwm"],"frost_C6_gmwm":["frost_C6_gmwm"],"frost_C7_gmwm":["frost_C7_gmwm"],"icap_C1":["icap_C1"],"icap_C2":["icap_C2"],"icap_C3":["icap_C3"],"icap_C4":["icap_C4"],"icap_C5":["icap_C5"],"icap_C6":["icap_C6"],"icap_C7":["icap_C7"]},
+"seeds_level":{"frost_C1_gm":["frost_C1_gm"],"frost_C2_gm":["frost_C2_gm"],"frost_C3_gm":["frost_C3_gm"],"frost_C4_gm":["frost_C4_gm"],"frost_C5_gm":["frost_C5_gm"],"frost_C6_gm":["frost_C6_gm"],"frost_C7_gm":["frost_C7_gm"],"frost_C1_gmwm":["frost_C1_gmwm"],"frost_C2_gmwm":["frost_C2_gmwm"],"frost_C3_gmwm":["frost_C3_gmwm"],"frost_C4_gmwm":["frost_C4_gmwm"],"frost_C5_gmwm":["frost_C5_gmwm"],"frost_C6_gmwm":["frost_C6_gmwm"],"frost_C7_gmwm":["frost_C7_gmwm"],"icap_C1":["icap_C1"],"icap_C2":["icap_C2"],"icap_C3":["icap_C3"],"icap_C4":["icap_C4"],"icap_C5":["icap_C5"],"icap_C6":["icap_C6"],"icap_C7":["icap_C7"]},
+"seeds":{"C1C7_DR_min_DL_gm":["C1C7_DR_gm","C1C7_DL_gm"],"C1C7_VR_min_VL_gm":["C1C7_VR_gm","C1C7_VL_gm"],"C1C7_DR_min_VR_gm":["C1C7_DR_gm","C1C7_VR_gm"],"C1C7_DL_min_VL_gm":["C1C7_DL_gm","C1C7_VL_gm"]},
 
-"model": "OneSampleT",
-"mask_path":"/media/miplab-nas2/Data3/BMPD/hc_project/analysis/mask/brain/julich_precentral_motor.nii.gz",
+"model": "TwoSampT_paired",
+"mask_path":"/media/miplab-nas2/Data3/BMPD/hc_project/analysis/mask/brain/MNI_GM_3mm_SMC.nii.gz",
 "measure":"MI",
 "target_1rstlevel": "MNI_GM_3mm",
 "seed2vox_dir": "/brain_spine/results/seed_to_voxels/",
