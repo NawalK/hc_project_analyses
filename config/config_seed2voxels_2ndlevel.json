@@ -8,7 +8,7 @@
 
 
 "model": "TwoSampT_paired",
-"mask_path":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/mask/brain/MNI_GM_3mm_SMC.nii.gz",
+"mask_path":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/mask/brain/MNI_GM_3mm.nii.gz",
 "measure":"MI",
  "target_1rstlevel": "MNI_GM_3mm",
  "seed2vox_dir": "/seed_to_voxels/summer_2023/",
