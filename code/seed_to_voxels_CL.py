@@ -385,11 +385,13 @@ class Seed2voxels:
         
         discrete_features='auto' # will test the sparsity of the data, if the distribution is dense then continuous will be selected
         n_neighbors= 4 # same as Cliff et al. 2022
+        #i.e: n_neighbors = 7 to evaluate the smallest symmetrical pattern around a center voxel, which consists of the center voxel and its 6 face-connected neighbor
        
         '''
           
         seed_to_voxel_mi = np.zeros((voxels_ts.shape[1], 1)) # np.zeros(number of voxels,1)
-        seed_to_voxel_mi = mutual_info_regression(voxels_ts,seed_ts,n_neighbors=4)
+        seed_to_voxel_mi = mutual_info_regression(voxels_ts,seed_ts,n_neighbors=7)
+        
         
         seed_to_voxel_mi_nozeros= np.where(seed_to_voxel_mi == 0, np.nan, seed_to_voxel_mi)
 

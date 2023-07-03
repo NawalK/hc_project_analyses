@@ -293,7 +293,7 @@ class Stats:
    
         return contrast_map
     
-    def secondlevel_correction(self,maps,z_thr=1.5,p_value=0.001,corr=None,smoothing=None,plot_stats_corr=False,save_img=False,n_job=1):
+    def secondlevel_correction(self,maps,z_thr=1.5,p_value=0.001,cluster_threshold=10,corr=None,smoothing=None,plot_stats_corr=False,save_img=False,n_job=1):
         '''
         One sample t-test
         Attributes
@@ -310,7 +310,7 @@ class Stats:
     
         for i, (title,values) in enumerate(maps.items()):
             if self.parametric== True:
-                cluster_threshold=10
+
                 thresholded_map, threshold = threshold_stats_img(maps[title]["z_score"],alpha=p_value,threshold=z_thr,height_control=corr,cluster_threshold=cluster_threshold,two_sided=False)
             
 
@@ -400,6 +400,7 @@ class Stats:
         
         
         elif len(self.seed_names)==4 and contrast_name==None:
+            #VR, VL, DR, DL
             for seed_nb in range(0,len(self.seed_names)):
                 contrasts["Main test " + self.seed_names[seed_nb]]=np.hstack(([0] * len(self.config['list_subjects']) * seed_nb, [1] * len(self.config['list_subjects']), [0] * len(self.config['list_subjects'])* (len(self.seed_names)-(seed_nb+1))))
             contrasts["Ventral Effect"]=np.hstack(([1] * len(self.config['list_subjects']) *2, [0] * len(self.config['list_subjects']) * 2))
@@ -430,7 +431,7 @@ class Stats:
             contrasts["Left vs Right"]=np.hstack((np.tile(([[-1] * len(self.config['list_subjects'])+ [1] * len(self.config['list_subjects'])]),9*2)))
             contrasts["All effect"]=np.hstack(([1] * len(self.config['list_subjects']) * len(self.seed_names)))
             
-        elif contrast_name=="D-RL_9levels":
+        elif contrast_name=="D-R_9levels":
             for seed_nb in range(0,len(self.seed_names)):
                 contrasts["Main test " + self.seed_names[seed_nb]]=np.hstack(([0] * len(self.config['list_subjects']) * seed_nb, [1] * len(self.config['list_subjects']), [0] * len(self.config['list_subjects'])* (len(self.seed_names)-(seed_nb+1))))
             contrasts["Right Effect"]=np.hstack((np.tile(([[1] * len(self.config['list_subjects'])+ [0] * len(self.config['list_subjects'])]),9)))
