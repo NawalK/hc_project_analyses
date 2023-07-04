@@ -347,7 +347,8 @@ class Stats:
                 
         
     def snpm_OneSampleT(self,permutation,t_thr,seed_name,output_filename):
-        
+        os.chdir("../../code/stats_snpm/")
+
         eng = matlab.engine.start_matlab()
         output_snpm=self.output_dir + "/snpm/"
         if not os.path.exists(output_snpm):
