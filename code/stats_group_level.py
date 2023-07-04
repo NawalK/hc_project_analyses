@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 # stats
 from scipy.stats import norm
 
+
 class Stats:
     
     
@@ -345,7 +346,27 @@ class Stats:
                 nb.save(thresholded_map, output_corrected + "/" + title + "_" +corr+ "_p"+ str(p_value).split('.')[-1] +".nii.gz")
                 
         
+    def snpm_OneSampleT(self,permutation,t_thr,seed_name,output_filename):
         
+        eng = matlab.engine.start_matlab()
+        output_snpm=self.output_dir + "/snpm/"
+        if not os.path.exists(output_snpm):
+            os.mkdir(output_snpm)
+        
+        if self.mask_img.split(".")[-1] == "gz":
+            raise ValueError(">>>> Mask image should be unzip for SnPM (.nii)")
+        
+        input_files=self.data_1rstlevel[seed_name]
+        print(eng.SnPM_OneSampT(permutation,t_thr,os.path.dirname(self.data_1rstlevel[seed_name][0]),self.tag_file + "_"+ str(len(self.config['list_subjects'])) + "subjects" ,self.mask_img,output_snpm,output_filename))
+            
+       
+                        
+                
+                
+        
+
+
+                
     def _plot_stats(self,second_level_map,title,threshold,cluster_threshold):
         '''
         Extract significant cluster in a table

@@ -12,7 +12,7 @@ SPM_Dir='/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/s
 addpath(SPM_Dir); % Add SPM12 to the path
 
 permutation
-files=spm_select('ExtFPList',fullfile(input_dir),[tag_file,'.*.s.nii$']);
+files=spm_select('ExtFPList',fullfile(input_dir),[tag_file,'.*s.nii$'])
 for sbj=1:size(files,1) ;
 f{sbj,:} = files(sbj,:);
 end
@@ -31,7 +31,7 @@ matlabbatch{1}.spm.tools.snpm.des.OneSampT.P = f
 
 matlabbatch{1}.spm.tools.snpm.des.OneSampT.cov = struct('c', {}, 'cname', {});
 matlabbatch{1}.spm.tools.snpm.des.OneSampT.nPerm = permutation;
-matlabbatch{1}.spm.tools.snpm.des.OneSampT.vFWHM = [1 1 1];
+matlabbatch{1}.spm.tools.snpm.des.OneSampT.vFWHM = [6 6 6];
 matlabbatch{1}.spm.tools.snpm.des.OneSampT.bVolm = 1;
 matlabbatch{1}.spm.tools.snpm.des.OneSampT.ST.ST_U = t_thr;
 matlabbatch{1}.spm.tools.snpm.des.OneSampT.masking.tm.tm_none = 1;

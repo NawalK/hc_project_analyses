@@ -1,14 +1,14 @@
 {"main_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/",
 
 
-"seeds":{"C1C7_V-D_gmwm":["C1C7_V_gmwm","C1C7_D_gmwm"],"C1C7_R-L_gmwm":["C1C7_R_gmwm","C1C7_L_gmwm"],
+"seeds1":{"C6_VR-VL_gmwm":["icap_C6_VR_gmwm","icap_C6_VL_gmwm"],"C6_DR-DL_gmwm":["icap_C6_DR_gmwm","icap_C6_DL_gmwm"],"C6_VR-DR_gmwm":["icap_C6_VR_gmwm","icap_C6_DR_gmwm"],"C6_VL-DL_gmwm":["icap_C6_VL_gmwm","icap_C6_DL_gmwm"],"C6_R-L_gmwm":["icap_C6_R_gmwm","icap_C6_L_gmwm"],"C1C7_V-D_gmwm":["C1C7_V_gmwm","C1C7_D_gmwm"],"C1C7_R-L_gmwm":["C1C7_R_gmwm","C1C7_L_gmwm"],
          "C1C7_DR-DL_gmwm":["C1C7_DR_gmwm","C1C7_DL_gmwm"],"C1C7_VR-VL_gmwm":["C1C7_VR_gmwm","C1C7_VL_gmwm"],
         "C1C7_VR-DR_gmwm":["C1C7_VR_gmwm","C1C7_DR_gmwm"],"C1C7_VL-DL_gmwm":["C1C7_VL_gmwm","C1C7_DL_gmwm"]},
- "seeds1":{"C1C7_4quad_gmwm":["C1C7_VR_gmwm","C1C7_VL_gmwm","C1C7_DR_gmwm","C1C7_DL_gmwm"]},
+ "seeds":{"C1C7_R_gmwm":["C1C7_R_gmwm"]},
 
 
-"model": "TwoSampT_paired",
-"mask_path":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/mask/brain/MNI_GM_3mm.nii.gz",
+"model":"OneSampleT",
+"mask_path":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/mask/brain/MNI_GM_3mm.nii",
 "measure":"MI",
  "target_1rstlevel": "MNI_GM_3mm",
  "seed2vox_dir": "/seed_to_voxels/summer_2023/",
