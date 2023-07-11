@@ -341,7 +341,7 @@ class Seed2voxels:
         return  seed_to_voxel_correlations_fisher_z if Fisher==True else seed_to_voxel_correlations
     
 
-    def mutual_info_maps(self,seed_ts,voxels_ts,z_scored=False,output_img=None,save_maps=True,smoothing_output=False,redo=False, n_jobs=1):
+    def mutual_info_maps(self,seed_ts,voxels_ts,output_img=None,save_maps=True,smoothing_output=False,redo=False, n_jobs=1):
         '''
         Create  mutual information maps
         seed_ts: list
@@ -359,7 +359,7 @@ class Seed2voxels:
    
         ----------
         '''
-        seed_to_voxel_mi=Parallel(n_jobs=n_jobs)(delayed(self._compute_mutual_info)(voxels_ts[subject_nb],seed_ts[subject_nb],z_scored)
+        seed_to_voxel_mi=Parallel(n_jobs=n_jobs)(delayed(self._compute_mutual_info)(voxels_ts[subject_nb],seed_ts[subject_nb])
                                            for subject_nb in range(len(self.subject_names)))
        
         
@@ -375,11 +375,8 @@ class Seed2voxels:
             image.concat_imgs(sorted(glob.glob(os.path.dirname(output_img) + '/tmp_sub-*.nii.gz'))).to_filename(output_img + '.nii')
             
         # rename individual outputs
-            for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'):
-                if z_scored==True:
-                    new_name=os.path.dirname(output_img) + "/mi_z"+tmp.split('tmp')[-1]
-                elif z_scored==False:
-                    new_name=os.path.dirname(output_img) + "/mi"+tmp.split('tmp')[-1] 
+            for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'):    
+                new_name=os.path.dirname(output_img) + "/mi"+tmp.split('tmp')[-1] 
                 print(new_name)
                 
                 os.rename(tmp,new_name)
@@ -389,7 +386,7 @@ class Seed2voxels:
         
         return seed_to_voxel_mi
     
-    def _compute_mutual_info(self,voxels_ts,seed_ts,z_scored):
+    def _compute_mutual_info(self,voxels_ts,seed_ts):
         '''
         Run the mutual information analysis:
         https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.mutual_info_regression.html#r37d39d7589e2-2
@@ -402,7 +399,9 @@ class Seed2voxels:
         '''
           
         seed_to_voxel_mi = np.zeros((voxels_ts.shape[1], 1)) # np.zeros(number of voxels,1)
-        seed_to_voxel_mi = mutual_info_regression(voxels_ts,seed_ts,n_neighbors=4)
+        
+        voxels_ts_nonan = np.nan_to_num(voxels_ts,nan=0)
+        seed_to_voxel_mi = mutual_info_regression(voxels_ts_nonan,seed_ts,n_neighbors=4)
         
         seed_to_voxel_mi_nozeros= np.where(seed_to_voxel_mi == 0, np.nan, seed_to_voxel_mi)
 

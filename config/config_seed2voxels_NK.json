@@ -3,15 +3,20 @@
 "masks":{"brain":"/templates/MNI/3mm_resolution/MNI_T1w_GM_AverageHCs_3mm_bin_corrected.nii.gz",
          "spinalcord": "/templates/PAM50/template/PAM50_cord.nii.gz"},
 
-"seeds":{"seed_dir":"/analysis/mask/spinalcord/full/gm/",
+"seeds":{"seed_dir":"/analysis/mask/spinalcord/full/gmwm/",
          "seed_names2":["frost_C6_DL_gm","frost_C8_DL_gm","frost_T1_DL_gm","frost_C5_DL_gm","frost_C4_DL_","frost_C3_DL_gmwm","frost_C2_DL_gmwm","frost_C1_DL_gmwm",
                        "frost_C6_DR_gm","frost_C8_DR_gm","frost_T1_DR_gm","frost_C5_DR_gm","frost_C4_DR_gmwm","frost_C3_DR_gmwm","frost_C2_DR_gmwm","frost_C1_DR_gmwm"],
-          "seed_names":["C1C7_D_gm","C1C7_V_gm","C1C7_L_gm","C1C7_R_gm"],
+          "seed_names_hemicord":["C1C7_D_gm","C1C7_V_gm","C1C7_L_gm","C1C7_R_gm"],
           "seed_names_gm":["frost_C1_gm","frost_C2_gm","frost_C3_gm","frost_C4_gm","frost_C5_gm","frost_C6_gm","frost_C7_gm"],
           "seed_names_gmwm":["frost_C1_gmwm","frost_C2_gmwm","frost_C3_gmwm","frost_C4_gmwm","frost_C5_gmwm","frost_C6_gmwm","frost_C7_gmwm"],
           "seed_names_icaps":["icap_C1","icap_C2","icap_C3","icap_C4","icap_C5","icap_C6","icap_C7"],
+          "seed_names_R_gmwm":["frost_C1_R_gmwm","frost_C2_R_gmwm","frost_C3_R_gmwm","frost_C4_R_gmwm","frost_C5_R_gmwm","frost_C6_R_gmwm","frost_C7_R_gmwm"],
+          "seed_names_icaps_LR":["icap_C1_R_gmwm","icap_C2_R_gmwm","icap_C3_R_gmwm","icap_C4_R_gmwm","icap_C5_R_gmwm","icap_C6_R_gmwm","icap_C7_R_gmwm","icap_C1_L_gmwm","icap_C2_L_gmwm","icap_C3_L_gmwm","icap_C4_L_gmwm","icap_C5_L_gmwm","icap_C6_L_gmwm","icap_C7_L_gmwm"],
+          "seed_names_icaps_DV":["icap_C1_D_gmwm","icap_C2_D_gmwm","icap_C3_D_gmwm","icap_C4_D_gmwm","icap_C5_D_gmwm","icap_C6_D_gmwm","icap_C7_D_gmwm","icap_C1_V_gmwm","icap_C2_V_gmwm","icap_C3_V_gmwm","icap_C4_V_gmwm","icap_C5_V_gmwm","icap_C6_V_gmwm","icap_C7_V_gmwm"],
+          "seed_names_full_icap":["icap_C1toC7_D","icap_C1toC7_V","icap_C1toC7_L","icap_C1toC7_R","icap_C1toC7_DL","icap_C1toC7_DR","icap_C1toC7_VL","icap_C1toC7_VR"],
+          "seed_names":["C1C7_gmwm"],
           "seed_structure":"spinalcord"},
- 
+
 "targeted_voxels":{"target_dir":"/analysis/mask/brain/",
                    "target_dir2":"/analysis/mask/spinalcord/iCAPs/thr2.5/",
                    "target_name": "MNI_GM_3mm",
