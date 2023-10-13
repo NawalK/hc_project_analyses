@@ -17,6 +17,7 @@ from sklearn.feature_selection import mutual_info_regression
 from sklearn import decomposition
 from scipy import stats
 
+from dtaidistance import dtw
 
 from tqdm import tqdm
 # to improve---------------------------
@@ -394,39 +395,74 @@ class Seed2voxels:
         " The Kraskov technique (ksg) combines nearest-neighbor estimators for mutual information based measures"
         
         discrete_features='auto' # will test the sparsity of the data, if the distribution is dense then continuous will be selected
-        n_neighbors= 4 # same as Cliff et al. 2022
-       
+        n_neighbors = 7 to evaluate the smallest symmetrical pattern around a center voxel, which consists of the center voxel and its 6 face-connected neighbor
+              
         '''
-          
+        
         seed_to_voxel_mi = np.zeros((voxels_ts.shape[1], 1)) # np.zeros(number of voxels,1)
         
         voxels_ts_nonan = np.nan_to_num(voxels_ts,nan=0)
-        seed_to_voxel_mi = mutual_info_regression(voxels_ts_nonan,seed_ts,n_neighbors=4)
+        seed_to_voxel_mi = mutual_info_regression(voxels_ts_nonan,seed_ts,n_neighbors=7)
         
         seed_to_voxel_mi_nozeros= np.where(seed_to_voxel_mi == 0, np.nan, seed_to_voxel_mi)
 
-        #masknib.load(self.mask_target).get_data().astype(bool)
-        #seed_to_voxel_mi
-        #bin_size = 0.001
-        #bins = np.arange(min(seed_to_voxel_mi_nozeros), max(seed_to_voxel_mi_nozeros) + bin_size, bin_size)
-        #hist, bin_edges = np.histogram(seed_to_voxel_mi_nozeros, bins=bins)# Create the histogram
-        #max_count_bins = np.where(hist == np.max(hist))[0] # Find the bin(s) with the highest count
-        #mode_values = bin_edges[max_count_bins] # Find the mode value(s) within the bin(s)
-       
-    
-        #seed_to_voxel_mi=seed_to_voxel_mi_nozeros-  mode_values
-        #seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi, where=~np.isnan(seed_to_voxel_mi)) 
-        #
-        
-        #seed_to_voxel_mi_nozeros = seed_to_voxel_mi_nozeros-np.nanmean(seed_to_voxel_mi_nozeros,axis=0) #demean the MI maps
         seed_to_voxel_mi_nozeros /= np.nanmax(seed_to_voxel_mi_nozeros,axis=0) # normalize to the max intensity
-        #seed_to_voxel_mi =1-np.log(seed_to_voxel_mi)# log transfo
-        #(X — X.median) / IQR
-        #seed_to_voxel_mi/= np.nanmax(seed_to_voxel_mi) #demean the MI maps
-          #
         
         return seed_to_voxel_mi_nozeros
     
+    def dtw_maps(self,seed_ts,voxels_ts,output_img=None,save_maps=True,smoothing_output=False,redo=False, n_jobs=1):
+        '''
+        Create  DTW maps
+        seed_ts: list
+            timecourse to use as seed (see extract_data method) (list containing one array per suject)
+        target_ts: list
+            timecourses of all voxels on which to compute the correlation (see extract_data method) (list containing one array per suject)
+        output_img: str
+            path + rootname of the output image (/!\ no extension needed) (ex: '/pathtofile/output')
+        save_maps: boolean
+            to save correlation maps (default = True).
+        redo: boolean
+            to rerun the analysis
+        njobs: int
+            number of jobs for parallelization
+   
+        ----------
+        '''
+        seed_to_voxel_dtw=Parallel(n_jobs=n_jobs)(delayed(self._compute_dtw)(voxels_ts[subject_nb].astype('double'),seed_ts[subject_nb].astype('double'))
+                                          for subject_nb in range(len(self.subject_names)))
+        
+        if save_maps==True:
+            Parallel(n_jobs=n_jobs)(delayed(self._save_maps)(subject_nb,seed_to_voxel_dtw[subject_nb],
+                                                                 output_img,
+                                                                 smoothing_output)
+                                           for subject_nb in range(len(self.subject_names)))     
+            # Create 4D image included all participants maps
+            image.concat_imgs(sorted(glob.glob(os.path.dirname(output_img) + '/tmp_sub-*.nii.gz'))).to_filename(output_img + '.nii')
+            
+            # rename individual outputs
+            for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'):    
+                new_name=os.path.dirname(output_img) + "/dtw"+tmp.split('tmp')[-1] 
+                print(new_name)
+                
+                os.rename(tmp,new_name)
+        np.savetxt(os.path.dirname(output_img) + '/subjects_labels.txt',self.subject_names,fmt="%s") # copy the config file that store subject info     
+        
+        return seed_to_voxel_dtw
+
+
+    def _compute_dtw(self, voxels_ts, seed_ts):
+        '''
+        Run the Dynamic Time Warping analysis
+        '''
+        seed_to_voxel_dtw = np.zeros((voxels_ts.shape[1], 1)) # np.zeros(number of voxels,1)
+        for v in range(0,voxels_ts.shape[1]): 
+            seed_to_voxel_dtw[v] = dtw.distance_fast(seed_ts, voxels_ts[:, v])
+
+        seed_to_voxel_dtw_norm = seed_to_voxel_dtw / np.nanmax(seed_to_voxel_dtw,axis=0)    
+        seed_to_voxel_dtw_norm = 1-seed_to_voxel_dtw_norm 
+
+        return seed_to_voxel_dtw_norm
+        
     def distance_corr_maps(self,seed_ts,voxels_ts,output_img=None,save_maps=True,smoothing_output=None,redo=False,n_jobs=1):
         '''
         Compute correlation maps between a seed timecourse and voxels

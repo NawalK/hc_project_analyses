@@ -60,21 +60,27 @@ def compute_similarity(config, data1, data2, thresh1=1.6, thresh2=1.6, mask1=Non
         mask1_vec = np.reshape(mask1,(mask1.shape[0]*mask1.shape[1]*mask1.shape[2],1)) # Reshape masks
         mask2_vec = np.reshape(mask2,(mask2.shape[0]*mask2.shape[1]*mask2.shape[2],1)) 
         if np.count_nonzero(mask1_vec) != np.count_nonzero(mask2_vec):
-            raise(Exception(f'The "Cosine" method can only be used for data using the same masks!'))
+            # If data shapes are different, we take the largest mask.
+            if np.count_nonzero(mask1_vec) > np.count_nonzero(mask2_vec): 
+                mask2_vec = mask1_vec
+            else:
+                mask1_vec = mask2_vec
+
         data1_vec = np.zeros((data1.shape[0]*data1.shape[1]*data1.shape[2],k))
         data2_vec = np.zeros((data2.shape[0]*data2.shape[1]*data2.shape[2],k))
         data1_masked = np.zeros((np.count_nonzero(mask1_vec),k))
         data2_masked = np.zeros((np.count_nonzero(mask2_vec),k))    
         
-
     if verbose == True:
         print(f"...Compute similarity between pairs of components")
     similarity_matrix = np.zeros((k,k))
         
     for k1 in range(0,k):
         if method == 'Cosine': # Reshape as vector & mask if needed 
-            data1_vec[:,k1] = np.reshape(data1[:,:,:,k1],(data1.shape[0]*data1.shape[1]*data1.shape[2],))
-            data1_masked[:,k1] = data1_vec[np.flatnonzero(mask1_vec),k1]
+            if k1 < data1.shape[3]: # Check that k is included in the data
+                data1_vec[:,k1] = np.reshape(data1[:,:,:,k1],(data1.shape[0]*data1.shape[1]*data1.shape[2],))
+                data1_masked[:,k1] = data1_vec[np.flatnonzero(mask1_vec),k1]
+        
         for k2 in range(0,k):
             if method == 'Dice' or method == 'Overlap':
                 # For the intersection, we multiply the two binary maps and count the number of elements

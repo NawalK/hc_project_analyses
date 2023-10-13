@@ -8,6 +8,7 @@ from compute_similarity import compute_similarity
 from scipy.ndimage import find_objects,center_of_mass,label
 from threshold_map import Threshold_map
 from sc_utilities import match_levels, sort_maps
+from skimage import measure
 
 class Plotting:
     '''
@@ -88,7 +89,6 @@ class Plotting:
             elif self.duration[set] == None and self.subject[set] != None and self.analysis[set]!=("icap_duration" or "ica_duration"):
                 #print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_indiv/*' + self.subject[set] + '*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')
                 self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_indiv/*' + self.subject[set] + '*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
-                
             elif self.duration[set] == None and self.subject[set] == None and self.analysis[set]!=("icap_duration" or "ica_duration"):
                 #print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')
                 self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
@@ -102,12 +102,12 @@ class Plotting:
 
     # ======= SPINAL CORD ========
     
-    def sc_plot(self, k_per_line=None, lthresh=None, uthresh=4.0, perc_thresh=90, template=None, centering_method='max', similarity_method='Dice', plot_mip=False, show_spinal_levels=False, colormap_one='autumn', colormap_two=['autumn','winter'], save_results=False):
+    def sc_plot(self, k_per_line=None, lthresh=None, uthresh=4.0, perc_thresh=90, template=None, centering_method='max', similarity_method='Dice', plot_mip=False, plot_overlap=True, show_spinal_levels=False, colormap_one='autumn', colormap_two=['autumn','winter'], save_results=False):
         ''' Plot components overlaid on PAM50 template (coronal and axial views are shown)
         
         Inputs
         ----------
-        k_per_line: str
+        k_per_line : str
             Number of maps to display per line (default = will be set to total number of 4th dimension in the 4D image)
         lthresh : float
             Lower threshold value to display the maps 
@@ -122,9 +122,12 @@ class Plotting:
                 'middle' to center in the middle of the volume
         similarity_method : str
             Method to compute similarity if there are two datasets (default = Dice)
-        plot_mip: boolean
+        plot_mip : boolean
             If set to True, we plot the Maximum Intensity Projection (default = False)
             ! Only possible for one dataset and centering at middle
+        plot_overlap : boolean
+            If set to True, we plot the outline of the overlap of the two components 
+            ! Only possible if two datasets 
         show_spinal_levels : boolean
             Defines whether spinal levels are displayed or not (default = False)
         colormap_one : str
@@ -145,6 +148,8 @@ class Plotting:
         if plot_mip and centering_method != "middle":
             print("When using the maximum intensity projection, centering method is set to 'middle'")
             centering_method = "middle" # "force" centering method
+        if plot_overlap and len(self.k.keys())!=2:
+            raise(Exception('We need two datasets to plot the overlap'))
 
         # Define main and secondary dataset (useful for plotting, matching, etc.) and assign colormaps
         if len(self.k.keys())==2: 
@@ -226,6 +231,7 @@ class Plotting:
                         max_y = int(np.where(map_masked[main_dataset] == np.nanmax(map_masked[main_dataset][:,:,:,i]))[1])
             elif centering_method == 'middle':
                 max_y = template_data.shape[1]//2
+                max_y = 26
             else:
                 raise(Exception(f'"{centering_method}" is not a supported centering method.'))
                     
@@ -251,11 +257,16 @@ class Plotting:
             else:
                 axs[row_coronal,col].imshow(np.rot90(map_masked[main_dataset][:,max_y,:,i].T,2),vmin=lthresh, vmax=uthresh,cmap=colormaps[main_dataset],alpha=alpha[main_dataset])
             
-            
             if len(self.k.keys())==2 and i<self.k[secondary_dataset]: # If maps present in both
                 axs[row_coronal,col].imshow(np.rot90(map_masked[secondary_dataset][:,max_y,:,i].T,2),vmin=lthresh, vmax=uthresh,cmap=colormaps[secondary_dataset],alpha=alpha[secondary_dataset])
-                    
-             
+                if plot_overlap: # If we want to plot overlap
+                    map1_bin = np.where(np.rot90(map_masked[main_dataset][:,max_y,:,i].T,2) > lthresh, 1, 0)
+                    map2_bin = np.where(np.rot90(map_masked[secondary_dataset][:,max_y,:,i].T,2) > lthresh, 1, 0)
+                    overlap = map1_bin * map2_bin      
+                    contours = measure.find_contours(overlap)
+                    for contour in contours:
+                        axs[row_coronal,col].plot(contour[:,1],contour[:,0],linewidth=1,c='white',linestyle='solid',alpha=0.7)
+
             # Draw axial views
             row_axial = 1 if i<k_per_line else (i//k_per_line-1)*2+3
             axs[row_axial,col].axis('off');

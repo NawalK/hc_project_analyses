@@ -87,7 +87,7 @@ class FC_Parcellation:
         with open(path_config, 'w') as f:
             json.dump(self.config,f)
             
-    def compute_voxelwise_fc(self, sub, standardize=True, overwrite=False, njobs=40):
+    def compute_voxelwise_fc(self, sub, standardize=True, overwrite=False, njobs=10):
         '''
         To compute functional connectivity between each voxel of mask_source to all voxels of mask_target
         Can be done using Pearson correlation or Mutual Information
@@ -592,7 +592,7 @@ class FC_Parcellation:
         return np.dot(A_mA, B_mB.T) / np.sqrt(np.dot(ssA[:, None],ssB[None]))
     
     def _compute_mi(self, vox_source, data_source_masked, data_target_masked):
-        return mutual_info_regression(data_target_masked.T, data_source_masked[vox_source,:].T, discrete_features=True, n_neighbors=8)
+        return mutual_info_regression(data_target_masked.T, data_source_masked[vox_source,:].T, n_neighbors=7)
 
     def _relabel(self, reference: np.ndarray, x: np.ndarray):
         """Relabel cluster labels to best match a reference
