@@ -7,13 +7,12 @@
          "seed_indiv_dir":"/hc_project_analyses/mask/spinalcord/Indiv/",
          "seed_names2":["frost_C6_DL_gm","frost_C8_DL_gm","frost_T1_DL_gm","frost_C5_DL_gm","frost_C4_DL_","frost_C3_DL_gmwm","frost_C2_DL_gmwm","frost_C1_DL_gmwm",
                        "frost_C6_DR_gm","frost_C8_DR_gm","frost_T1_DR_gm","frost_C5_DR_gm","frost_C4_DR_gmwm","frost_C3_DR_gmwm","frost_C2_DR_gmwm","frost_C1_DR_gmwm"],
-          "seed_names":["icap_C1_gmwm","icap_C2_gmwm","icap_C3_gmwm","icap_C4_gmwm","icap_C5_gmwm","icap_C6_gmwm","icap_C7_gmwm"],
+          "seed_names1":["icap_C1_gmwm","icap_C2_gmwm","icap_C3_gmwm","icap_C4_gmwm","icap_C5_gmwm","icap_C6_gmwm","icap_C7_gmwm"],
+          "seed_names":["icap_C1_gmwm"],
          "seed_structure":"spinalcord"},
  
-"targeted_voxels":{"target_dir":"/hc_project_analyses/mask/brain/",
-                   "target_dir2":"/hc_project_analyses/mask/spinalcord/iCAPs/thr2.5/",
-                  "target_name2": "spinalcord_C6",
-                   "target_name":  "MNI_GM_3mm",
+"targeted_voxels":{"target_dir":"/hc_project_analyses/masks/brain/",
+                   "target_name":  "MNI_GM_2mm",
                   "target_structure":"brain"},
 
 "input_func":{"seed_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/2_func_in_template/",
