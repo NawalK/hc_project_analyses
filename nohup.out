@@ -1,0 +1,792 @@
+Start the analysis on: 31 participants
+targeted voxel's group mask: MNI_GM_2mm
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/brain/MNI_GM_2mm.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/icap_C2.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/icap_C3.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/icap_C4.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/icap_C5.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/icap_C6.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/icap_C7.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/icap_C1.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package outdated is out of date. Your version is 0.2.1, the latest is 0.2.2.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package pingouin is out of date. Your version is 0.3.12, the latest is 0.5.3.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+data extracted:   0%|          | 0/7 [00:00<?, ?it/s]data extracted:  14%|█▍        | 1/7 [08:55<53:34, 535.72s/it]data extracted:  29%|██▊       | 2/7 [18:07<45:02, 540.49s/it]data extracted:  43%|████▎     | 3/7 [27:14<36:09, 542.43s/it]data extracted:  57%|█████▋    | 4/7 [36:25<27:15, 545.19s/it]data extracted:  71%|███████▏  | 5/7 [45:39<18:15, 547.60s/it]data extracted:  86%|████████▌ | 6/7 [54:45<09:07, 547.08s/it]data extracted: 100%|██████████| 7/7 [1:03:49<00:00, 546.20s/it]data extracted: 100%|██████████| 7/7 [1:03:49<00:00, 547.02s/it]/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package outdated is out of date. Your version is 0.2.1, the latest is 0.2.2.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package pingouin is out of date. Your version is 0.3.12, the latest is 0.5.3.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+Target extracted in  281.44094371795654 seconds
+icap_C2
+Seeds extracted in  535.7153766155243 seconds
+icap_C3
+Seeds extracted in  551.6081917285919 seconds
+icap_C4
+Seeds extracted in  546.9491937160492 seconds
+icap_C5
+Seeds extracted in  551.6342861652374 seconds
+icap_C6
+Seeds extracted in  553.2028801441193 seconds
+icap_C7
+Seeds extracted in  545.8810729980469 seconds
+icap_C1
+Seeds extracted in  544.1158621311188 seconds
+Outputs are organized as:
+1: timeseries_target={'raw':[],'zscored':[],'mean':[],'zmean':[],'PC1':[]}
+2: timeseries_seeds={'raw':[],'zscored':[],'mean':[],'zmean':[],'PC1':[]}
+
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package pingouin is out of date. Your version is 0.3.12, the latest is 0.5.3.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package outdated is out of date. Your version is 0.2.1, the latest is 0.2.2.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A006.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A011.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A027.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A026.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A032.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A039.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A050.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A023.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A044.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A007.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A030.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A024.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A025.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A009.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-P099.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-P030.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A029.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A033.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A008.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A028.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A048.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A037.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A052.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A046.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A036.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A051.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A013.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A045.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A034.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A038.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C2/MNI_GM_2mm_fc_maps/MI/mi_sub-A043.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A006.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A011.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A027.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A026.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A032.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A039.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A050.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A023.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A044.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A007.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A030.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A024.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A025.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A009.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-P099.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-P030.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A029.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A033.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A008.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A028.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A048.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A037.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A052.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A046.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A036.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A051.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A013.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A045.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A034.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A038.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C3/MNI_GM_2mm_fc_maps/MI/mi_sub-A043.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package outdated is out of date. Your version is 0.2.1, the latest is 0.2.2.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package pingouin is out of date. Your version is 0.3.12, the latest is 0.5.3.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A006.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A011.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A027.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A026.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A032.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A039.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A050.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A023.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A044.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A007.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A030.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A024.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A025.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A009.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-P099.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-P030.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A029.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A033.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A008.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A028.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A048.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A037.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A052.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A046.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A036.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A051.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A013.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A045.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A034.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A038.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C4/MNI_GM_2mm_fc_maps/MI/mi_sub-A043.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package outdated is out of date. Your version is 0.2.1, the latest is 0.2.2.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package pingouin is out of date. Your version is 0.3.12, the latest is 0.5.3.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A006.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A011.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A027.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A026.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A032.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A039.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A050.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A023.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A044.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A007.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A030.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A024.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A025.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A009.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-P099.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-P030.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A029.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A033.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A008.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A028.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A048.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A037.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A052.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A046.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A036.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A051.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A013.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A045.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A034.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A038.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C5/MNI_GM_2mm_fc_maps/MI/mi_sub-A043.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package outdated is out of date. Your version is 0.2.1, the latest is 0.2.2.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package pingouin is out of date. Your version is 0.3.12, the latest is 0.5.3.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A006.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A011.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A027.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A026.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A032.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A039.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A050.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A023.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A044.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A007.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A030.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A024.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A025.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A009.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-P099.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-P030.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A029.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A033.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A008.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A028.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A048.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A037.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A052.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A046.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A036.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A051.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A013.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A045.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A034.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A038.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C6/MNI_GM_2mm_fc_maps/MI/mi_sub-A043.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A006.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A011.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A027.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A026.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A032.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A039.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A050.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A023.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A044.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A007.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A030.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A024.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A025.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A009.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-P099.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-P030.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A029.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A033.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A008.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A028.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A048.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A037.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A052.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A046.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A036.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A051.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A013.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A045.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A034.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A038.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C7/MNI_GM_2mm_fc_maps/MI/mi_sub-A043.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A006.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A011.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A027.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A026.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A032.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A039.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A050.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A023.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A044.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A007.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A030.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A024.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A025.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A009.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-P099.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-P030.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A029.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A033.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A008.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A028.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A048.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A037.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A052.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A046.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A036.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A051.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A013.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A045.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A034.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A038.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//seed_to_voxels/winter_2023//1_first_level/icap_C1/MNI_GM_2mm_fc_maps/MI/mi_sub-A043.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package pingouin is out of date. Your version is 0.3.12, the latest is 0.5.3.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package outdated is out of date. Your version is 0.2.1, the latest is 0.2.2.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package pingouin is out of date. Your version is 0.3.12, the latest is 0.5.3.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package outdated is out of date. Your version is 0.2.1, the latest is 0.2.2.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package outdated is out of date. Your version is 0.2.1, the latest is 0.2.2.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package pingouin is out of date. Your version is 0.3.12, the latest is 0.5.3.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package outdated is out of date. Your version is 0.2.1, the latest is 0.2.2.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package pingouin is out of date. Your version is 0.3.12, the latest is 0.5.3.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package outdated is out of date. Your version is 0.2.1, the latest is 0.2.2.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package pingouin is out of date. Your version is 0.3.12, the latest is 0.5.3.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package outdated is out of date. Your version is 0.2.1, the latest is 0.2.2.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package pingouin is out of date. Your version is 0.3.12, the latest is 0.5.3.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/image/resampling.py:453: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn("The provided image has no sform in its header. "
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package outdated is out of date. Your version is 0.2.1, the latest is 0.2.2.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package pingouin is out of date. Your version is 0.3.12, the latest is 0.5.3.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package outdated is out of date. Your version is 0.2.1, the latest is 0.2.2.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package pingouin is out of date. Your version is 0.3.12, the latest is 0.5.3.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs

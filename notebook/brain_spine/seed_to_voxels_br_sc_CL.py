@@ -12,7 +12,7 @@ import sys,json
 import glob, os
 sys.path.append("/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/code/")
 
-from seed_to_voxels_CL import Seed2voxels
+from seed_to_voxels import Seed2voxels
 
 # In[2]:
 
@@ -67,7 +67,7 @@ for seed_name in config["seeds"]["seed_names"]:
     if not os.path.exists(output_dir[seed_name]):
             os.mkdir(output_dir[seed_name])
     
-    output_file[seed_name]=  output_dir[seed_name] +'/mi_' + str(len(config['list_subjects'])) + 'subjects_seed_' + seed_name + '_ss'
+    output_file[seed_name]=  output_dir[seed_name] +'/mi_' + str(len(config['list_subjects'])) + 'subjects_seed_' + seed_name + '_s'
   
     
     mi=seed2voxels.mutual_info_maps(seeds_timeseries["zmean"][seed_name],

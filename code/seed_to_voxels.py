@@ -17,7 +17,6 @@ from sklearn.feature_selection import mutual_info_regression
 from sklearn import decomposition
 from scipy import stats
 
-from dtaidistance import dtw
 
 from tqdm import tqdm
 # to improve---------------------------
@@ -400,9 +399,7 @@ class Seed2voxels:
         '''
         
         seed_to_voxel_mi = np.zeros((voxels_ts.shape[1], 1)) # np.zeros(number of voxels,1)
-        
-        voxels_ts_nonan = np.nan_to_num(voxels_ts,nan=0)
-        seed_to_voxel_mi = mutual_info_regression(voxels_ts_nonan,seed_ts,n_neighbors=7)
+        seed_to_voxel_mi = mutual_info_regression(voxels_ts,seed_ts,n_neighbors=7)
         
         seed_to_voxel_mi_nozeros= np.where(seed_to_voxel_mi == 0, np.nan, seed_to_voxel_mi)
 
