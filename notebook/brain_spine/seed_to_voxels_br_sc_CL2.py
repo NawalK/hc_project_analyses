@@ -88,28 +88,6 @@ for side in ["positive","negative","two-sided"]:
         #calculate the mean across participant
         string="fslmaths " +output_file[seed_name] + " -Tmean " + output_file[seed_name].split(".")[0] + "_mean.nii.gz"
         os.system(string)
-      
-
-
-
-output_dir={};output_file={};
-for seed_name in config["seeds"]["seed_names"]:
-    output_dir[seed_name]=config['main_dir'] + config['seed2vox_dir'] + '/1_first_level/' + seed_name + '/' + config["targeted_voxels"]["target_name"]+ '_fc_maps/MI/'
    
-    if not os.path.exists(output_dir[seed_name]):
-            os.mkdir(output_dir[seed_name])
-    
-    output_file[seed_name]=  output_dir[seed_name] +'/mi_' + str(len(config['list_subjects'])) + 'subjects_seed_' + seed_name 
-  
-    
-    mi=seed2voxels.mutual_info_maps(seeds_timeseries["zmean"][seed_name],
-                                    target_timeseries["zscored"],
-                                    output_img=output_file[seed_name],
-                                    save_maps=True,
-                                    smoothing_output=None,redo=True, n_jobs=8)
-    
-    #calculate the mean across participant
-    string="fslmaths " +output_file[seed_name] + " -Tmean " + output_file[seed_name].split(".")[0] + "_mean.nii.gz"
-    os.system(string)
-    
-    
+
+   

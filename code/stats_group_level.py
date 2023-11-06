@@ -68,7 +68,7 @@ class Stats:
                 
         #>>> II. Create output directory (if save_ana=True) -------------------------------------
         if save_ana==True:
-            self.output_dir=self.config['main_dir'] + self.config['seed2vox_dir'] + '/2_second_level/'+self.model+'/'+ os.path.basename(self.mask_img).split(".")[0] +'/' +self.measure +"/" + self.output_tag # name of the output dir
+            self.output_dir=self.config['main_dir'] + self.config['seed2vox_dir'] + '/2_second_level/GLM/'+self.model+'/'+ os.path.basename(self.mask_img).split(".")[0] +'/' +self.measure +"/" + self.output_tag # name of the output dir
             if not os.path.exists(self.output_dir):
                 os.makedirs(self.output_dir,exist_ok=True)  # Create output directory:
             print("> Saved here : " + self.output_dir)

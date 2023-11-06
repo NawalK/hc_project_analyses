@@ -19,6 +19,9 @@ from scipy import stats
 
 
 from tqdm import tqdm
+
+import frites 
+from frites.estimator import (GCMIEstimator)
 # to improve---------------------------
 # loop per seed
 
@@ -85,7 +88,7 @@ class Seed2voxels:
             
             # images selected for extraction:
             self.data_seed.append(glob.glob(self.config["input_func"]["seed_dir"] + subject_name +'/'+ self.seed_structure +'/*'+ config["input_func"]["seed_tag"] +'*')[0])
-           
+            print(self.config["input_func"]["target_dir"] + subject_name +'/'+ self.target_structure +'/*'+ config["input_func"]["target_tag"] +'*')
             self.data_target.append(glob.glob(self.config["input_func"]["target_dir"] + subject_name +'/'+ self.target_structure +'/*'+ config["input_func"]["target_tag"] +'*')[0])
              
                 
@@ -218,7 +221,8 @@ class Seed2voxels:
             np.save(ts_txt + '.npy',ts,allow_pickle=True)
 
             # Calculate the z-scored time serie
-            ts_zscored=stats.zscore(ts,axis=0) # mean time serie
+            ts_zscored=stats.zscore(ts,axis=0) # zscore each volume
+            ts_zscored=np.nan_to_num(ts_zscored, nan=0.0) # remplace nan value by 0
 
             np.save(ts_txt + '_zscored.npy',ts_zscored,allow_pickle=True)
                 
@@ -239,7 +243,7 @@ class Seed2voxels:
         
         return ts,ts_zscored, ts_mean, ts_zmean, ts_pc1
 
-    def correlation_maps(self,seed_ts,voxels_ts,output_img=None,Fisher=True,partial=False,save_maps=True,smoothing_output=None,redo=False,n_jobs=1):
+    def correlation_maps(self,seed_ts,voxels_ts,output_img=None,Fisher=True,partial=False,side="two-sided",save_maps=True,smoothing_output=None,redo=False,n_jobs=1):
         '''
         Compute correlation maps between a seed timecourse and voxels
         Inputs
@@ -254,6 +258,11 @@ class Seed2voxels:
             to Fisher-transform the correlation (default = True).
         partial:
             Run partial correlation i.e remove the first derivative on the target signal (default = False).
+        side: "two-sided" , "positive", "negative"
+            "two-sided" (default): return all corr values
+            "positive": return only positive correlation (negative are remplace by 0) 
+            "negative": return only negative correlation (positive are remplace by 0)
+            
         save_maps: boolean
             to save correlation maps (default = True).
         redo: boolean
@@ -273,15 +282,17 @@ class Seed2voxels:
 
         if not os.path.exists(output_img) or redo==True:
             correlations = Parallel(n_jobs=n_jobs)(delayed(self._compute_correlation)(subject_nb,
-                                                                                          seed_ts[subject_nb],
-                                                                                          voxels_ts[subject_nb],
-                                                                                          output_img,
-                                                                                          Fisher,
-                                                                                          partial)
+                                                                                      seed_ts[subject_nb],
+                                                                                      voxels_ts[subject_nb],
+                                                                                      output_img,
+                                                                                      Fisher,
+                                                                                      partial,
+                                                                                     side)
                                            for subject_nb in range(len(self.subject_names)))
 
 
             if save_maps==True:
+
                 Parallel(n_jobs=n_jobs)(delayed(self._save_maps)(subject_nb,
                                                                  correlations[subject_nb],
                                                                  output_img,
@@ -292,8 +303,15 @@ class Seed2voxels:
             image.concat_imgs(sorted(glob.glob(os.path.dirname(output_img) + '/tmp_sub-*.nii.gz'))).to_filename(output_img + '.nii')
      
             # rename individual outputs
+            if side =="two-sided":
+                tag="bi"
+            elif side=="positive":
+                tag="pos"
+            elif side=="negative":
+                tag="neg"
+                
             for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'):
-                new_name=os.path.dirname(output_img) + "/corr"+tmp.split('tmp')[-1]
+                new_name=os.path.dirname(output_img) + "/"+tag+"-corr"+tmp.split('tmp')[-1]
                 os.rename(tmp,new_name)
 
             np.savetxt(os.path.dirname(output_img) + '/subjects_labels.txt',self.subject_names,fmt="%s") # copy the config file that store subject info
@@ -305,15 +323,19 @@ class Seed2voxels:
     
         return correlations 
     
-    def _compute_correlation(self,subject_nb,seed_ts,voxels_ts,output_img,Fisher,partial):
+    def _compute_correlation(self,subject_nb,seed_ts,voxels_ts,output_img,Fisher,partial,side):
 
         '''
         Run the correlation analyses.
         The correlation can be Fisher transformed (Fisher == True) or not  (Fisher == False)
         The correlation could be classical correlations (partial==False) or partial correlations (partial==True)
-        For the last option:
+        For the partial option:
         > 1. we calculated the first derivative of the signal (in each voxel of the target)
         > 2. the derivative is used as a covariate in pg.partial_corr meaning that the derivative is remove for the target but no seed signal (semi-partial correlation)
+        side: "positive" , "negative" or "two-sided"
+            Whether unilateral or bilateral matrice should be provide default: "two-sided"
+            if "positive" : all negative values will be remplace by 0 values
+            
         ----------
        '''
         
@@ -329,16 +351,18 @@ class Seed2voxels:
                 df={'seed_ts':seed_ts[:-1],'target_ts':voxels_ts[:-1, v],'target_ts_deriv':target_derivative[:,v]}
                 df=pd.DataFrame(df) # transform in DataFrame for pingouiun toolbox
                 seed_to_voxel_correlations[v]=pg.partial_corr(data=df, x='seed_ts', y='target_ts', y_covar='target_ts_deriv').r[0] # compute partial correlation and extract the r 
-                
-       
-
+                                   
         # calculate fisher transformation
         if Fisher == True:
-            seed_to_voxel_correlations_fisher_z = np.arctanh(seed_to_voxel_correlations)
-                        
-                    
-          
-        return  seed_to_voxel_correlations_fisher_z if Fisher==True else seed_to_voxel_correlations
+            seed_to_voxel_correlations = np.arctanh(seed_to_voxel_correlations)
+        
+        # If correlation should be only unilateral
+        if side == "positive":
+            seed_to_voxel_correlations= np.where(seed_to_voxel_correlations < 0, 0, seed_to_voxel_correlations) # remplace negative value by 0
+        elif side == "negative":
+            seed_to_voxel_correlations= np.where(seed_to_voxel_correlations > 0, 0, seed_to_voxel_correlations) # remplace positive value by 0
+            
+        return  seed_to_voxel_correlations
     
 
     def mutual_info_maps(self,seed_ts,voxels_ts,output_img=None,save_maps=True,smoothing_output=False,redo=False, n_jobs=1):
@@ -352,6 +376,8 @@ class Seed2voxels:
             path + rootname of the output image (/!\ no extension needed) (ex: '/pathtofile/output')
         save_maps: boolean
             to save correlation maps (default = True).
+        smoothing_output:
+            not recommanded
         redo: boolean
             to rerun the analysis
         njobs: int
@@ -394,18 +420,29 @@ class Seed2voxels:
         " The Kraskov technique (ksg) combines nearest-neighbor estimators for mutual information based measures"
         
         discrete_features='auto' # will test the sparsity of the data, if the distribution is dense then continuous will be selected
-        n_neighbors = 7 to evaluate the smallest symmetrical pattern around a center voxel, which consists of the center voxel and its 6 face-connected neighbor
+        n_neighbors = 3 to evaluate 
               
         '''
-        
+        #estimator=frites.estimator.GCMIEstimator(mi_type='cc')
+        estimator=frites.estimator.DcorrEstimator()
         seed_to_voxel_mi = np.zeros((voxels_ts.shape[1], 1)) # np.zeros(number of voxels,1)
-        seed_to_voxel_mi = mutual_info_regression(voxels_ts,seed_ts,n_neighbors=7)
+        #seed_to_voxel_mi = mutual_info_regression(voxels_ts,seed_ts,n_neighbors=7)
         
-        seed_to_voxel_mi_nozeros= np.where(seed_to_voxel_mi == 0, np.nan, seed_to_voxel_mi)
+        
+        for vox in range(0,voxels_ts.shape[1]):
+            x=voxels_ts[:,vox].reshape(1,1,voxels_ts.shape[0])
+            y=seed_ts.reshape(1,1,voxels_ts.shape[0])
+            seed_to_voxel_mi[vox] = estimator.estimate(x,y)[0]
+            #prout
+ 
+        #for vox in range(0,voxels_ts.shape[1]):
+            #seed_to_voxel_mi[vox] = mutual_info_regression(voxels_ts[:,vox].reshape(voxels_ts.shape[0],1),seed_ts,n_neighbors=7)
+    
+        seed_to_voxel_mi= np.where(seed_to_voxel_mi <= 0, np.nan, seed_to_voxel_mi)
+        seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi,axis=0) # normalize to the max intensity
 
-        seed_to_voxel_mi_nozeros /= np.nanmax(seed_to_voxel_mi_nozeros,axis=0) # normalize to the max intensity
-        
-        return seed_to_voxel_mi_nozeros
+               
+        return seed_to_voxel_mi
     
     def dtw_maps(self,seed_ts,voxels_ts,output_img=None,save_maps=True,smoothing_output=False,redo=False, n_jobs=1):
         '''
