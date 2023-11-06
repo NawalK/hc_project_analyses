@@ -365,13 +365,15 @@ class Seed2voxels:
         return  seed_to_voxel_correlations
     
 
-    def mutual_info_maps(self,seed_ts,voxels_ts,output_img=None,save_maps=True,smoothing_output=False,redo=False, n_jobs=1):
+    def nonlinear_maps(self,seed_ts,voxels_ts,metric="MI",output_img=None,save_maps=True,smoothing_output=False,redo=False, n_jobs=1):
         '''
         Create  mutual information maps
         seed_ts: list
             timecourse to use as seed (see extract_data method) (list containing one array per suject)
         target_ts: list
             timecourses of all voxels on which to compute the correlation (see extract_data method) (list containing one array per suject)
+        metric: str
+            non linear metric that you want to apply, coulb be "MI" (default) or "distCorr"
         output_img: str
             path + rootname of the output image (/!\ no extension needed) (ex: '/pathtofile/output')
         save_maps: boolean
@@ -385,13 +387,16 @@ class Seed2voxels:
    
         ----------
         '''
-        seed_to_voxel_mi=Parallel(n_jobs=n_jobs)(delayed(self._compute_mutual_info)(voxels_ts[subject_nb],seed_ts[subject_nb])
+        #if metric !="MI" or metric !="distCorr":
+         #   raise Exception("metric should be set as : 'MI' or 'distCorr'") 
+            
+        seed_to_voxel_matrix=Parallel(n_jobs=n_jobs)(delayed(self._compute_nonlinear)(voxels_ts[subject_nb],seed_ts[subject_nb],metric)
                                            for subject_nb in range(len(self.subject_names)))
        
         
 
         if save_maps==True:
-            Parallel(n_jobs=n_jobs)(delayed(self._save_maps)(subject_nb,seed_to_voxel_mi[subject_nb],
+            Parallel(n_jobs=n_jobs)(delayed(self._save_maps)(subject_nb,seed_to_voxel_matrix[subject_nb],
                                                                  output_img,
                                                                  smoothing_output)
                                            for subject_nb in range(len(self.subject_names)))
@@ -410,39 +415,35 @@ class Seed2voxels:
 
            
         
-        return seed_to_voxel_mi
+        return seed_to_voxel_matrix
     
-    def _compute_mutual_info(self,voxels_ts,seed_ts):
+    def _compute_nonlinear(self,voxels_ts,seed_ts,metric="MI"):
         '''
-        Run the mutual information analysis:
-        https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.mutual_info_regression.html#r37d39d7589e2-2
-        see also: Cliff et al. 2022 https://arxiv.org/pdf/2201.11941.pdf
-        " The Kraskov technique (ksg) combines nearest-neighbor estimators for mutual information based measures"
-        
-        discrete_features='auto' # will test the sparsity of the data, if the distribution is dense then continuous will be selected
-        n_neighbors = 3 to evaluate 
+        MI: compute mutual information
+        distCorr: COmpute distance correlation analyses
               
         '''
-        #estimator=frites.estimator.GCMIEstimator(mi_type='cc')
-        estimator=frites.estimator.DcorrEstimator()
-        seed_to_voxel_mi = np.zeros((voxels_ts.shape[1], 1)) # np.zeros(number of voxels,1)
-        #seed_to_voxel_mi = mutual_info_regression(voxels_ts,seed_ts,n_neighbors=7)
+        if metric == "MI":
+            estimator=frites.estimator.GCMIEstimator(mi_type='cc')
+        elif metric =="distCorr":
+            estimator=frites.estimator.DcorrEstimator()
         
-        
+        seed_to_voxel_matrix = np.zeros((voxels_ts.shape[1], 1)) # np.zeros(number of voxels,1)
+            
         for vox in range(0,voxels_ts.shape[1]):
             x=voxels_ts[:,vox].reshape(1,1,voxels_ts.shape[0])
             y=seed_ts.reshape(1,1,voxels_ts.shape[0])
-            seed_to_voxel_mi[vox] = estimator.estimate(x,y)[0]
-            #prout
+            seed_to_voxel_matrix[vox] = estimator.estimate(x,y)[0]
+            
  
         #for vox in range(0,voxels_ts.shape[1]):
             #seed_to_voxel_mi[vox] = mutual_info_regression(voxels_ts[:,vox].reshape(voxels_ts.shape[0],1),seed_ts,n_neighbors=7)
     
-        seed_to_voxel_mi= np.where(seed_to_voxel_mi <= 0, np.nan, seed_to_voxel_mi)
-        seed_to_voxel_mi /= np.nanmax(seed_to_voxel_mi,axis=0) # normalize to the max intensity
+        seed_to_voxel_matrix= np.where(seed_to_voxel_matrix <= 0, np.nan, seed_to_voxel_matrix)
+        seed_to_voxel_matrix /= np.nanmax(seed_to_voxel_matrix,axis=0) # normalize to the max intensity
 
                
-        return seed_to_voxel_mi
+        return seed_to_voxel_matrix
     
     def dtw_maps(self,seed_ts,voxels_ts,output_img=None,save_maps=True,smoothing_output=False,redo=False, n_jobs=1):
         '''
@@ -496,89 +497,7 @@ class Seed2voxels:
         seed_to_voxel_dtw_norm = 1-seed_to_voxel_dtw_norm 
 
         return seed_to_voxel_dtw_norm
-        
-    def distance_corr_maps(self,seed_ts,voxels_ts,output_img=None,save_maps=True,smoothing_output=None,redo=False,n_jobs=1):
-        '''
-        Compute correlation maps between a seed timecourse and voxels
-        Inputs
-        ----------
-        seed_ts: list
-            timecourse to use as seed (see extract_data method) (list containing one array per suject)
-        target_ts: list
-            timecourses of all voxels on which to compute the correlation (see extract_data method) (list containing one array per suject)
-        output_img: str
-            path + rootname of the output image (/!\ no extension needed) (ex: '/pathtofile/output')
-        Fisher: boolean
-            to Fisher-transform the correlation (default = True).
-        partial:
-            Run partial correlation i.e remove the first derivative on the target signal (default = False).
-        save_maps: boolean
-            to save correlation maps (default = True).
-        redo: boolean
-            to rerun the analysis
-        njobs: int
-            number of jobs for parallelization
     
-        Output
-        ----------
-        output_img_zcorr.nii (if Fisher = True) or output_img_corr.nii (if Fisher = False) 
-            4D image containing the correlation maps for all subjects
-        subject_labels.txt
-            text file containing labels of the subjects included in the correlation analysis
-        correlations: array
-            correlation maps as an array
-        '''
-
-        if not os.path.exists(output_img) or redo==True:
-            if not os.path.exists(output_img) or redo==True:
-                distance_corr={}
-                for subject_nb in range(len(self.subject_names)):
-                    distance_corr[subject_nb]=self._compute_distance_corr(seed_ts[subject_nb],voxels_ts[subject_nb],output_img,save_maps)
-            
-                                                                                             
-                    
-            if save_maps==True:
-                Parallel(n_jobs=n_jobs)(delayed(self._save_maps)(subject_nb,
-                                                                 distance_corr[subject_nb],
-                                                                 output_img,
-                                                                 smoothing_output)
-                                           for subject_nb in range(len(self.subject_names)))
-
-            
-            # Create 4D image included all participants maps
-            image.concat_imgs(sorted(glob.glob(os.path.dirname(output_img) + '/tmp_sub-*.nii.gz'))).to_filename(output_img + '.nii')
-     
-            for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'):
-                new_name=os.path.dirname(output_img) + "/dcorr"+tmp.split('tmp')[-1]
-                os.rename(tmp,new_name)
-             #   os.remove(tmp) # remove temporary 3D images files
-
-            np.savetxt(os.path.dirname(output_img) + '/subjects_labels.txt',self.subject_names,fmt="%s") # copy the config file that store subject info
-
-        
-        #return correlations
-        else:
-            print("The correlation maps were alredy computed please put redo=True to rerun the analysis")
-    
-    
-    def _compute_distance_corr(self,seed_ts,voxels_ts):
-        '''
-        Run the distance correlation analyse.
-       ----------
-       '''
-        seed_to_voxel_distCorr = np.zeros((voxels_ts.shape[1], 1))
-        
-        
-        for v in tqdm(range(0,voxels_ts.shape[1]), desc ="process duration"):
-                seed_to_voxel_distCorr[v] = dcor.distance_correlation(seed_ts,voxels_ts[:, v])
-                
-                #voxels_ts.shape[1]
-        
-        seed_to_voxel_distCorr =seed_to_voxel_distCorr-seed_to_voxel_distCorr.mean(axis=0) #demean the MI maps
-        seed_to_voxel_distCorr/= np.std(seed_to_voxel_distCorr) #demean the MI maps
-       
-    
-        return seed_to_voxel_distCorr
     
     def _save_maps(self,subject_nb,maps_array,output_img,smoothing):
         '''

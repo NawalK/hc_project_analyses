@@ -10,7 +10,7 @@
          "seed_structure":"spinalcord"},
  
 "targeted_voxels":{"target_dir":"/hc_project_analyses/masks/brain/",
-                   "target_name": "MNI_GM_2mm_SMC",
+                   "target_name": "MNI_GM_2mm",
                   "target_structure":"brain"},
 
 "input_func":{"seed_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/2_func_in_template/",

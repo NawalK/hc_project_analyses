@@ -207,8 +207,8 @@ class GradientsMaps:
         elif methods=="t_maps":
             tmaps_file=[];tmaps_data=[]
             for seed_nb in range(len(self.seed_names)):
-                #print(self.secondlevel + "/GLM/OneSampleT/" + self.target + "/Corr/" +self.seed_names[seed_nb]+ "/IP_FWE+.img")
-                tmaps_file.append(glob.glob(self.secondlevel + "/GLM/OneSampleT/" + self.target + "/Corr/" +self.seed_names[seed_nb]+ "/beta_0001.img")[0]) # select individual maps   
+                print(self.secondlevel + "/GLM/OneSampleT/" + self.target + "/biCorr/" +self.seed_names[seed_nb]+ "/IP_FWE+.img")
+                tmaps_file.append(glob.glob(self.secondlevel + "/GLM/OneSampleT/" + self.target + "/biCorr/" +self.seed_names[seed_nb]+ "/beta_0001.img")[0]) # select individual maps   
                 tmaps_thr=image.threshold_img(tmaps_file[seed_nb], threshold=0, cluster_threshold=10, mask_img=self.mask_target)
                 tmaps_thr.to_filename(self.secondlevel+ "/GLM/OneSampleT/" +self.seed_names[seed_nb] +"_thr_t1.nii.gz") # create temporary 3D files
                 tmaps_data.append(masker.fit_transform(tmaps_thr)) # extract the data in a single array
