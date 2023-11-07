@@ -81,7 +81,7 @@ class Stats:
             self.data_1rstlevel[seed_name]=[]
             for sbj_nb in range(len(config['list_subjects'])):
                 subject_name='sub-' +  config['list_subjects'][sbj_nb]
-                tag_files = {"Corr": "corr","MI": "mi"}
+                tag_files = {"Corr": "pos-corr","MI": "mi"}
                 self.tag_file = tag_files.get(self.measure, None)
                 self.data_1rstlevel[seed_name].append(glob.glob(self.config["first_level"] +'/'+ seed_name+'/'+ self.target +'_fc_maps/'+ self.measure + "/" +self.tag_file + "_"+ subject_name + "*.nii.gz")[0])
 
@@ -294,7 +294,7 @@ class Stats:
    
         return contrast_map
     
-    def secondlevel_correction(self,maps,z_thr=1.5,p_value=0.001,cluster_threshold=10,corr=None,smoothing=None,plot_stats_corr=False,save_img=False,n_job=1):
+    def secondlevel_correction(self,maps,z_thr=4,p_value=0.001,cluster_threshold=10,corr=None,smoothing=None,plot_stats_corr=False,save_img=False,n_job=1):
         '''
         One sample t-test
         Attributes

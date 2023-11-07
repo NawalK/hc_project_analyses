@@ -1,0 +1,111 @@
+Start the analysis on: 31 participants
+targeted voxel's group mask: MNI_GM_2mm
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/brain/MNI_GM_2mm.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/gmwm/icap_C1_V_gmwm.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/gmwm/icap_C2_V_gmwm.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/gmwm/icap_C3_V_gmwm.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/gmwm/icap_C4_V_gmwm.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/gmwm/icap_C5_V_gmwm.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/gmwm/icap_C6_V_gmwm.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/gmwm/icap_C7_V_gmwm.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/gmwm/icap_C1_D_gmwm.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/gmwm/icap_C2_D_gmwm.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/gmwm/icap_C3_D_gmwm.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/gmwm/icap_C4_D_gmwm.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/gmwm/icap_C5_D_gmwm.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/gmwm/icap_C6_D_gmwm.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/spinalcord/levels/icaps/gmwm/icap_C7_D_gmwm.nii.gz
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-P030/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-P099/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A006/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A007/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A008/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A009/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A011/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A013/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A023/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A024/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A025/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A026/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A027/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A028/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A029/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A030/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A032/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A033/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A034/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A036/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A037/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A038/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A039/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A043/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A044/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A045/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A046/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A048/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A050/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A051/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/sub-A052/brain/*moco_brsc_BP*_inTemplate2mm_s.nii.gz*
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package outdated is out of date. Your version is 0.2.1, the latest is 0.2.2.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/outdated/utils.py:18: OutdatedPackageWarning: The package pingouin is out of date. Your version is 0.3.12, the latest is 0.5.3.
+Set the environment variable OUTDATED_IGNORE=1 to disable these warnings.
+  **kwargs
+exception calling callback for <Future at 0x7fca730fff28 state=finished raised TerminatedWorkerError>
+Traceback (most recent call last):
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/joblib/externals/loky/_base.py", line 625, in _invoke_callbacks
+    callback(self)
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/joblib/parallel.py", line 347, in __call__
+    self.parallel.dispatch_next()
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/joblib/parallel.py", line 780, in dispatch_next
+    if not self.dispatch_one_batch(self._original_iterator):
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/joblib/parallel.py", line 847, in dispatch_one_batch
+    self._dispatch(tasks)
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/joblib/parallel.py", line 765, in _dispatch
+    job = self._backend.apply_async(batch, callback=cb)
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/joblib/_parallel_backends.py", line 531, in apply_async
+    future = self._workers.submit(SafeFunction(func))
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/joblib/externals/loky/reusable_executor.py", line 178, in submit
+    fn, *args, **kwargs)
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/joblib/externals/loky/process_executor.py", line 1102, in submit
+    raise self._flags.broken
+joblib.externals.loky.process_executor.TerminatedWorkerError: A worker process managed by the executor was unexpectedly terminated. This could be caused by a segmentation fault while calling the function or by an excessive memory usage causing the Operating System to kill the worker.
+
+The exit codes of the workers are {SIGBUS(-7)}
+Traceback (most recent call last):
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/notebook/brain_spine/seed_to_voxels_br_sc_CL.py", line 51, in <module>
+    target_timeseries,seeds_timeseries =seed2voxels.extract_data(redo=True,n_jobs=8) 
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/code/seed_to_voxels.py", line 156, in extract_data
+    for subject_nb in range(len(self.subject_names)))
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/joblib/parallel.py", line 1042, in __call__
+    self.retrieve()
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/joblib/parallel.py", line 921, in retrieve
+    self._output.extend(job.get(timeout=self.timeout))
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/joblib/_parallel_backends.py", line 542, in wrap_future_result
+    return future.result(timeout=timeout)
+  File "/usr/lib/python3.6/concurrent/futures/_base.py", line 432, in result
+    return self.__get_result()
+  File "/usr/lib/python3.6/concurrent/futures/_base.py", line 384, in __get_result
+    raise self._exception
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/joblib/externals/loky/_base.py", line 625, in _invoke_callbacks
+    callback(self)
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/joblib/parallel.py", line 347, in __call__
+    self.parallel.dispatch_next()
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/joblib/parallel.py", line 780, in dispatch_next
+    if not self.dispatch_one_batch(self._original_iterator):
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/joblib/parallel.py", line 847, in dispatch_one_batch
+    self._dispatch(tasks)
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/joblib/parallel.py", line 765, in _dispatch
+    job = self._backend.apply_async(batch, callback=cb)
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/joblib/_parallel_backends.py", line 531, in apply_async
+    future = self._workers.submit(SafeFunction(func))
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/joblib/externals/loky/reusable_executor.py", line 178, in submit
+    fn, *args, **kwargs)
+  File "/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/joblib/externals/loky/process_executor.py", line 1102, in submit
+    raise self._flags.broken
+joblib.externals.loky.process_executor.TerminatedWorkerError: A worker process managed by the executor was unexpectedly terminated. This could be caused by a segmentation fault while calling the function or by an excessive memory usage causing the Operating System to kill the worker.
+
+The exit codes of the workers are {SIGBUS(-7)}

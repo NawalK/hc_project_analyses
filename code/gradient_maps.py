@@ -81,7 +81,7 @@ class GradientsMaps:
                     
                     # select the map for a specific participant and for each seed (or condition)
                     for seed_nb in range(len(self.seed_names)):
-                        MI_file[subject_name].append(glob.glob(self.IndivMapsDir + self.seed_names[seed_nb] + "/" + self.target + "_fc_maps/"+tag+"/pos*" + subject_name +".nii.gz")[0]) # select individual maps
+                        MI_file[subject_name].append(glob.glob(self.IndivMapsDir + self.seed_names[seed_nb] + "/" + self.target + "_fc_maps/"+tag+"/mi*" + subject_name +".nii.gz")[0]) # select individual maps
                         
                         MI_data[subject_name].append(masker.fit_transform(MI_file[subject_name][seed_nb])) # extract the data in a single array
 
@@ -153,7 +153,7 @@ class GradientsMaps:
                 max_frequency = max(value_counts.values())# Find the maximum frequency
                 modes = [value for value, frequency in value_counts.items() if frequency == max_frequency] # Find all the values with the maximum frequency
                 
-                if max_frequency>=0: # you can choose a threshold
+                if max_frequency>=1: # you can choose a threshold
                     if len(modes)>1:
                         mode_value = np.mean(modes)#random.choice(modes) # Select one mode randomly
 
@@ -207,8 +207,8 @@ class GradientsMaps:
         elif methods=="t_maps":
             tmaps_file=[];tmaps_data=[]
             for seed_nb in range(len(self.seed_names)):
-                print(self.secondlevel + "/GLM/OneSampleT/" + self.target + "/biCorr/" +self.seed_names[seed_nb]+ "/IP_FWE+.img")
-                tmaps_file.append(glob.glob(self.secondlevel + "/GLM/OneSampleT/" + self.target + "/biCorr/" +self.seed_names[seed_nb]+ "/beta_0001.img")[0]) # select individual maps   
+                #print(self.secondlevel + "/GLM/OneSampleT/" + self.target + "/Corr/" +self.seed_names[seed_nb]+ "/IP_FWE+.img")
+                tmaps_file.append(glob.glob(self.secondlevel + "/GLM/OneSampleT/" + self.target + "/MI/" +self.seed_names[seed_nb]+ "/beta_0001.img")[0]) # select individual maps   
                 tmaps_thr=image.threshold_img(tmaps_file[seed_nb], threshold=0, cluster_threshold=10, mask_img=self.mask_target)
                 tmaps_thr.to_filename(self.secondlevel+ "/GLM/OneSampleT/" +self.seed_names[seed_nb] +"_thr_t1.nii.gz") # create temporary 3D files
                 tmaps_data.append(masker.fit_transform(tmaps_thr)) # extract the data in a single array
