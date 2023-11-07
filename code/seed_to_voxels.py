@@ -365,7 +365,7 @@ class Seed2voxels:
         return  seed_to_voxel_correlations
     
 
-    def nonlinear_maps(self,seed_ts,voxels_ts,metric="MI",output_img=None,save_maps=True,smoothing_output=False,redo=False, n_jobs=1):
+    def nonlinear_maps(self,seed_ts,voxels_ts,metric="mi",output_img=None,save_maps=True,smoothing_output=False,redo=False, n_jobs=1):
         '''
         Create  mutual information maps
         seed_ts: list
@@ -373,7 +373,7 @@ class Seed2voxels:
         target_ts: list
             timecourses of all voxels on which to compute the correlation (see extract_data method) (list containing one array per suject)
         metric: str
-            non linear metric that you want to apply, coulb be "MI" (default) or "distCorr"
+            non linear metric that you want to apply, coulb be "mi" (default) or "dcorr"
         output_img: str
             path + rootname of the output image (/!\ no extension needed) (ex: '/pathtofile/output')
         save_maps: boolean
@@ -387,8 +387,8 @@ class Seed2voxels:
    
         ----------
         '''
-        #if metric !="MI" or metric !="distCorr":
-         #   raise Exception("metric should be set as : 'MI' or 'distCorr'") 
+        #if metric !="mi" or metric !="dcorr":
+         #   raise Exception("metric should be set as : 'mi' or 'dcorr'") 
             
         seed_to_voxel_matrix=Parallel(n_jobs=n_jobs)(delayed(self._compute_nonlinear)(voxels_ts[subject_nb],seed_ts[subject_nb],metric)
                                            for subject_nb in range(len(self.subject_names)))
@@ -407,7 +407,7 @@ class Seed2voxels:
             
         # rename individual outputs
             for tmp in glob.glob(os.path.dirname(output_img) + '/tmp_*.nii.gz'):    
-                new_name=os.path.dirname(output_img) + "/mi"+tmp.split('tmp')[-1] 
+                new_name=os.path.dirname(output_img) + "/" + metric +tmp.split('tmp')[-1] 
                 print(new_name)
                 
                 os.rename(tmp,new_name)
@@ -417,15 +417,15 @@ class Seed2voxels:
         
         return seed_to_voxel_matrix
     
-    def _compute_nonlinear(self,voxels_ts,seed_ts,metric="MI"):
+    def _compute_nonlinear(self,voxels_ts,seed_ts,metric="mi"):
         '''
-        MI: compute mutual information
-        distCorr: COmpute distance correlation analyses
+        mi: compute mutual information
+        dcorr: compute distance correlation
               
         '''
-        if metric == "MI":
+        if metric == "mi":
             estimator=frites.estimator.GCMIEstimator(mi_type='cc')
-        elif metric =="distCorr":
+        elif metric =="dcorr":
             estimator=frites.estimator.DcorrEstimator()
         
         seed_to_voxel_matrix = np.zeros((voxels_ts.shape[1], 1)) # np.zeros(number of voxels,1)
