@@ -150,6 +150,7 @@ class ICA:
             
         #Extract the data inside the mask and create a vector
         #---------------------------------------------------------
+            print(self.config["main_dir"] + self.config["masks"][self.dataset][structure])
             self.nifti_masker[structure]= NiftiMasker(mask_img=self.config["main_dir"] + self.config["masks"][self.dataset][structure],
                                  t_r=t_r,low_pass=None,high_pass=None,standardize=False,smoothing_fwhm=None).fit() #Extract the data inside the mask and create a vector
             

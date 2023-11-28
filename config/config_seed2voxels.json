@@ -1,12 +1,13 @@
 {"main_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/",
 
-"masks":{"brain":"/templates/MNI/3mm_resolution/MNI_T1w_GM_AverageHCs_3mm_bin_corrected.nii.gz",
+"masks":{"brain":"/templates/MNI/MNI_GM_2mm.nii.gz",
          "spinalcord": "/templates/PAM50/template/PAM50_cord.nii.gz"},
 
-"seeds":{"seed_dir":"/hc_project_analyses/masks/spinalcord/levels/icaps/gmwm/",
+"seeds":{"seed_dir":"/hc_project_analyses/masks/spinalcord/levels/icaps/gm/",
          "seed_indiv_dir":"/hc_project_analyses/mask/spinalcord/Indiv/",
-         "seed_names1":["icap_C1","icap_C2","icap_C3","icap_C4","icap_C5","icap_C6","icap_C7"],
-          "seed_names":["icap_C1_V_gmwm","icap_C2_V_gmwm","icap_C3_V_gmwm","icap_C4_V_gmwm","icap_C5_V_gmwm","icap_C6_V_gmwm","icap_C7_V_gmwm","icap_C1_D_gmwm","icap_C2_D_gmwm","icap_C3_D_gmwm","icap_C4_D_gmwm","icap_C5_D_gmwm","icap_C6_D_gmwm","icap_C7_D_gmwm"],
+         "seed_names1":["icap_C1"],
+          "seed_names":["icap_C1_VR_gm","icap_C2_VR_gm","icap_C3_VR_gm","icap_C4_VR_gm","icap_C5_VR_gm","icap_C6_VR_gm","icap_C7_VR_gm",
+                       "icap_C1_VL_gm","icap_C2_VL_gm","icap_C3_VL_gm","icap_C4_VL_gm","icap_C5_VL_gm","icap_C6_VL_gm","icap_C7_VL_gm"],
          "seed_structure":"spinalcord"},
  
 "targeted_voxels":{"target_dir":"/hc_project_analyses/masks/brain/",
