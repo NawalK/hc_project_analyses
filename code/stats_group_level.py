@@ -14,11 +14,12 @@ from nilearn.image import get_data, math_img
 from nilearn.glm import threshold_stats_img
 from nilearn.reporting import get_clusters_table
 from nilearn.glm.second_level import non_parametric_inference
-
+from nilearn.maskers import NiftiMasker
 import matplotlib.pyplot as plt
 
 # stats
 from scipy.stats import norm
+from scipy.stats import t
 
 
 class Stats:
@@ -85,7 +86,7 @@ class Stats:
                 self.tag_file = tag_files.get(self.measure, None)
                 self.data_1rstlevel[seed_name].append(glob.glob(self.config["first_level"] +'/'+ seed_name+'/'+ self.target +'_fc_maps/'+ self.measure + "/" +self.tag_file + "_"+ subject_name + "*.nii.gz")[0])
 
-                    
+           
     def design_matrix(self,contrast_name=None,plot_matrix= False,save_matrix=False):
         '''
         Create and plot the design matrix for "OneSampleT" or  "TwoSampT_unpaired" or "TwoSampT_paired"
@@ -186,9 +187,13 @@ class Stats:
                 
         return Design_matrix
         
-    def secondlevelmodel(self,Design_matrix,parametric=True,plot_2ndlevel=False,save_img=False):
+    def secondlevelmodel(self,Design_matrix,parametric=True,estimate_threshold=False,plot_2ndlevel=False,save_img=False):
         '''
         This function calculate the second level model
+        
+        To compute a non-parametric analysis with automatic threshold estimation:
+        1- Run a parametric analysis to obtnain z-map with low computational time
+        2- Run non parametric analysis with estimate_threshold=True
         
         Attributes
         ----------
@@ -200,7 +205,12 @@ class Stats:
         
         save_img: bool, default: False
             To save the uncorrected maps for each contrast and each stats (.nii.gz)
-                
+        
+        Estimate_threshold:  bool, default: False
+            This option is useful if nonparametric measure is implemented (parametric=False).
+        
+ 
+        
         https://nilearn.github.io/dev/modules/generated/nilearn.glm.compute_contrast.html
         
         Return
@@ -232,20 +242,26 @@ class Stats:
        
         second_level_model={};contrast_map={}
         for i, (title,values) in enumerate(Design_matrix.items()):
+            #title=title.split(" ")[-1]
             if parametric==True:
                 second_level_model[title] = SecondLevelModel(mask_img=self.mask_img,smoothing_fwhm=None)
 
                 second_level_model[title] = second_level_model[title].fit(nifti_files, design_matrix=Design_matrix[title])
                 contrast_map[title]=second_level_model[title].compute_contrast(title, second_level_stat_type="t",output_type="all")
+                
+                #if estimate_threshold==True:
+                    #z_thr,p_thr=self._estimate_threshold(self.output_dir +"/uncorr/zscore_" + title + ".nii.gz",5)
+        
+                
                 if save_img==True:
                     output_uncorr=self.output_dir + "/uncorr/"
                     if not os.path.exists(output_uncorr):
                         os.mkdir(output_uncorr)
-                    nb.save(contrast_map[title]['z_score'], output_uncorr +"/zscore_" + title + ".nii.gz")
-                    nb.save(contrast_map[title]['stat'],output_uncorr + "/stat_" + title + ".nii.gz") # t or F statistical value
-                    nb.save(contrast_map[title]['p_value'],output_uncorr + "/pvalue_" + title + ".nii.gz")
-                    nb.save(contrast_map[title]['effect_size'],output_uncorr + "/effectsize_" + title + ".nii.gz")
-                    nb.save(contrast_map[title]['effect_variance'],output_uncorr+ "/effectvar_" + title + ".nii.gz")
+                    nb.save(contrast_map[title]['z_score'], output_uncorr +"/zscore_" + title.split(" ")[-1] + ".nii.gz")
+                    nb.save(contrast_map[title]['stat'],output_uncorr + "/stat_" + title.split(" ")[-1] + ".nii.gz") # t or F statistical value
+                    nb.save(contrast_map[title]['p_value'],output_uncorr + "/pvalue_" + title.split(" ")[-1] + ".nii.gz")
+                    nb.save(contrast_map[title]['effect_size'],output_uncorr + "/effectsize_" +title.split(" ")[-1] + ".nii.gz")
+                    nb.save(contrast_map[title]['effect_variance'],output_uncorr+ "/effectvar_" + title.split(" ")[-1] + ".nii.gz")
                 
                 if plot_2ndlevel==True:
                         plotting.plot_glass_brain(
@@ -253,39 +269,64 @@ class Stats:
                             colorbar=True,
                             symmetric_cbar=False,
                             display_mode='lyrz',
-                            threshold=2.5,
+                            threshold=z_thr,
                             vmax=5,
                             title=title)
-
-                    
+            
+            
             elif parametric==False:
-                contrast_map[title]=non_parametric_inference(nifti_files,design_matrix=Design_matrix[title],model_intercept=True,n_perm=50, # should be set between 1000 and 10000
+                if estimate_threshold==True:
+                    if not os.path.exists(self.output_dir + "/uncorr/"):
+                        raise Exception("if estimate_threshold==True; parametric maps should be computed first to have z-sscored maps")
+                    else:
+                        output_uncorr=self.output_dir + "/nonparam/" # create output folder
+                        if not os.path.exists(output_uncorr):
+                            os.mkdir(output_uncorr)
+                        z_thr,p_thr=self._estimate_threshold(self.output_dir +"/uncorr/zscore_" + title + ".nii.gz",1)
+                              
+                else:
+                    p_thr=0.001
+                    
+                contrast_map[title]=non_parametric_inference(nifti_files,design_matrix=Design_matrix[title],model_intercept=True,
+                                                             n_perm=5, # should be set between 1000 and 10000
                                          two_sided_test=False,
                                          mask=None,
                                          smoothing_fwhm=None,
-                                         tfce=False, # choose tfce=True or threshold is not None
-                                         threshold=0.01,
+                                         tfce=True, # choose tfce=True or threshold is not None
+                                         threshold=p_thr,
                                          n_jobs=8)
                 if save_img==True:
                     output_uncorr=self.output_dir + "/nonparam/"
                     if not os.path.exists(output_uncorr):
                         os.mkdir(output_uncorr)
-                    nb.save(contrast_map[title]['t'], output_uncorr +"/t_" + title + ".nii.gz")
-                    nb.save(contrast_map[title]['size'], output_uncorr +"/size_" + title + ".nii.gz")
-                    nb.save(contrast_map[title]['logp_max_t'],output_uncorr + "/logp_max_t_" + title + ".nii.gz") # t or F statistical value
-                    nb.save(contrast_map[title]['logp_max_size'],output_uncorr + "/logp_max_size_" + title + ".nii.gz")
-                    nb.save(contrast_map[title]['mass'],output_uncorr + "/mass_" + title + ".nii.gz")
-                    nb.save(contrast_map[title]['logp_max_mass'],output_uncorr+ "/logp_max_mass_" + title + ".nii.gz")
-                    #nb.save(contrast_map[title]['tfce'],output_uncorr + "/tfce_" + title + ".nii.gz")
-                    #nb.save(contrast_map[title]['logp_max_tfce'],output_uncorr+ "/logp_max_tfce_" + title + ".nii.gz")
-            
+                    nb.save(contrast_map[title]['t'], output_uncorr +"/t_" + title.split(" ")[-1] + ".nii.gz")
+                    nb.save(contrast_map[title]['size'], output_uncorr +"/size_" + title.split(" ")[-1] + ".nii.gz")
+                    nb.save(contrast_map[title]['logp_max_t'],output_uncorr + "/logp_max_t_" + title.split(" ")[-1] + ".nii.gz") # t or F statistical value
+                    nb.save(contrast_map[title]['logp_max_size'],output_uncorr + "/logp_max_size_" + title.split(" ")[-1] + ".nii.gz")
+                    nb.save(contrast_map[title]['mass'],output_uncorr + "/mass_" + title.split(" ")[-1] + ".nii.gz")
+                    nb.save(contrast_map[title]['logp_max_mass'],output_uncorr+ "/logp_max_mass_" + title.split(" ")[-1] + ".nii.gz")
+                    nb.save(contrast_map[title]['tfce'],output_uncorr + "/tfce_" + title + ".nii.gz")
+                    nb.save(contrast_map[title]['logp_max_tfce'],output_uncorr+ "/logp_max_tfce_" + title.split(" ")[-1] + ".nii.gz")
+                   
+                    # Data are logp value logp=1.3 => p=0.05 ; logp=2 p=0.01 ; logp=3 p=0.001
+                    string1="fslmaths " + output_uncorr + "/logp_max_t_" + title.split(" ")[-1] + ".nii.gz -thr 1.3 " +output_uncorr + "/logp_max_t_" + title.split(" ")[-1] + "_p-thr05.nii.gz"
+                    string2="fslmaths " + output_uncorr + "/logp_max_t_" + title.split(" ")[-1] + ".nii.gz -thr 2 "+ output_uncorr + "/logp_max_t_" + title.split(" ")[-1] + "_p-thr01.nii.gz"
+                    string3="fslmaths " + output_uncorr + "/logp_max_t_" + title.split(" ")[-1] + ".nii.gz -thr 3 " + output_uncorr + "/logp_max_t_" + title.split(" ")[-1] + "_p-thr001.nii.gz"
+                    string4="fslmaths " + output_uncorr + "/logp_max_t_" + title.split(" ")[-1] + ".nii.gz -thr " + str(z_thr)+ " " + output_uncorr + "/logp_max_t_" + title.split(" ")[-1] + "_t-thr95.nii.gz"
+                    
+                   
+                    os.system(string1);os.system(string2);os.system(string3);os.system(string4)
+                    
                 if plot_2ndlevel==True:
+                    if estimate_threshold==False:
+                        z_thr=2.4
+
                     plotting.plot_glass_brain(
                             contrast_map[title]['size'],
                             colorbar=True,
                             symmetric_cbar=False,
                             display_mode='lyrz',
-                            threshold=2.5,
+                            threshold=z_thr,
                             vmax=5,
                             title=title)
 
@@ -308,11 +349,10 @@ class Stats:
         False positive control meaning of cluster forming threshold: None|’fpr’|’fdr’|’bonferroni’ Default=’fpr’.
 
         '''
-    
+        #if z_thr="auto":
+            #definie trhreshold
         for i, (title,values) in enumerate(maps.items()):
-            if self.parametric== True:
-
-                thresholded_map, threshold = threshold_stats_img(maps[title]["z_score"],alpha=p_value,threshold=z_thr,height_control=corr,cluster_threshold=cluster_threshold,two_sided=False)
+            thresholded_map, threshold = threshold_stats_img(maps[title]["z_score"],alpha=p_value,threshold=z_thr,height_control=corr,cluster_threshold=cluster_threshold,two_sided=False)
             
 
             #TO DO:
@@ -465,3 +505,37 @@ class Stats:
         
         
         return contrasts
+    
+    def _estimate_threshold(self,img,perc=5):
+        '''
+        Attributes
+        img: string
+            input image
+        perc: int
+            type I error in percentage of voxels (default=5 => for a confidence level of 95%)
+            
+        Return
+        Image of the voxel distribution
+        z_thr: threshold in z-value
+        p_value: threshold in p-value
+        '''
+        z_map=img#self.output_dir +"/uncorr/zscore_" + title + ".nii.gz"
+        masker= NiftiMasker(self.mask_img, t_r=1.55,low_pass=None, high_pass=None) # seed masker
+        vx_values=masker.fit_transform(z_map) #extract z values for each voxels
+        percent=np.round(vx_values.shape[1]*perc/100) # the number of voxels to reach 5% of the total number of voxels
+        vx_values_sorted=np.sort(vx_values) # sort voxel values for lower to higher values
+        vx_values_perc=vx_values_sorted[0][int(vx_values.shape[1]-percent):vx_values.shape[1]] # select the last 5% (>95%)
+        z_thr=vx_values_perc[0] # extract the z value >95%
+        p_thr=2*(1 - t.cdf(abs(z_thr), len(self.subject_names)-1)) # convert into p value with a DOF= number of participants - 1
+
+        # save the map of threshold selection
+        mybins = np.linspace(np.min(vx_values), np.max(vx_values), 1000) # calculate the bin
+        plt.axvline(x = vx_values_perc[0], color="red", label="stat threshold") # plot the threshold value in red
+        plt.hist(vx_values_sorted[0][:],mybins) # plot the histogram of the distribution
+        plt.legend() # plot the legend
+        plt.savefig(self.output_dir + "/nonparam/" + 'estimate_threshold.png')
+        plt.title("z value distribution across voxels, thr= " + str(np.round(vx_values_perc[0],decimals=2)))
+        plt.xlabel("z values")
+        plt.ylabel("number of voxels")
+        
+        return z_thr, p_thr
