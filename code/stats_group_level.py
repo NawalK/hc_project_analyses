@@ -82,7 +82,7 @@ class Stats:
             self.data_1rstlevel[seed_name]=[]
             for sbj_nb in range(len(config['list_subjects'])):
                 subject_name='sub-' +  config['list_subjects'][sbj_nb]
-                tag_files = {"Corr": "pos-corr","MI": "mi"}
+                tag_files = {"Corr": "bi-corr","MI": "mi"}
                 self.tag_file = tag_files.get(self.measure, None)
                 self.data_1rstlevel[seed_name].append(glob.glob(self.config["first_level"] +'/'+ seed_name+'/'+ self.target +'_fc_maps/'+ self.measure + "/" +self.tag_file + "_"+ subject_name + "*.nii.gz")[0])
 
@@ -282,40 +282,43 @@ class Stats:
                         output_uncorr=self.output_dir + "/nonparam/" # create output folder
                         if not os.path.exists(output_uncorr):
                             os.mkdir(output_uncorr)
-                        z_thr,p_thr=self._estimate_threshold(self.output_dir +"/uncorr/zscore_" + title + ".nii.gz",1)
+                        z_thr,p_thr=self._estimate_threshold(self.output_dir +"/uncorr/zscore_" + title.split(" ")[-1] + ".nii.gz",5)
                               
                 else:
-                    p_thr=0.001
-                    
-                contrast_map[title]=non_parametric_inference(nifti_files,design_matrix=Design_matrix[title],model_intercept=True,
-                                                             n_perm=5, # should be set between 1000 and 10000
-                                         two_sided_test=False,
-                                         mask=None,
-                                         smoothing_fwhm=None,
-                                         tfce=True, # choose tfce=True or threshold is not None
-                                         threshold=p_thr,
-                                         n_jobs=8)
+                    p_thr=0.05
+                
+                print(p_thr)
+                contrast_map[title]=non_parametric_inference(nifti_files,
+                                                             design_matrix=Design_matrix[title],model_intercept=True,
+                                                             n_perm=1000, # should be set between 1000 and 10000
+                                                             two_sided_test=False,
+                                                             mask=None,
+                                                             smoothing_fwhm=None,
+                                                             tfce=False, # choose tfce=True or threshold is not None
+                                                             threshold=p_thr,
+                                                             n_jobs=8)
                 if save_img==True:
-                    output_uncorr=self.output_dir + "/nonparam/"
-                    if not os.path.exists(output_uncorr):
-                        os.mkdir(output_uncorr)
-                    nb.save(contrast_map[title]['t'], output_uncorr +"/t_" + title.split(" ")[-1] + ".nii.gz")
-                    nb.save(contrast_map[title]['size'], output_uncorr +"/size_" + title.split(" ")[-1] + ".nii.gz")
-                    nb.save(contrast_map[title]['logp_max_t'],output_uncorr + "/logp_max_t_" + title.split(" ")[-1] + ".nii.gz") # t or F statistical value
-                    nb.save(contrast_map[title]['logp_max_size'],output_uncorr + "/logp_max_size_" + title.split(" ")[-1] + ".nii.gz")
-                    nb.save(contrast_map[title]['mass'],output_uncorr + "/mass_" + title.split(" ")[-1] + ".nii.gz")
-                    nb.save(contrast_map[title]['logp_max_mass'],output_uncorr+ "/logp_max_mass_" + title.split(" ")[-1] + ".nii.gz")
-                    nb.save(contrast_map[title]['tfce'],output_uncorr + "/tfce_" + title + ".nii.gz")
-                    nb.save(contrast_map[title]['logp_max_tfce'],output_uncorr+ "/logp_max_tfce_" + title.split(" ")[-1] + ".nii.gz")
+                    output_corr=self.output_dir + "/nonparam/"
+                    if not os.path.exists(output_corr):
+                        os.mkdir(output_corr)
+                    nb.save(contrast_map[title]['t'], output_corr +"/t_" + title.split(" ")[-1] + ".nii.gz")
+                    nb.save(contrast_map[title]['size'], output_corr +"/size_" + title.split(" ")[-1] + ".nii.gz")
+                    nb.save(contrast_map[title]['logp_max_t'],output_corr + "/logp_max_t_" + title.split(" ")[-1] + ".nii.gz") # t or F statistical value
+                    nb.save(contrast_map[title]['logp_max_size'],output_corr + "/logp_max_size_" + title.split(" ")[-1] + ".nii.gz")
+                    nb.save(contrast_map[title]['mass'],output_corr + "/mass_" + title.split(" ")[-1] + ".nii.gz")
+                    nb.save(contrast_map[title]['logp_max_mass'],output_corr+ "/logp_max_mass_" + title.split(" ")[-1] + ".nii.gz")
+                    #nb.save(contrast_map[title]['tfce'],output_corr + "/tfce_" + title.split(" ")[-1] + ".nii.gz")
+                    #nb.save(contrast_map[title]['logp_max_tfce'],output_corr+ "/logp_max_tfce_" + title.split(" ")[-1] + ".nii.gz")
                    
                     # Data are logp value logp=1.3 => p=0.05 ; logp=2 p=0.01 ; logp=3 p=0.001
-                    string1="fslmaths " + output_uncorr + "/logp_max_t_" + title.split(" ")[-1] + ".nii.gz -thr 1.3 " +output_uncorr + "/logp_max_t_" + title.split(" ")[-1] + "_p-thr05.nii.gz"
-                    string2="fslmaths " + output_uncorr + "/logp_max_t_" + title.split(" ")[-1] + ".nii.gz -thr 2 "+ output_uncorr + "/logp_max_t_" + title.split(" ")[-1] + "_p-thr01.nii.gz"
-                    string3="fslmaths " + output_uncorr + "/logp_max_t_" + title.split(" ")[-1] + ".nii.gz -thr 3 " + output_uncorr + "/logp_max_t_" + title.split(" ")[-1] + "_p-thr001.nii.gz"
-                    string4="fslmaths " + output_uncorr + "/logp_max_t_" + title.split(" ")[-1] + ".nii.gz -thr " + str(z_thr)+ " " + output_uncorr + "/logp_max_t_" + title.split(" ")[-1] + "_t-thr95.nii.gz"
+                    string1="fslmaths " + output_corr + "/logp_max_size_" + title.split(" ")[-1] + ".nii.gz -thr 1.3 " +output_corr + "/logp_max_size_" + title.split(" ")[-1] + "_p-thr05.nii.gz"
+                    string2="fslmaths " + output_corr + "/logp_max_size_" + title.split(" ")[-1] + ".nii.gz -thr 1.3 -bin " +output_corr + "/logp_max_size_" + title.split(" ")[-1] + "_p-thr05_bin.nii.gz"
                     
-                   
-                    os.system(string1);os.system(string2);os.system(string3);os.system(string4)
+                    string3="fslmaths " + output_corr + "/t_" + title.split(" ")[-1] + ".nii.gz -mas " +output_corr + "/logp_max_size_" + title.split(" ")[-1] + "_p-thr05_bin.nii.gz " + output_corr + "/t_" + title.split(" ")[-1] + "_cluster-corr05.nii.gz"
+                    
+                    
+                    print(string3)
+                    os.system(string1);os.system(string2);os.system(string3);
                     
                 if plot_2ndlevel==True:
                     if estimate_threshold==False:
@@ -506,7 +509,7 @@ class Stats:
         
         return contrasts
     
-    def _estimate_threshold(self,img,perc=5):
+    def _estimate_threshold(self,img,perc):
         '''
         Attributes
         img: string

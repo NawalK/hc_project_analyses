@@ -3,11 +3,11 @@
 "masks":{"brain":"/templates/MNI/MNI_GM_2mm.nii.gz",
          "spinalcord": "/templates/PAM50/template/PAM50_cord.nii.gz"},
 
-"seeds":{"seed_dir":"/hc_project_analyses/masks/spinalcord/levels/icaps/gm/",
+"seeds":{"seed_dir":"/hc_project_analyses/masks/spinalcord/",
          "seed_indiv_dir":"/hc_project_analyses/mask/spinalcord/Indiv/",
-         "seed_names1":["icap_C1"],
-          "seed_names":["icap_C1_VR_gm","icap_C2_VR_gm","icap_C3_VR_gm","icap_C4_VR_gm","icap_C5_VR_gm","icap_C6_VR_gm","icap_C7_VR_gm",
-                       "icap_C1_VL_gm","icap_C2_VL_gm","icap_C3_VL_gm","icap_C4_VL_gm","icap_C5_VL_gm","icap_C6_VL_gm","icap_C7_VL_gm"],
+         "seed_names":["PAM50_cord_C1C7_gm","PAM50_cord_C1C7_gm_V","PAM50_cord_C1C7_gm_D","PAM50_cord_C1C7_gm_R","PAM50_cord_C1C7_gm_L"],
+          "seed_names1":["icap_C1_V_gm","icap_C2_V_gm","icap_C3_V_gm","icap_C4_V_gm","icap_C5_V_gm","icap_C6_V_gm","icap_C7_V_gm",
+                       "icap_C1_D_gm","icap_C2_D_gm","icap_C3_D_gm","icap_C4_D_gm","icap_C5_D_gm","icap_C6_D_gm","icap_C7_D_gm"],
          "seed_structure":"spinalcord"},
  
 "targeted_voxels":{"target_dir":"/hc_project_analyses/masks/brain/",

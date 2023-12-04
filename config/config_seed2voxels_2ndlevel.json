@@ -1,9 +1,9 @@
 {"main_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/",
 
- "seeds":{"icap_C1_D_gm":["icap_C1_D_gm"],"icap_C2_D_gm":["icap_C2_D_gm"],"icap_C3_D_gm":["icap_C3_D_gm"],"icap_C4_D_gm":["icap_C4_D_gm"],"icap_C5_D_gm":["icap_C5_D_gm"],"icap_C6_D_gm":["icap_C6_D_gm"],"icap_C7_D_gm":["icap_C7_D_gm"]},
+ "seeds":{"cord_C1C7_RvsL":["PAM50_cord_C1C7_gm_R","PAM50_cord_C1C7_gm_L"]},
 
 
-"model":"OneSampleT",
+"model":"TwoSampT_paired",
 "mask_path":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/brain/MNI_GM_2mm.nii",
 "measure":"Corr",
  "target_1rstlevel": "MNI_GM_2mm",
