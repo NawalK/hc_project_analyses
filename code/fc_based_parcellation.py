@@ -235,7 +235,6 @@ class FC_Parcellation:
                 
                 if algorithm == 'kmeans':
                     print(f"... Running k-means clustering")
-    
                     # Dict containing k means parameters
                     kmeans_kwargs = {'n_clusters': k, 'init': self.init, 'max_iter': self.max_iter, 'n_init': self.n_init_kmeans}
 
