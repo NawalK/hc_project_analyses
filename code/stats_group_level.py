@@ -242,16 +242,13 @@ class Stats:
        
         second_level_model={};contrast_map={}
         for i, (title,values) in enumerate(Design_matrix.items()):
-            #title=title.split(" ")[-1]
+            print(title)
             if parametric==True:
                 second_level_model[title] = SecondLevelModel(mask_img=self.mask_img,smoothing_fwhm=None)
 
                 second_level_model[title] = second_level_model[title].fit(nifti_files, design_matrix=Design_matrix[title])
                 contrast_map[title]=second_level_model[title].compute_contrast(title, second_level_stat_type="t",output_type="all")
-                
-                #if estimate_threshold==True:
-                    #z_thr,p_thr=self._estimate_threshold(self.output_dir +"/uncorr/zscore_" + title + ".nii.gz",5)
-        
+      
                 
                 if save_img==True:
                     output_uncorr=self.output_dir + "/uncorr/"
@@ -294,7 +291,7 @@ class Stats:
                                                              two_sided_test=False,
                                                              mask=None,
                                                              smoothing_fwhm=None,
-                                                             tfce=False, # choose tfce=True or threshold is not None
+                                                             tfce=True, # choose tfce=True or threshold is not None
                                                              threshold=p_thr,
                                                              n_jobs=8)
                 if save_img==True:
@@ -307,8 +304,8 @@ class Stats:
                     nb.save(contrast_map[title]['logp_max_size'],output_corr + "/logp_max_size_" + title.split(" ")[-1] + ".nii.gz")
                     nb.save(contrast_map[title]['mass'],output_corr + "/mass_" + title.split(" ")[-1] + ".nii.gz")
                     nb.save(contrast_map[title]['logp_max_mass'],output_corr+ "/logp_max_mass_" + title.split(" ")[-1] + ".nii.gz")
-                    #nb.save(contrast_map[title]['tfce'],output_corr + "/tfce_" + title.split(" ")[-1] + ".nii.gz")
-                    #nb.save(contrast_map[title]['logp_max_tfce'],output_corr+ "/logp_max_tfce_" + title.split(" ")[-1] + ".nii.gz")
+                    nb.save(contrast_map[title]['tfce'],output_corr + "/tfce_" + title.split(" ")[-1] + ".nii.gz")
+                    nb.save(contrast_map[title]['logp_max_tfce'],output_corr+ "/logp_max_tfce_" + title.split(" ")[-1] + ".nii.gz")
                    
                     # Data are logp value logp=1.3 => p=0.05 ; logp=2 p=0.01 ; logp=3 p=0.001
                     string1="fslmaths " + output_corr + "/logp_max_size_" + title.split(" ")[-1] + ".nii.gz -thr 1.3 " +output_corr + "/logp_max_size_" + title.split(" ")[-1] + "_p-thr05.nii.gz"
@@ -338,7 +335,7 @@ class Stats:
    
         return contrast_map
     
-    def secondlevel_correction(self,maps,z_thr=4,p_value=0.001,cluster_threshold=10,corr=None,smoothing=None,plot_stats_corr=False,save_img=False,n_job=1):
+    def secondlevel_correction(self,maps,z_thr=4,p_value=0.05,cluster_threshold=10,corr=None,smoothing=None,plot_stats_corr=False,save_img=False,n_job=1):
         '''
         One sample t-test
         Attributes
@@ -357,23 +354,6 @@ class Stats:
         for i, (title,values) in enumerate(maps.items()):
             thresholded_map, threshold = threshold_stats_img(maps[title]["z_score"],alpha=p_value,threshold=z_thr,height_control=corr,cluster_threshold=cluster_threshold,two_sided=False)
             
-
-            #TO DO:
-                    #else:
-                    #non_parametric_inference(second_level_input,
-               #     design_matrix=design_matrix,
-                #    model_intercept=True,
-                 #   n_perm=50, # should be set between 1000 and 10000
-                  #  two_sided_test=False,
-                  #  mask=None,
-                   # smoothing_fwhm=None,
-                    #tfce=True, # choose tfce=True or threshold is not None
-                    #threshold=p_value,
-                   # n_jobs=n_job)
-
-                #thresholded_map=img_dict["logp_max_t"] ; threshold=1; cluster_threshold=0#img_dict["tfce"]
-
-
 
 
             if plot_stats_corr==True:
@@ -457,10 +437,10 @@ class Stats:
             contrasts["Main " + self.seed_names[0]]=np.hstack(([1] * len(self.config['list_subjects'])))
             
         elif self.model=="TwoSampT_paired" or self.model=="TwoSampT_unpaired" :
-            contrasts["Main " + self.seed_names[0]]=np.hstack(([1] * len(self.config['list_subjects']), [0] * len(self.config['list_subjects']))) # Main contrast for the first factor
-            contrasts["Main " + self.seed_names[1]]=np.hstack(([0] * len(self.config['list_subjects']), [1] * len(self.config['list_subjects']))) # Main contrast for the second factor
-            contrasts[self.seed_names[0] + " vs " + self.seed_names[1]]=np.hstack(([1] * len(self.config['list_subjects']), [-1] * len(self.config['list_subjects']))) # contrast between the two
-            contrasts[self.seed_names[1] + " vs " + self.seed_names[0]]=np.hstack(([-1] * len(self.config['list_subjects']), [1] * len(self.config['list_subjects']))) # contrast between the two
+            contrasts["Main_" + self.seed_names[0]]=np.hstack(([1] * len(self.config['list_subjects']), [0] * len(self.config['list_subjects']))) # Main contrast for the first factor
+            contrasts["Main_" + self.seed_names[1]]=np.hstack(([0] * len(self.config['list_subjects']), [1] * len(self.config['list_subjects']))) # Main contrast for the second factor
+            contrasts[self.seed_names[0] + "_vs_" + self.seed_names[1]]=np.hstack(([1] * len(self.config['list_subjects']), [-1] * len(self.config['list_subjects']))) # contrast between the two
+            contrasts[self.seed_names[1] + "_vs_" + self.seed_names[0]]=np.hstack(([-1] * len(self.config['list_subjects']), [1] * len(self.config['list_subjects']))) # contrast between the two
             contrasts["All effect"]=np.hstack(([1] * len(self.config['list_subjects']), [1] * len(self.config['list_subjects'])))
         
         
