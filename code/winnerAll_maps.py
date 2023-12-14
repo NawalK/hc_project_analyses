@@ -66,7 +66,8 @@ class WinnerAll:
         #4. Find the t max value for each voxels (group level) ________________________
         maps_file=[];maps_data=[]
         for seed_nb in range(len(self.seed_names)):
-            maps_file.append(glob.glob(self.indir +self.seed_names[seed_nb]+ self.tag_input)[0]) # select individual maps   
+            print(self.indir +self.seed_names[seed_nb]+ self.tag_input + self.seed_names[seed_nb] + "_tstat1.nii.gz")
+            maps_file.append(glob.glob(self.indir +self.seed_names[seed_nb]+ self.tag_input + self.seed_names[seed_nb] + "_tstat1.nii.gz")[0]) # select individual maps   
 
             if apply_threshold is not None:
                 maps_thr=image.threshold_img(maps_file[seed_nb], threshold=apply_threshold, cluster_threshold=100, mask_img=self.mask)

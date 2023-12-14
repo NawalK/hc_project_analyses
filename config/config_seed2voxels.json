@@ -4,10 +4,9 @@
          "spinalcord": "/templates/PAM50/template/PAM50_cord.nii.gz"},
 
 "seeds":{"seed_dir":"/hc_project_analyses/masks/spinalcord/levels/icaps/gm/",
-         "seed_indiv_dir":"/hc_project_analyses/mask/spinalcord/Indiv/",
+         "seed_indiv_dir":"/templates/PAM50/masks/indiv/",
          "seed_names1":["icap_C1_gm","icap_C2_gm","icap_C3_gm","icap_C4_gm","icap_C5_gm","icap_C6_gm","icap_C7_gm"],
-          "seed_names":["icap_C1_R_gm","icap_C2_R_gm","icap_C3_R_gm","icap_C4_R_gm","icap_C5_R_gm","icap_C6_R_gm","icap_C7_R_gm",
-                       "icap_C1_L_gm","icap_C2_L_gm","icap_C3_L_gm","icap_C4_L_gm","icap_C5_L_gm","icap_C6_L_gm","icap_C7_L_gm"],
+          "seed_names":["iCAP_z_C1","iCAP_z_C2"],
          "seed_structure":"spinalcord"},
  
 "targeted_voxels":{"target_dir":"/hc_project_analyses/masks/brain/",

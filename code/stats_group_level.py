@@ -77,16 +77,20 @@ class Stats:
                 
 
         #>>> III. Select first level data: -------------------------------------
-        self.data_1rstlevel={};
+        self.data_1rstlevel={};self.data_1rstlevel_4D={};
         for seed_name in self.seed_names:
-            self.data_1rstlevel[seed_name]=[]
+            self.data_1rstlevel[seed_name]=[];self.data_1rstlevel_4D[seed_name]=[];
             for sbj_nb in range(len(config['list_subjects'])):
                 subject_name='sub-' +  config['list_subjects'][sbj_nb]
                 tag_files = {"Corr": "bi-corr","MI": "mi"}
                 self.tag_file = tag_files.get(self.measure, None)
                 self.data_1rstlevel[seed_name].append(glob.glob(self.config["first_level"] +'/'+ seed_name+'/'+ self.target +'_fc_maps/'+ self.measure + "/" +self.tag_file + "_"+ subject_name + "*.nii.gz")[0])
 
-           
+            print(self.config["first_level"] +'/'+ seed_name+'/'+ self.target +'_fc_maps/'+ self.measure + "/" +self.tag_file + "_"+ str(len(self.subject_names)) +"*" +seed_name + "_s.nii*")
+            self.data_1rstlevel_4D[seed_name]=glob.glob(self.config["first_level"] +'/'+ seed_name+'/'+ self.target +'_fc_maps/'+ self.measure + "/" +self.tag_file + "_"+ str(len(self.subject_names)) +"*" +seed_name + ".nii*")[0]
+            
+            print(seed_name)
+        
     def design_matrix(self,contrast_name=None,plot_matrix= False,save_matrix=False):
         '''
         Create and plot the design matrix for "OneSampleT" or  "TwoSampT_unpaired" or "TwoSampT_paired"
@@ -279,7 +283,7 @@ class Stats:
                         output_uncorr=self.output_dir + "/nonparam/" # create output folder
                         if not os.path.exists(output_uncorr):
                             os.mkdir(output_uncorr)
-                        z_thr,p_thr=self._estimate_threshold(self.output_dir +"/uncorr/zscore_" + title.split(" ")[-1] + ".nii.gz",5)
+                        z_thr,p_thr=self._estimate_threshold(self.output_dir +"/uncorr/zscore_" + title.split(" ")[-1] + ".nii.gz",5,self.output_dir + "/nonparam/")
                               
                 else:
                     p_thr=0.05
@@ -369,25 +373,53 @@ class Stats:
                 nb.save(thresholded_map, output_corrected + "/" + title + "_" +corr+ "_p"+ str(p_value).split('.')[-1] +".nii.gz")
                 
         
-    def snpm_OneSampleT(self,permutation,t_thr,seed_name,output_filename):
-        os.chdir("../../code/stats_snpm/")
+    def randomise(self,Design_matrix,permutation,):
+        
+        #>>> 1. Create output directory ----------------
+        output_rnd=self.output_dir + "/randomise/"
+        if not os.path.exists(output_rnd):
+            os.mkdir(output_rnd)
 
-        eng = matlab.engine.start_matlab()
-        output_snpm=self.output_dir + "/snpm/"
-        if not os.path.exists(output_snpm):
-            os.mkdir(output_snpm)
-        
-        if self.mask_img.split(".")[-1] == "gz":
-            raise ValueError(">>>> Mask image should be unzip for SnPM (.nii)")
-        
-        input_files=self.data_1rstlevel[seed_name]
-        print(eng.SnPM_OneSampT(permutation,t_thr,os.path.dirname(self.data_1rstlevel[seed_name][0]),self.tag_file + "_"+ str(len(self.config['list_subjects'])) + "subjects" ,self.mask_img,output_snpm,output_filename))
+        for i, (title,values) in enumerate(Design_matrix.items()):
+            seed_name=title.split(" ")[-1]
+            print(seed_name)
             
-       
-                        
-                
-                
+        #>>> 2. Run randomise ---------------- 
+        #string="randomise -i "+ self.data_1rstlevel_4D[seed_name] +" -o " + output_rnd + " -d " + design.mat + " -t " + design.con + " -m " + <mask_image> + " " + str(permutation) +" -D -T "
+        string="randomise -i "+ self.data_1rstlevel_4D[seed_name] +" -m " + self.mask_img+" -o " + output_rnd + "/" +seed_name + " -n " + str(permutation) +" -1 -c 2 -R --uncorrp "
         
+        os.system(string)
+        stat_map=output_rnd + "/" +seed_name + "_tstat1.nii.gz"
+        
+        #>>> 3. Calculate the smoothest and create a file ----------------
+        string="smoothest -z "+ stat_map +" -m " + self.mask_img + " > " + output_rnd + "/smoothness.txt"
+        os.system(string)
+        
+        with open(output_rnd + "/smoothness.txt", 'r', encoding='utf-8') as file:
+            file_content = file.read() # Read the entire content of the file
+        
+        # extract the information from smoothness.txt file
+        DLH=file_content.split("\n")[0];VOLUME=file_content.split("\n")[1];RESELS=file_content.split("\n")[2]
+        FWHMvoxel=file_content.split("\n")[3]; FWHMmm=file_content.split("\n")[4]
+        
+        
+        #>>> Run cluster correction
+        z_thr,p_thr=self._estimate_threshold(stat_map,5,output_rnd)
+        
+        z_thr=1.6
+        print("auto thr " + str(z_thr))
+        string="cluster -i " + stat_map + " -t "+str(z_thr)+" -p 0.05 -d " + DLH.split(" ")[-1] + " --volume=" + VOLUME.split(" ")[-1] + " --othresh=" + output_rnd +  "/" +seed_name + "_cluster_thr_zstat -o " +  output_rnd +  "/" +seed_name + "_cluster_mask_zstat"
+  
+        os.system(string)
+    
+        print(string)
+
+        print("Randomise one for " + seed_name + " - " + str(permutation) + " permutations")
+
+
+
+
+                   
 
 
                 
@@ -489,7 +521,7 @@ class Stats:
         
         return contrasts
     
-    def _estimate_threshold(self,img,perc):
+    def _estimate_threshold(self,img,perc, output_dir):
         '''
         Attributes
         img: string
@@ -516,7 +548,7 @@ class Stats:
         plt.axvline(x = vx_values_perc[0], color="red", label="stat threshold") # plot the threshold value in red
         plt.hist(vx_values_sorted[0][:],mybins) # plot the histogram of the distribution
         plt.legend() # plot the legend
-        plt.savefig(self.output_dir + "/nonparam/" + 'estimate_threshold.png')
+        plt.savefig(output_dir + 'estimate_threshold.png')
         plt.title("z value distribution across voxels, thr= " + str(np.round(vx_values_perc[0],decimals=2)))
         plt.xlabel("z values")
         plt.ylabel("number of voxels")
