@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-import glob, os, json, math
+import glob, os, json, math, shutil
 import sc_utilities as util
 import matlab.engine
 import pandas as pd
 import numpy as np
 import nibabel as nb
+
 # nilearn:
 from nilearn.glm.second_level import make_second_level_design_matrix
 from nilearn.glm.second_level import SecondLevelModel
@@ -74,7 +75,7 @@ class Stats:
                 os.makedirs(self.output_dir,exist_ok=True)  # Create output directory:
             print("> Saved here : " + self.output_dir)
             print("  ")
-                
+        
 
         #>>> III. Select first level data: -------------------------------------
         self.data_1rstlevel={};self.data_1rstlevel_4D={};
@@ -90,6 +91,7 @@ class Stats:
             self.data_1rstlevel_4D[seed_name]=glob.glob(self.config["first_level"] +'/'+ seed_name+'/'+ self.target +'_fc_maps/'+ self.measure + "/" +self.tag_file + "_"+ str(len(self.subject_names)) +"*" +seed_name + ".nii*")[0]
             
             print(seed_name)
+         
         
     def design_matrix(self,contrast_name=None,plot_matrix= False,save_matrix=False):
         '''
@@ -373,7 +375,7 @@ class Stats:
                 nb.save(thresholded_map, output_corrected + "/" + title + "_" +corr+ "_p"+ str(p_value).split('.')[-1] +".nii.gz")
                 
         
-    def randomise(self,Design_matrix,permutation,):
+    def randomise(self,Design_matrix,permutation):
         
         #>>> 1. Create output directory ----------------
         output_rnd=self.output_dir + "/randomise/"
@@ -382,14 +384,38 @@ class Stats:
 
         for i, (title,values) in enumerate(Design_matrix.items()):
             seed_name=title.split(" ")[-1]
-            print(seed_name)
+            #print(seed_name)
             
         #>>> 2. Run randomise ---------------- 
-        #string="randomise -i "+ self.data_1rstlevel_4D[seed_name] +" -o " + output_rnd + " -d " + design.mat + " -t " + design.con + " -m " + <mask_image> + " " + str(permutation) +" -D -T "
-        string="randomise -i "+ self.data_1rstlevel_4D[seed_name] +" -m " + self.mask_img+" -o " + output_rnd + "/" +seed_name + " -n " + str(permutation) +" -1 -c 2 -R --uncorrp "
+        if self.model=="OneSampleT":
+            string="randomise -i "+ self.data_1rstlevel_4D[seed_name] +" -m " + self.mask_img+" -o " + output_rnd + "/" +seed_name + " -n " + str(permutation) +" -1 -c 2 -R --uncorrp "
+            
+        elif self.model=="HigherOrder_paired":
+            # Create a 4D file with all the 1rst levels files
+            levels_files=[]
+            for seed_name in self.seed_names:
+                levels_files.append(self.data_1rstlevel_4D[seed_name])
+            levels_files_list=",".join(levels_files).replace(",", " "); # concatenate the filename in a list of files withou ',' as a delimiter
+            all_levels_file=output_rnd + "/4d_all_files.nii.gz" 
+            if not os.path.exists(all_levels_file):
+                string='fslmerge -t ' + all_levels_file + " " + levels_files_list # create an fsl command to merge the indiv files in a 4D file
+                os.system(string) # run fsl command
         
+            
+            # copy design file in the output folder
+            shutil.copy(self.output_dir.split(os.path.basename(self.mask_img).split(".")[0])[0] + "/all_levels_fsl.mat", output_rnd + "/all_levels_fsl.mat")
+            shutil.copy(self.output_dir.split(os.path.basename(self.mask_img).split(".")[0])[0]+ "/all_levels_fsl.con", output_rnd + "/all_levels_fsl.con")
+            shutil.copy(self.output_dir.split(os.path.basename(self.mask_img).split(".")[0])[0]+ "/all_levels_fsl.fts", output_rnd + "/all_levels_fsl.fts")
+
+
+            # prepare randomise
+            string="randomise -i "+ all_levels_file +" -m " + self.mask_img+" -d " +output_rnd + "/all_levels_fsl.mat -t " + output_rnd + "/all_levels_fsl.con -f " + output_rnd + "/all_levels_fsl.fts -F 1.6 -o " + output_rnd + "/" +self.ana_name + " -n " + str(permutation) +" -1 -R --uncorrp "
+            
+    
         os.system(string)
-        stat_map=output_rnd + "/" +seed_name + "_tstat1.nii.gz"
+        stat_map=output_rnd + "/" +self.ana_name + "_mapfstat1.nii.gz"
+        os.rename(output_rnd + "/" +self.ana_name + "_fstat1.nii.gz",stat_map)
+        
         
         #>>> 3. Calculate the smoothest and create a file ----------------
         string="smoothest -z "+ stat_map +" -m " + self.mask_img + " > " + output_rnd + "/smoothness.txt"
@@ -408,13 +434,13 @@ class Stats:
         
         z_thr=1.6
         print("auto thr " + str(z_thr))
-        string="cluster -i " + stat_map + " -t "+str(z_thr)+" -p 0.05 -d " + DLH.split(" ")[-1] + " --volume=" + VOLUME.split(" ")[-1] + " --othresh=" + output_rnd +  "/" +seed_name + "_cluster_thr_zstat -o " +  output_rnd +  "/" +seed_name + "_cluster_mask_zstat"
+        string="cluster -i " + stat_map + " -t "+str(z_thr)+" -p 0.05 -d " + DLH.split(" ")[-1] + " --volume=" + VOLUME.split(" ")[-1] + " --othresh=" + output_rnd +  "/" +self.ana_name + "_cluster_thr_zstat -o " +  output_rnd +  "/" +self.ana_name + "_cluster_mask_zstat"
   
         os.system(string)
     
         print(string)
 
-        print("Randomise one for " + seed_name + " - " + str(permutation) + " permutations")
+        print("Randomise one for " + self.ana_name + " - " + str(permutation) + " permutations")
 
 
 
