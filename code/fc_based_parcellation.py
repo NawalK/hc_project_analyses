@@ -43,17 +43,17 @@ class FC_Parcellation:
     params_spectral : dict
         parameters for spectral clustering
         - n_init: number of times the algorithm is run with different centroid seeds (default = 256)
-        - kernel: Kernel coefficient for rbf, poly, sigmoid, laplacian and chi2 kernels. Ignored for affinity='nearest_neighbors'. (default = 'nearest_neighbors')
+        - kernel: Kernel coefficient for rbf, poly, sigmoid, laplacian and chi2 kernels. Ignored for metric='nearest_neighbors'. (default = 'nearest_neighbors')
         - assign_labels: trategy for assigning labels in the embedding space (default = 'kmeans')
         - eigen_solver: eigenvalue decomposition strategy to use (default = 'arpack')
         - eigen_tol: stopping criterion for eigendecomposition of the Laplacian matrix (default = 1.0e-5)
     params_agglom : dict
         parameters for agglomerative clustering
         - linkage: distance to use between sets of observations (default = 'ward')
-        - affinity: metric used to compute the linkage (default = 'euclidean')
+        - metric: metric used to compute the linkage (default = 'euclidean')
     '''
     
-    def __init__(self, config, struct_source='spinalcord', struct_target='brain', fc_metric='corr', params_kmeans={'init':'k-means++', 'n_init':256, 'max_iter':10000}, params_spectral={'n_init':256, 'kernel': 'nearest_neighbors', 'assign_labels': 'kmeans', 'eigen_solver': 'arpack', 'eigen_tol': 1.0e-5}, params_agglom={'linkage':'ward', 'affinity':'euclidean'}):
+    def __init__(self, config, struct_source='spinalcord', struct_target='brain', fc_metric='corr', params_kmeans={'init':'k-means++', 'n_init':256, 'max_iter':10000}, params_spectral={'n_init':256, 'kernel': 'nearest_neighbors', 'assign_labels': 'kmeans', 'eigen_solver': 'arpack', 'eigen_tol': 1.0e-5}, params_agglom={'linkage':'ward', 'metric':'euclidean'}):
         self.config = config # Load config info
         self.struct_source = struct_source
         self.struct_target = struct_target
@@ -64,7 +64,7 @@ class FC_Parcellation:
         self.n_init_kmeans = params_kmeans.get('n_init')
         self.max_iter = params_kmeans.get('max_iter')
         self.linkage = params_agglom.get('linkage')
-        self.affinity = params_agglom.get('affinity')
+        self.metric = params_agglom.get('metric')
 
         self.n_init_spectral = params_spectral.get('n_init')
         self.kernel = params_spectral.get('kernel')
@@ -163,7 +163,7 @@ class FC_Parcellation:
         
         print("\n\033[1mDONE\033[0m")
 
-    def run_clustering(self, sub, k_range, algorithm, overwrite=False):
+    def run_clustering(self, sub, k_range, algorithm, poscorr=False, overwrite=False):
         '''  
         Run clustering for a range of k values
         Saving validity metrics using two methods:
@@ -180,6 +180,8 @@ class FC_Parcellation:
             number of clusters  
         algorithm : str
             defines which algorithm to use ('kmeans', 'spectral', or 'agglom')
+        poscorr : boolean
+            defines if we take only the positive correlation for the clustering
         overwrite : boolean
             if set to True, labels are overwritten (default = False)
         
@@ -195,13 +197,19 @@ class FC_Parcellation:
         print(f"\033[37mK value(s) = {k_range}\033[0m")
         print(f"\033[37mOverwrite results = {overwrite}\033[0m")
         
+        if poscorr:
+            if self.fc_metric == 'corr':
+                print(f"\033[37mNote: keeping only positive correlations\033[0m")
+            else:
+                raise(Exception(f'The option to keep only positive correlations cannot be used with this metric.'))
+        
         # If only one k value is given, convert to range
         k_range = range(k_range,k_range+1) if isinstance(k_range,int) else k_range
 
         # Path to create folder structure
         path_source = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/'
         os.makedirs(os.path.join(path_source, 'validity'), exist_ok=True)
-        path_internal_validity = path_source + 'validity/' + self.config['output_tag'] + '_' + algorithm + '_internal_validity.pkl'
+        path_internal_validity = path_source + 'validity/' + self.config['output_tag'] + '_' + algorithm + '_internal_validity_poscorr.pkl' if poscorr else path_source + 'validity/' + self.config['output_tag'] + '_' + algorithm + '_internal_validity.pkl'
         # Load file with metrics to define K (SSE, silhouette, ...)
         if os.path.isfile(path_internal_validity): # Take it if it exists
             internal_validity_df = pd.read_pickle(path_internal_validity)
@@ -220,16 +228,21 @@ class FC_Parcellation:
                 os.makedirs(os.path.join(path_source, 'K'+str(k), folder), exist_ok=True)
 
             # Check if file already exists
-            if not overwrite and os.path.isfile(path_source + 'K' + str(k) + '/indiv_labels/' + self.config['output_tag'] + '_' + sub + '_' + algorithm + '_labels_k' + str(k) + '.npy'):
+            path_indiv_labels = path_source + 'K' + str(k) + '/indiv_labels/' + self.config['output_tag'] + '_' + sub + '_' + algorithm + '_labels_k' + str(k) + '_poscorr.npy' if poscorr else path_source + 'K' + str(k) + '/indiv_labels/' + self.config['output_tag'] + '_' + sub + '_' + algorithm + '_labels_k' + str(k) + '.npy'
+            if not overwrite and os.path.isfile(path_indiv_labels):
                 print(f"... Labels already computed")
             
             # Otherwise, we compute them
             else:
-                
                 print(f"... Loading FC from file")
                 path_fc = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/fcs/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy'
                 if os.path.isfile(path_fc):
                     fc = np.load(path_fc)
+                    if poscorr:
+                        if self.fc_metric == 'corr':
+                            fc[fc<0] = 0; # Keep only positive correlations 
+                        else:
+                            raise(Exception(f'The option to keep only positive correlations cannot be used with this metric.'))
                 else:
                     raise(Exception(f'FC cannot be found.'))
                 
@@ -248,7 +261,7 @@ class FC_Parcellation:
                 
                 elif algorithm == 'spectral':
                     print(f"... Running spectral clustering")
-                    spectral_kwargs = {'n_clusters': k, 'n_init': self.n_init_spectral, 'affinity': self.kernel,
+                    spectral_kwargs = {'n_clusters': k, 'n_init': self.n_init_spectral, 'metric': self.kernel,
                             'assign_labels': self.assign_labels, 'eigen_solver': self.eigen_solver, 'eigen_tol': self.eigen_tol}
                     
                     spectral_clusters = SpectralClustering(**spectral_kwargs)
@@ -260,7 +273,7 @@ class FC_Parcellation:
                 elif algorithm == 'agglom':
                     print(f"... Running agglomerative clustering")
                     # Dict containing parameters
-                    agglom_kwargs = {'n_clusters': k, 'linkage': self.linkage, 'affinity': self.affinity}
+                    agglom_kwargs = {'n_clusters': k, 'linkage': self.linkage, 'metric': self.metric}
 
                     agglom_clusters = AgglomerativeClustering(**agglom_kwargs)
                     agglom_clusters.fit(fc)
@@ -272,14 +285,14 @@ class FC_Parcellation:
                     
                 else:
                     raise(Exception(f'Algorithm {algorithm} is not a valid option.'))
-
-                np.save(path_source + 'K' + str(k) + '/indiv_labels/' + self.config['output_tag'] + '_' + sub + '_' + algorithm + '_labels_k' + str(k) + '.npy', labels.astype(int))
+            
+                np.save(path_indiv_labels, labels.astype(int))
 
         internal_validity_df.to_pickle(path_internal_validity ) 
 
         print("\n")
        
-    def group_clustering(self, k_range, indiv_algorithm, linkage="complete", overwrite=False):
+    def group_clustering(self, k_range, indiv_algorithm, poscorr=False, linkage="complete", overwrite=False):
         '''  
         Perform group-level clustering using the individual labels
         BASED ON CBP toolbox
@@ -292,6 +305,8 @@ class FC_Parcellation:
             algorithm that was used at the subject level
         linkage : str
             define type of linkage to use for hierarchical clustering (default = "complete")
+        poscorr : boolean
+            defines if we take only the positive correlation for the clustering
         overwrite : boolean
             if set to True, labels are overwritten (default = False)
        
@@ -299,6 +314,7 @@ class FC_Parcellation:
         ------------
         Saving relabeled labels for each individual participant (as .npy)
         Saving group labels (as .npy and .nii.gz)
+            (either using the mode of the relabeled participant-wise clustering, or using the hierarchical clustering result)
 
         '''
         print(f"\033[1mCLUSTERING AT THE GROUP LEVEL\033[0m")
@@ -307,19 +323,26 @@ class FC_Parcellation:
        
         if overwrite == False:
             print("\033[38;5;208mWARNING: THESE RESULTS CHANGE IF GROUP CHANGES, MAKE SURE YOU ARE USING THE SAME SUBJECTS\033[0m\n")
-
+        
+        if poscorr:
+            if self.fc_metric == 'corr':
+                print(f"\033[37mNote: keeping only positive correlations\033[0m")
+            else:
+                raise(Exception(f'The option to keep only positive correlations cannot be used with this metric.'))
+        
+      
         # If only one k value is given, convert to range
         k_range = range(k_range,k_range+1) if isinstance(k_range,int) else k_range
 
         path_source = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/'
-        path_group_validity = path_source + 'validity/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_validity.pkl'
-        path_cophenetic_correlation = path_source + 'validity/' + self.config['output_tag'] + '_' + indiv_algorithm + '_cophenetic_correlation.pkl'
+        path_group_validity = path_source + 'validity/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_validity_poscorr.pkl' if poscorr else path_source + 'validity/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_validity.pkl'
+        path_cophenetic_correlation = path_source + 'validity/' + self.config['output_tag'] + '_' + indiv_algorithm + '_cophenetic_correlation_poscorr.pkl' if poscorr else path_source + 'validity/' + self.config['output_tag'] + '_' + indiv_algorithm + '_cophenetic_correlation.pkl'
         
         # Load file with metrics to similarity indiv vs group labels
         if not overwrite and os.path.isfile(path_group_validity):
             group_validity_df = pd.read_pickle(path_group_validity) 
         else: # Create an empty dataframe with the needed columns
-            columns = ["sub", "ami", "ari","k"]
+            columns = ["sub", "ami_mode", "ari_mode", "ami_agglom", "ari_agglom", "k"]
             group_validity_df = pd.DataFrame(columns=columns)
 
         # Load file with cophenetic correlations
@@ -334,8 +357,9 @@ class FC_Parcellation:
             print(f"K = {k}")
             
             # We assume that if group_labels exist, the rest is done too
-            group_labels_path = path_source + 'K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_k' + str(k)
-            if not overwrite and os.path.isfile(group_labels_path + '.npy'):
+            group_labels_mode_path = path_source + 'K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k) + '_poscorr' if poscorr else path_source + 'K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k) 
+            group_labels_agglom_path = path_source + 'K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_agglom_k' + str(k) + '_poscorr' if poscorr else path_source + 'K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_agglom_k' + str(k)
+            if not overwrite and os.path.isfile(group_labels_mode_path + '.npy'):
                 print(f"... Group labeling already done!")
             else:
                 print(f"... Computing hierarchical clustering and relabeling")
@@ -346,7 +370,7 @@ class FC_Parcellation:
                 
                 print(f"...... Loading all subjects")                
                 for sub_id,sub in enumerate(self.config['list_subjects']):
-                    indiv_labels_path =  path_source + '/K' + str(k) + '/indiv_labels/' + self.config['output_tag'] + '_' + sub + '_' + indiv_algorithm + '_labels_k' + str(k) + '.npy'    
+                    indiv_labels_path =  path_source + '/K' + str(k) + '/indiv_labels/' + self.config['output_tag'] + '_' + sub + '_' + indiv_algorithm + '_labels_k' + str(k) + '_poscorr.npy' if poscorr else path_source + '/K' + str(k) + '/indiv_labels/' + self.config['output_tag'] + '_' + sub + '_' + indiv_algorithm + '_labels_k' + str(k) + '.npy'    
                     if os.path.isfile(indiv_labels_path):
                         indiv_labels_all[sub_id,:] = np.load(indiv_labels_path)    
                     else:      
@@ -378,26 +402,31 @@ class FC_Parcellation:
                     indiv_labels_relabeled = np.vstack([indiv_labels_relabeled , x])
                 
                 mode, _ = stats.mode(indiv_labels_relabeled, axis=0, keepdims=False)
-
                 # Set group labels to mode for mapping
-                group_labels = np.squeeze(mode)
-
+                group_labels_mode = np.squeeze(mode)
+           
                 print(f"...... Computing validity")
                 for sub_id, sub in enumerate(self.config['list_subjects']): 
-                    ami = adjusted_mutual_info_score(labels_true=group_labels,labels_pred=indiv_labels_relabeled[sub_id,:])
-                    ari = adjusted_rand_score(labels_true=group_labels,labels_pred=indiv_labels_relabeled[sub_id,:])
-                    group_validity_df.loc[len(group_validity_df)] = [sub, ami, ari, k]
+                    ami_mode = adjusted_mutual_info_score(labels_true=group_labels_mode,labels_pred=indiv_labels_relabeled[sub_id,:])
+                    ari_mode = adjusted_rand_score(labels_true=group_labels_mode,labels_pred=indiv_labels_relabeled[sub_id,:])
+                    ami_agglom = adjusted_mutual_info_score(labels_true=group_labels,labels_pred=indiv_labels_relabeled[sub_id,:])
+                    ari_agglom = adjusted_rand_score(labels_true=group_labels,labels_pred=indiv_labels_relabeled[sub_id,:])
+                    group_validity_df.loc[len(group_validity_df)] = [sub, ami_mode, ari_mode, ami_agglom, ari_agglom, k]
 
                 # Arrays and df
-                np.save(path_source + 'K' + str(k) + '/indiv_labels_relabeled/' + self.config['output_tag'] + '_' + indiv_algorithm + '_labels_relabeled_k' + str(k) + '.npy',indiv_labels_relabeled.astype(int))
+                path_relabeled = path_source + 'K' + str(k) + '/indiv_labels_relabeled/' + self.config['output_tag'] + '_' + indiv_algorithm + '_labels_relabeled_k' + str(k) + '_poscorr.npy' if poscorr else path_source + 'K' + str(k) + '/indiv_labels_relabeled/' + self.config['output_tag'] + '_' + indiv_algorithm + '_labels_relabeled_k' + str(k) + '.npy'
+                np.save(path_relabeled,indiv_labels_relabeled.astype(int))
                 cophenetic_correlation_df.to_pickle(path_cophenetic_correlation)
                 group_validity_df.to_pickle(path_group_validity)
 
                 # Maps
-                np.save(group_labels_path + '.npy', group_labels.astype(int))
+                np.save(group_labels_agglom_path + '.npy', group_labels.astype(int))
+                np.save(group_labels_mode_path + '.npy', group_labels_mode.astype(int))
                 seed = NiftiMasker(self.mask_source_path).fit()
                 labels_img = seed.inverse_transform(group_labels+1) # +1 because labels start from 0 
-                labels_img.to_filename(group_labels_path + '.nii.gz')
+                labels_img.to_filename(group_labels_agglom_path + '.nii.gz')
+                labels_img = seed.inverse_transform(group_labels_mode+1) # +1 because labels start from 0 
+                labels_img.to_filename(group_labels_mode_path + '.nii.gz')
 
         print("\n\033[1mDONE\033[0m")
 
@@ -411,7 +440,8 @@ class FC_Parcellation:
         label_type : str
             defines the type of labels to use to define connectivity patterns (target)
             'indiv': relabeled labels (i.e., specific to each participant)
-            'group': group labels (i.e., same for all participants)
+            'group_mode': group labels (mode) (i.e., same for all participants)
+            'group_agglom': group labels (agglomerative) (i.e., same for all participants)       
         k_range : int, array or range
             number of clusters  
         indiv_algorithm : str
@@ -463,8 +493,10 @@ class FC_Parcellation:
                     if label_type == 'indiv':
                         labels = np.load(self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/indiv_labels_relabeled/' + self.config['output_tag'] + '_' + indiv_algorithm + '_labels_relabeled_k' + str(k) + '.npy')
                         labels =  np.squeeze(labels[sub_id,:].T)
-                    elif label_type == 'group':
-                        labels = np.load(self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_k' + str(k) + '.npy')
+                    elif label_type == 'group_mode':
+                        labels = np.load(self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k) + '.npy')
+                    elif label_type == 'group_agglom':
+                        labels = np.load(self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_agglom_k' + str(k) + '.npy')
                     else:
                         raise(Exception(f'Label type {label_type} is not a valid option.'))
 
@@ -486,6 +518,8 @@ class FC_Parcellation:
                 for label in np.unique(labels):      
                     target_map_mean_img = target_mask.inverse_transform(np.mean(target_maps[:,label,:],axis=0))
                     target_map_mean_img.to_filename(path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_mean' + '/' +  self.config['output_tag'] + '_mean_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(label+1) + '.nii.gz')
+                    target_map_Z_img = target_mask.inverse_transform(np.mean(target_maps[:,label,:],axis=0)/np.std(target_maps[:,label,:],axis=0))
+                    target_map_Z_img.to_filename(path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_mean' + '/' +  self.config['output_tag'] + '_Z_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(label+1) + '.nii.gz')
 
                 # Save array
                 np.save(target_npy_path, target_maps)
@@ -514,7 +548,7 @@ class FC_Parcellation:
         internal: str, list
             indicates internal metrics to plot ('SSE', 'silhouette', 'davies', 'calinski')
         group : str, liit
-            indicates group metrics to plot ('ami', 'ari', 'corr')
+            indicates group metrics to plot ('ami_agglom', 'ari_agglom', 'ami_mode', 'ari_mode', 'corr')
         indiv_algorithm: str
             defines which algorithm was used ('kmeans' or 'agglom') for participant-level clustering (default = 'kmeans')
         save_figures : boolean
@@ -537,19 +571,20 @@ class FC_Parcellation:
                          'silhouette': 'Silhouette score',
                          'davies': 'Davies-Bouldin index', 
                          'calinski': 'Calinski-Harabasz index',
-                         'ami': 'Adjusted Mutual Information',
-                         'ari': 'Adjusted Rand Index',
+                         'ami_mode': 'Adjusted Mutual Information (mode)',
+                         'ari_mode': 'Adjusted Rand Index (mode)',
+                         'ami_agglom': 'Adjusted Mutual Information (agglom)',
+                         'ari_agglom': 'Adjusted Rand Index (agglom)',
                          'corr': 'Cophenetic correlation'}
         color="#43c7cc"
 
         # Path to create folder structure
         path_validity = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/validity/'
        
-        # Open all dataframes
-        
+        # Open all dataframes 
         if internal:
             internal_df = pd.read_pickle(path_validity + self.config['output_tag'] + '_' + indiv_algorithm + '_internal_validity.pkl')
-        if any(metric in group for metric in ['ami', 'ari']):
+        if any(metric in group for metric in ['ami_mode', 'ari_mode', 'ami_agglom', 'ari_agglom']):
             group_df = pd.read_pickle(path_validity + self.config['output_tag'] + '_' + indiv_algorithm + '_group_validity.pkl')
         if any(metric in group for metric in ['corr']):
             corr_df = pd.read_pickle(path_validity + self.config['output_tag'] + '_' + indiv_algorithm + '_cophenetic_correlation.pkl')
