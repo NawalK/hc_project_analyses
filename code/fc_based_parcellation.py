@@ -430,7 +430,7 @@ class FC_Parcellation:
 
         print("\n\033[1mDONE\033[0m")
 
-    def prepare_target_maps(self, label_type, k_range, indiv_algorithm, overwrite=False):
+    def prepare_target_maps(self, label_type, k_range, indiv_algorithm, poscorr=False, overwrite=False):
         '''  
         To obtain images of the connectivity profiles assigned to each label
         (i.e., mean over the connectivity profiles of the voxel of this K)
@@ -446,6 +446,8 @@ class FC_Parcellation:
             number of clusters  
         indiv_algorithm : str
             algorithm that was used at the participant level
+        poscorr : boolean
+            defines if we take only the positive correlation for the clustering
         overwrite : boolean
             if set to True, maps are overwritten (default = False)
         
@@ -464,6 +466,12 @@ class FC_Parcellation:
         print(f"\033[37mK value(s) = {k_range}\033[0m")
         print(f"\033[37mOverwrite results = {overwrite}\033[0m")
 
+        if poscorr:
+            if self.fc_metric == 'corr':
+                print(f"\033[37mNote: keeping only positive correlations\033[0m")
+            else:
+                raise(Exception(f'The option to keep only positive correlations cannot be used with this metric.'))
+       
         # If only one k value is given, convert to range
         k_range = range(k_range,k_range+1) if isinstance(k_range,int) else k_range
         
@@ -474,7 +482,7 @@ class FC_Parcellation:
         for k in k_range:
             print(f"K = {k}")    
 
-            target_npy_path = path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/' + self.config['output_tag'] + '_' + indiv_algorithm + '_targetmaps_k' + str(k) + '.npy'
+            target_npy_path = path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/' + self.config['output_tag'] + '_' + indiv_algorithm + '_targetmaps_k' + str(k) + '_poscorr.npy' if poscorr else path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/' + self.config['output_tag'] + '_' + indiv_algorithm + '_targetmaps_k' + str(k) + '.npy' 
             
             if not overwrite and os.path.isfile(target_npy_path):
                 print(f"... Target maps already computed")
@@ -491,18 +499,23 @@ class FC_Parcellation:
                     
                     # Load labels
                     if label_type == 'indiv':
-                        labels = np.load(self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/indiv_labels_relabeled/' + self.config['output_tag'] + '_' + indiv_algorithm + '_labels_relabeled_k' + str(k) + '.npy')
+                        path_labels = self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/indiv_labels_relabeled/' + self.config['output_tag'] + '_' + indiv_algorithm + '_labels_relabeled_k' + str(k) + '_poscorr.npy' if poscorr else self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/indiv_labels_relabeled/' + self.config['output_tag'] + '_' + indiv_algorithm + '_labels_relabeled_k' + str(k) + '.npy'
+                        labels = np.load(path_labels)
                         labels =  np.squeeze(labels[sub_id,:].T)
                     elif label_type == 'group_mode':
-                        labels = np.load(self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k) + '.npy')
+                        path_labels = self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k) + '_poscorr.npy' if poscorr else self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k) + '.npy'
+                        labels = np.load(path_labels)
                     elif label_type == 'group_agglom':
-                        labels = np.load(self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_agglom_k' + str(k) + '.npy')
+                        path_labels = self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_agglom_k' + str(k) + '_poscorr.npy' if poscorr else self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_agglom_k' + str(k) + '.npy'
+                        labels = np.load(path_labels)
                     else:
                         raise(Exception(f'Label type {label_type} is not a valid option.'))
 
                     # Load FC
                     fc = np.load(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/fcs/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy')
                     
+                    if poscorr:
+                        fc[fc<0] = 0
                     # Compute mean map per label
                     for label in range(0,k):
                         target_maps[sub_id,label,:] = np.mean(fc[np.where(labels==label),:],axis=1)
@@ -512,14 +525,17 @@ class FC_Parcellation:
                     
                     for label in np.unique(labels):
                         target_map_img = target_mask.inverse_transform(target_maps[sub_id,label,:])
-                        target_map_img.to_filename(path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_indiv' + '/' +  self.config['output_tag'] + '_' + sub + '_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(label+1) + '.nii.gz')
+                        path_target_map_img = path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_indiv' + '/' +  self.config['output_tag'] + '_' + sub + '_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(label+1) + '_poscorr.nii.gz' if poscorr else path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_indiv' + '/' +  self.config['output_tag'] + '_' + sub + '_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(label+1) + '.nii.gz'
+                        target_map_img.to_filename(path_target_map_img)
 
                 # Save mean maps as nifti files
                 for label in np.unique(labels):      
                     target_map_mean_img = target_mask.inverse_transform(np.mean(target_maps[:,label,:],axis=0))
-                    target_map_mean_img.to_filename(path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_mean' + '/' +  self.config['output_tag'] + '_mean_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(label+1) + '.nii.gz')
+                    path_target_map_mean_img = path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_mean' + '/' +  self.config['output_tag'] + '_mean_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(label+1) + '_poscorr.nii.gz' if poscorr else path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_mean' + '/' +  self.config['output_tag'] + '_mean_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(label+1) + '.nii.gz'
+                    target_map_mean_img.to_filename(path_target_map_mean_img)
                     target_map_Z_img = target_mask.inverse_transform(np.mean(target_maps[:,label,:],axis=0)/np.std(target_maps[:,label,:],axis=0))
-                    target_map_Z_img.to_filename(path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_mean' + '/' +  self.config['output_tag'] + '_Z_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(label+1) + '.nii.gz')
+                    path_target_map_Z_img = path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_mean' + '/' +  self.config['output_tag'] + '_Z_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(label+1) + '_poscorr.nii.gz' if poscorr else path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_mean' + '/' +  self.config['output_tag'] + '_Z_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(label+1) + '.nii.gz'
+                    target_map_Z_img.to_filename(path_target_map_Z_img)
 
                 # Save array
                 np.save(target_npy_path, target_maps)
