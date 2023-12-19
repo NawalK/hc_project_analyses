@@ -7,8 +7,8 @@
     "output_dir": "/brain_spine/results/fc_parcellation/",
     "output_tag": "XXXX",
     
-    "masks":{"brain":"XXXX",
-            "spinalcord": "XXXX"},
+    "masks":{"target":"XXXX",
+            "source": "XXXX"},
     
     "list_subjects":["XXXX"]
 } 

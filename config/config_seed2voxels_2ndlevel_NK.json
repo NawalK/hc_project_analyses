@@ -1,22 +1,35 @@
 {"main_dir":"/media/miplab-nas2/Data3/BMPD/hc_project/",
 
-"seeds_level":{"frost_C1_gm":["frost_C1_gm"],"frost_C2_gm":["frost_C2_gm"],"frost_C3_gm":["frost_C3_gm"],"frost_C4_gm":["frost_C4_gm"],"frost_C5_gm":["frost_C5_gm"],"frost_C6_gm":["frost_C6_gm"],"frost_C7_gm":["frost_C7_gm"],"frost_C1_gmwm":["frost_C1_gmwm"],"frost_C2_gmwm":["frost_C2_gmwm"],"frost_C3_gmwm":["frost_C3_gmwm"],"frost_C4_gmwm":["frost_C4_gmwm"],"frost_C5_gmwm":["frost_C5_gmwm"],"frost_C6_gmwm":["frost_C6_gmwm"],"frost_C7_gmwm":["frost_C7_gmwm"],"icap_C1":["icap_C1"],"icap_C2":["icap_C2"],"icap_C3":["icap_C3"],"icap_C4":["icap_C4"],"icap_C5":["icap_C5"],"icap_C6":["icap_C6"],"icap_C7":["icap_C7"]},
-"seeds_ctrst":{"C1C7_DR_min_DL_gm":["C1C7_DR_gm","C1C7_DL_gm"],"C1C7_VR_min_VL_gm":["C1C7_VR_gm","C1C7_VL_gm"],"C1C7_DR_min_VR_gm":["C1C7_DR_gm","C1C7_VR_gm"],"C1C7_DL_min_VL_gm":["C1C7_DL_gm","C1C7_VL_gm"]},
-"seeds_bis":{"C1C7_D_gm_min_C1C7_V_gm":["C1C7_D_gm","C1C7_V_gm"],"C1C7_L_gm_min_C1C7_R_gm":["C1C7_L_gm","C1C7_R_gm"]},
-"seeds":{"icap_C1":["icap_C1"],"icap_C2":["icap_C2"],"icap_C3":["icap_C3"],"icap_C4":["icap_C4"],"icap_C5":["icap_C5"],"icap_C6":["icap_C6"],"icap_C7":["icap_C7"]},
-"seeds_R_gmwm":{"frost_C1_R_gmwm":["frost_C1_R_gmwm"],"frost_C2_R_gmwm":["frost_C2_R_gmwm"],"frost_C3_R_gmwm":["frost_C3_R_gmwm"],"frost_C4_R_gmwm":["frost_C4_R_gmwm"],"frost_C5_R_gmwm":["frost_C5_R_gmwm"],"frost_C6_R_gmwm":["frost_C6_R_gmwm"],"frost_C7_R_gmwm":["frost_C7_R_gmwm"]},
-"seeds_gmwm":{"frost_C1_gmwm":["frost_C1_gmwm"],"frost_C2_gmwm":["frost_C2_gmwm"],"frost_C3_gmwm":["frost_C3_gmwm"],"frost_C4_gmwm":["frost_C4_gmwm"],"frost_C5_gmwm":["frost_C5_gmwm"],"frost_C6_gmwm":["frost_C6_gmwm"],"frost_C7_gmwm":["frost_C7_gmwm"]},
-"seeds_icap_LR":{"icap_C1_LminR":["icap_C1_L_gmwm","icap_C1_R_gmwm"],"icap_C2_LminR":["icap_C2_L_gmwm","icap_C2_R_gmwm"],"icap_C3_LminR":["icap_C3_L_gmwm","icap_C3_R_gmwm"],"icap_C4_LminR":["icap_C4_L_gmwm","icap_C4_R_gmwm"],"icap_C5_LminR":["icap_C5_L_gmwm","icap_C5_R_gmwm"],"icap_C6_LminR":["icap_C6_L_gmwm","icap_C6_R_gmwm"],"icap_C7_LminR":["icap_C7_L_gmwm","icap_C7_R_gmwm"]},
-"seeds_icap_DV":{"icap_C1_DminV":["icap_C1_D_gmwm","icap_C1_V_gmwm"],"icap_C2_DminV":["icap_C2_D_gmwm","icap_C2_V_gmwm"],"icap_C3_DminV":["icap_C3_D_gmwm","icap_C3_V_gmwm"],"icap_C4_DminV":["icap_C4_D_gmwm","icap_C4_V_gmwm"],"icap_C5_DminV":["icap_C5_D_gmwm","icap_C5_V_gmwm"],"icap_C6_DminV":["icap_C6_D_gmwm","icap_C6_V_gmwm"],"icap_C7_DminV":["icap_C7_D_gmwm","icap_C7_V_gmwm"]},
-"seeds_icap_V":{"icap_C1_V":["icap_C1_V_gmwm"],"icap_C2_V":["icap_C2_V_gmwm"],"icap_C3_V":["icap_C3_V_gmwm"],"icap_C4_V":["icap_C4_V_gmwm"],"icap_C5_V":["icap_C5_V_gmwm"],"icap_C6_V":["icap_C6_V_gmwm"],"icap_C7_V":["icap_C7_V_gmwm"]},
-"seeds_icap_D":{"icap_C1_D":["icap_C1_D_gmwm"],"icap_C2_D":["icap_C2_D_gmwm"],"icap_C3_D":["icap_C3_D_gmwm"],"icap_C4_D":["icap_C4_D_gmwm"],"icap_C5_D":["icap_C5_D_gmwm"],"icap_C6_D":["icap_C6_D_gmwm"],"icap_C7_D":["icap_C7_D_gmwm"]},
+ "gradient_seeds":["icap_C1_gm","icap_C2_gm","icap_C3_gm","icap_C4_gm","icap_C5_gm","icap_C6_gm","icap_C7_gm"],
+ "seeds1":{"icap_C7_gm":["icap_C7_gm"]},
+ "seeds1":{"icap_C1_gm":["icap_C1_gm"],"icap_C2_gm":["icap_C2_gm"],"icap_C3_gm":["icap_C3_gm"],"icap_C4_gm":["icap_C4_gm"],"icap_C5_gm":["icap_C5_gm"],"icap_C6_gm":["icap_C6_gm"],"icap_C7_gm":["icap_C7_gm"]},
+ "seeds":{"all_level_gm":["icap_C1_gm","icap_C2_gm","icap_C3_gm","icap_C4_gm","icap_C5_gm","icap_C6_gm","icap_C7_gm"]},
 
-"model": "OneSampleT",
-"mask_path":"/media/miplab-nas2/Data3/BMPD/hc_project/analysis/mask/brain/MNI_GM_3mm_SMC.nii",
-"measure":"MI",
-"target_1rstlevel": "MNI_GM_3mm",
-"seed2vox_dir": "/brain_spine/results/seed_to_voxels/",
-"first_level":"/media/miplab-nas2/Data3/BMPD/hc_project/brain_spine/results/seed_to_voxels/1_first_level/",
-"second_level":"/media/miplab-nas2/Data3/BMPD/hc_project/brain_spine/results/seed_to_voxels/2_second_level/",
+"model":"HigherOrder_paired",
+"mask_path":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/brain/MNI_GM_2mm.nii",
+"measure":"Corr",
+ "target_1rstlevel": "MNI_GM_2mm",
+ "seed2vox_dir": "/seed_to_voxels/winter_2023/",
+ "first_level":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/winter_2023/1_first_level/",
+ "second_level":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/winter_2023/2_second_level/",
+                 
+ "winner_all":{"mask":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/brain/MNI_GM_2mm.nii",
+               "input_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/winter_2023/2_second_level/GLM/OneSampleT/MNI_GM_2mm/Corr/",
+                "tag_input": "/randomise/*maptstat1.nii.gz",
+                "analysis":"gm"},
+
+ "winner_all_indiv":{"mask":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/brain/MNI_GM_2mm.nii",
+               "input_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/winter_2023/1_first_level/",
+                "tag_input": "/MNI_GM_2mm_fc_maps/Corr/bi-corr_*",
+                "analysis":"pseudoindiv"},
+ 
+ 
+"templates":{"spinalcord":" ",
+             "brain":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/templates/MNI/MNI152_T1_1mm_brain.nii.gz"},
+
+ 
+ "tools_dir":{"main_codes":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/codes/",
+             "sct_toolbox":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spinalcordtoolbox-5.0.0",
+            "spm_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spm12/"},
  
 "list_subjects":["P030","P099","A006","A007","A008","A009","A011","A013","A023","A024","A025","A026","A027","A028","A029","A030","A032","A033","A034","A036","A037","A038","A039","A043","A044","A045","A046","A048","A050","A051","A052"]} 

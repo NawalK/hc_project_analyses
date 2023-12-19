@@ -8,15 +8,14 @@ from scipy import stats
 import numpy as np
 import itertools
 from nilearn.maskers import NiftiMasker
+from nilearn import image
 import nibabel as nib
 import seaborn as sns
-import os
+import os, glob, json
 from tqdm import tqdm
 from multiprocessing import Pool
 from functools import partial
-import json
 import pandas as pd
-import time
 
 class FC_Parcellation:
     '''
@@ -73,8 +72,8 @@ class FC_Parcellation:
         self.eigen_tol = params_spectral.get('eigen_tol')
 
         # Read mask data
-        self.mask_source_path = self.config['main_dir']+self.config['masks'][struct_source]
-        self.mask_target_path = self.config['main_dir']+self.config['masks'][struct_target]
+        self.mask_source_path = self.config['main_dir']+self.config['masks']['source']
+        self.mask_target_path = self.config['main_dir']+self.config['masks']['target']
         self.mask_source = nib.load(self.mask_source_path).get_data().astype(bool)
         self.mask_target = nib.load(self.mask_target_path).get_data().astype(bool)
 
@@ -97,7 +96,7 @@ class FC_Parcellation:
         sub : str 
             subject on which to run the correlations
         standardize : bool, optional
-            if set to True, timeseries are z-scored (defautl = True)
+            if set to True, timeseries are z-scored (default = True)
         overwrite : boolean
             if set to True, labels are overwritten (default = False)
         njobs: int
@@ -533,13 +532,179 @@ class FC_Parcellation:
                     target_map_mean_img = target_mask.inverse_transform(np.mean(target_maps[:,label,:],axis=0))
                     path_target_map_mean_img = path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_mean' + '/' +  self.config['output_tag'] + '_mean_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(label+1) + '_poscorr.nii.gz' if poscorr else path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_mean' + '/' +  self.config['output_tag'] + '_mean_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(label+1) + '.nii.gz'
                     target_map_mean_img.to_filename(path_target_map_mean_img)
-                    target_map_Z_img = target_mask.inverse_transform(np.mean(target_maps[:,label,:],axis=0)/np.std(target_maps[:,label,:],axis=0))
-                    path_target_map_Z_img = path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_mean' + '/' +  self.config['output_tag'] + '_Z_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(label+1) + '_poscorr.nii.gz' if poscorr else path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_mean' + '/' +  self.config['output_tag'] + '_Z_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(label+1) + '.nii.gz'
-                    target_map_Z_img.to_filename(path_target_map_Z_img)
 
                 # Save array
                 np.save(target_npy_path, target_maps)
             
+        print("\033[1mDONE\033[0m\n")
+        
+
+    def stats_target_maps(self, label_type, k_range, indiv_algorithm, poscorr=False, overwrite=False):
+        '''  
+        To conduct statistical analyses of the connectivity profiles assigned to each label
+        (i.e., mean over the connectivity profiles of the voxel of this K)
+
+        Inputs
+        ------------
+        label_type : str
+            defines the type of labels to use to define connectivity patterns (target)
+            'indiv': relabeled labels (i.e., specific to each participant)
+            'group_mode': group labels (mode) (i.e., same for all participants)
+            'group_agglom': group labels (agglomerative) (i.e., same for all participants)       
+        k_range : int, array or range
+            number of clusters  
+        indiv_algorithm : str
+            algorithm that was used at the participant level
+        poscorr : boolean
+            defines if we take only the positive correlation for the clustering
+        overwrite : boolean
+            if set to True, maps are overwritten (default = False)
+        
+        Outputs
+        ------------
+        stats folder
+            folder containing the results of the one-sample T-test conducted using randomise
+            
+        '''
+
+        print(f"\033[1mRUN STATISTICAL ANALYSIS\033[0m")
+        print(f"\033[37mType of source labels = {label_type}\033[0m")
+        print(f"\033[37mK value(s) = {k_range}\033[0m")
+        print(f"\033[37mOverwrite results = {overwrite}\033[0m")
+
+        if poscorr:
+            if self.fc_metric == 'corr':
+                print(f"\033[37mNote: keeping only positive correlations\033[0m")
+            else:
+                raise(Exception(f'The option to keep only positive correlations cannot be used with this metric.'))
+            
+
+        # If only one k value is given, convert to range
+        k_range = range(k_range,k_range+1) if isinstance(k_range,int) else k_range
+        
+        # Path to target maps
+        path_target = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/target/'
+       
+        # Loop through K values
+        for k in k_range:
+            print(f"K = {k}")    
+
+            path_stats = path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm + '_poscorr' if poscorr else path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm 
+            
+            if not overwrite and os.path.isdir(path_stats):
+                print(f"... Statistical analysis already done")
+            else:
+                # Create folder structure if needed
+                os.makedirs(path_stats, exist_ok=True)
+                
+                for k_ind in range(0,k):
+                    # Check if 4D file exists
+                    path_target_maps_4d = path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_indiv' + '/' +  self.config['output_tag'] + '_all_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(k_ind+1) + '_poscorr.nii.gz' if poscorr else path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_indiv' + '/' +  self.config['output_tag'] + '_all_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(k_ind+1) + '.nii.gz'
+                    if not os.path.isfile(path_target_maps_4d):
+                        print(f"... Merging target files")
+                        path_target_maps_all = path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_indiv' + '/' +  self.config['output_tag'] + '_*_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(k_ind+1) + '_poscorr.nii.gz' if poscorr else path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_indiv' + '/' +  self.config['output_tag'] + '_*_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(k_ind+1) + '.nii.gz'
+                        run_merge = 'fslmerge -t ' + path_target_maps_4d + ' ' + path_target_maps_all 
+                        print(run_merge)
+                        os.system(run_merge)
+
+                    print(f"... Running statistical analysis")
+                    run_randomise = 'randomise -i ' + path_target_maps_4d + ' -m ' + self.mask_target_path + ' -o ' + path_stats + '/K' + str(k) + '_' + str(k_ind+1) + ' -1'
+                    os.system(run_randomise)
+
+        print("\033[1mDONE\033[0m\n")
+
+    def winner_takes_all(self, label_type, k, indiv_algorithm, order=None, apply_threshold=None, poscorr=False, overwrite=False):
+        '''  
+        To generate winner-takes-all maps using the t-statistics obtained for each K
+
+        Inputs
+        ------------
+        label_type : str
+            defines the type of labels to use to define connectivity patterns (target)
+            'indiv': relabeled labels (i.e., specific to each participant)
+            'group_mode': group labels (mode) (i.e., same for all participants)
+            'group_agglom': group labels (agglomerative) (i.e., same for all participants)       
+        k : int
+            number of clusters  
+        indiv_algorithm : str
+            algorithm that was used at the participant level
+        order : arr
+            defines which number is going to be associated with each K value (default = None)
+            this is useful as K values do not correspond to segments
+            the array should contain one value par K, e.g. if K = 7: [1 3 2 7 5 6 4] (if None, we use the sequential order)
+        apply_threshold: str 
+            to apply a threshold value on the input t-stats images, a cluster thresholding of 100 will also be applied (default = None)
+        poscorr : boolean
+            defines if we take only the positive correlation for the clustering
+        overwrite : boolean
+            if set to True, maps are overwritten (default = False)
+        
+        Outputs
+        ------------
+        stats folder
+            folder containing the results of the one-sample T-test conducted using randomise
+            
+        '''
+
+        print(f"\033[1mRUN WINNER-TAKES-ALL ANALYSIS\033[0m")
+        print(f"\033[37mType of source labels = {label_type}\033[0m")
+        print(f"\033[37mK value = {k}\033[0m")
+        print(f"\033[37mOverwrite results = {overwrite}\033[0m")
+
+        if poscorr:
+            if self.fc_metric == 'corr':
+                print(f"\033[37mNote: keeping only positive correlations\033[0m")
+            else:
+                raise(Exception(f'The option to keep only positive correlations cannot be used with this metric.'))  
+        
+        # Path to stats
+        path_target = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/target/'
+        path_stats = path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm + '_poscorr' if poscorr else path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm 
+        
+        # Define order
+        if order is None:
+            order = range(1,k+1) if order is None else order
+            if len(order) != k:
+                raise(Exception(f'The length of the order information ({len(order)}) is different from K {k}.'))  
+
+        for k_ind in range(0,k):
+            print('K' + str(k_ind+1) + ' will have a value of ' + str(order[k_ind]))
+
+        # Select mask:
+        masker = NiftiMasker(self.mask_target_path,smoothing_fwhm=[0,0,0], t_r=1.55, low_pass=None, high_pass=None)
+
+        # Find the t max value for each voxel (group level) 
+        maps_file = []; maps_data = []
+        for k_ind in range(0,k):
+            maps_file.append(glob.glob(path_stats + '/K' + str(k) + '_' + str(k_ind+1) + '_tstat1.nii.gz')[0]) # select individual maps   
+
+            if apply_threshold is not None:
+                maps_thr = image.threshold_img(maps_file[k_ind], threshold=apply_threshold, cluster_threshold=100, mask_img=self.mask_target_path)
+                #maps_thr.to_filename(maps_file[k_ind].split(".")[0] +"_thr_t"+str(apply_threshold)+".nii.gz") # create temporary 3D files
+                maps_data.append(masker.fit_transform(maps_thr)) # extract the data in a single array
+
+            elif apply_threshold is None:
+                maps_data.append(masker.fit_transform(maps_file[k_ind])) # extract the data in a single array
+
+        data = np.squeeze(np.array(maps_data))
+        output_file = path_stats + '/K' + str(k) + '_wta.nii.gz'
+        max_level_indices = []
+                
+        # Loop through each voxel
+        for i in range(0,data.shape[1]):
+    
+            i_values = data[:,i]  # Get the voxel values
+
+            max_level_index = np.argmax(i_values)  # Find the level that have the max value for this column
+            if i_values[max_level_index] == 0 :
+                max_level_index =-1 # if the max value is 0 put -1 to the index
+
+            max_level_indices.append(order[max_level_index]) # add 1 to avoid 0 values
+        
+        # Save the output as an image
+        seed_to_voxel_img = masker.inverse_transform(np.array(max_level_indices).T)
+        seed_to_voxel_img.to_filename(output_file) # create temporary 3D files
+
         print("\033[1mDONE\033[0m\n")
 
     def plot_validity(self, k_range, internal=[], group=[], indiv_algorithm='kmeans', save_figures=True):
