@@ -79,23 +79,23 @@ class WinnerAll:
             elif apply_threshold is None:
                 maps_data.append(masker.fit_transform(maps_file[seed_nb])) # extract the data in a single array
 
-            data=np.array(maps_data)
-            output_file=self.output_dir + "/" + output_tag +".nii.gz"
-            max_level_indices = []
-                
-            for i in range(0,data.shape[2]):
-                i_values = data[:,:,i]  # Get the voxel values
+        data=np.array(maps_data)
+        output_file=self.output_dir + "/" + output_tag +".nii.gz"
+        max_level_indices = []
 
-                max_level_index = np.argmax(i_values )  # Find the level that have the max value for this column
-                if i_values[max_level_index] == 0 :
-                    max_level_index =-1 # if the max value is 0 put -1 to the index
+        for i in range(0,data.shape[2]):
+            i_values = data[:,:,i]  # Get the voxel values
 
-                max_level_indices.append(max_level_index+1) # add 1 to avoid 0 values
+            max_level_index = np.argmax(i_values)  # Find the level that have the max value for this column
+            if i_values[max_level_index] == 0 :
+                max_level_index =-1 # if the max value is 0 put -1 to the index
 
-            ####5. Output Image
-            #5.a Save the output as an image
-            seed_to_voxel_img = masker.inverse_transform(np.array(max_level_indices).T)
-            seed_to_voxel_img.to_filename(output_file) # create temporary 3D files
+            max_level_indices.append(max_level_index+1) # add 1 to avoid 0 values
+
+        ####5. Output Image
+        #5.a Save the output as an image
+        seed_to_voxel_img = masker.inverse_transform(np.array(max_level_indices).T)
+        seed_to_voxel_img.to_filename(output_file) # create temporary 3D files
 
         #6. copy the config file
         with open(self.output_dir + '/' + output_tag + '_analysis_config.json', 'w') as fp:

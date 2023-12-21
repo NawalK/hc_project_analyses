@@ -413,8 +413,8 @@ class Stats:
             
     
         os.system(string)
-        stat_map=output_rnd + "/" +self.ana_name + "_mapfstat1.nii.gz"
-        os.rename(output_rnd + "/" +self.ana_name + "_fstat1.nii.gz",stat_map)
+        stat_map=output_rnd + "/" +self.ana_name + "_maptstat1.nii.gz"
+        os.rename(output_rnd + "/" +self.ana_name + "_tstat1.nii.gz",stat_map)
         
         
         #>>> 3. Calculate the smoothest and create a file ----------------

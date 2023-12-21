@@ -63,7 +63,7 @@ class Seed2voxels:
 
     
         #>>> Select mask: -------------------------------------
-        self.mask_target=glob.glob(self.config["main_dir"] + self.config["targeted_voxels"]["target_dir"]+ self.target + ".nii.gz")[0] # mask of the voxels tareted for the analysis
+        self.mask_target=glob.glob(self.config["main_dir"] + self.config["targeted_voxels"]["target_dir"]+ self.target + ".nii*")[0] # mask of the voxels tareted for the analysis
         print("Start the analysis on: " + str(len(self.subject_names))+ " participants")
         print("targeted voxel's group mask: " + self.target)
         print(self.mask_target)
