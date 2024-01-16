@@ -7,6 +7,9 @@
     "output_dir": "/brain_spine/results/fc_parcellation/",
     "output_tag": "XXXX",
     
+    "template":{"spinalcord":"XXXX"},
+    "spinal_levels": "XXXX",
+    
     "masks":{"target":"XXXX",
             "source": "XXXX"},
     

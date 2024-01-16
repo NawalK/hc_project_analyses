@@ -8,7 +8,7 @@ from scipy import stats
 import numpy as np
 import itertools
 from nilearn.maskers import NiftiMasker
-from nilearn import image
+from nilearn import datasets, plotting, image, surface
 import nibabel as nib
 import seaborn as sns
 import os, glob, json
@@ -16,6 +16,7 @@ from tqdm import tqdm
 from multiprocessing import Pool
 from functools import partial
 import pandas as pd
+from matplotlib.colors import ListedColormap
 
 class FC_Parcellation:
     '''
@@ -624,8 +625,8 @@ class FC_Parcellation:
             'indiv': relabeled labels (i.e., specific to each participant)
             'group_mode': group labels (mode) (i.e., same for all participants)
             'group_agglom': group labels (agglomerative) (i.e., same for all participants)       
-        k : int
-            number of clusters  
+        k : int, array or range
+            number of clusters   
         indiv_algorithm : str
             algorithm that was used at the participant level
         order : arr
@@ -641,8 +642,8 @@ class FC_Parcellation:
         
         Outputs
         ------------
-        stats folder
-            folder containing the results of the one-sample T-test conducted using randomise
+        KX_wta.nii.gz
+            WTA map for a particular K
             
         '''
 
@@ -707,6 +708,174 @@ class FC_Parcellation:
 
         print("\033[1mDONE\033[0m\n")
 
+    def plot_brain_map(self, k, indiv_algorithm, showing, colormap=plt.cm.rainbow, label_type=None, poscorr=False, save_figure=False):
+        ''' Plot brain maps on inflated brain
+        
+        Inputs
+        ------------  
+        k : int
+            number of clusters  
+        indiv_algorithm : str
+            algorithm that was used at the participant level
+        colormap : cmap
+            colormap to use, will be discretized (default = plt.cm.rainbow)
+        showing : str
+            defines whether source or target data should be plotted
+        label_type : str [Only for target]
+            defines the type of labels to use to define connectivity patterns (target)
+            'indiv': relabeled labels (i.e., specific to each participant)
+            'group_mode': group labels (mode) (i.e., same for all participants)
+            'group_agglom': group labels (agglomerative) (i.e., same for all participants)       
+        poscorr : boolean
+            defines if we take only the positive correlation for the clustering
+        save_figure : boolean
+            Set to True to save figure (default = False)
+
+        Outputs
+        ------------
+        png of the brain maps
+            
+        '''
+
+        print(f"\033[1mRUN PLOTTING BRAIN MAPS\033[0m")
+        print(f"\033[37mK value = {k}\033[0m")
+        print(f"\033[37mShowing = {showing}\033[0m")
+        print(f"\033[37mSave figure = {save_figure}\033[0m")
+
+        if poscorr:
+            if self.fc_metric == 'corr':
+                print(f"\033[37mNote: keeping only positive correlations\033[0m")
+            else:
+                raise(Exception(f'The option to keep only positive correlations cannot be used with this metric.')) 
+        
+        if showing == 'source':
+            path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + 'K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k) + '_poscorr' if poscorr else self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + 'K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k)
+            print("Source labels are not re-ordered!")
+
+        elif showing == 'target':
+            if label_type is None:
+                raise(Exception(f'When plotting target, you need to define which labels you want to use!')) 
+            path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/target/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm + '_poscorr/K' + str(k) + '_wta' if poscorr else self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/target/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm + '/K' + str(k) + '_wta'    
+        else:
+            raise(Exception(f'The parameter "showing" should be "target" or "source".')) 
+        
+        # Create a discretized colormap
+        discretized_colormap = ListedColormap(colormap(np.linspace(0, 1, k+1)))
+
+        # Load data from images 
+        img_to_show = image.load_img(path_data + '.nii.gz')
+
+        big_fsaverage = datasets.fetch_surf_fsaverage('fsaverage5') 
+
+        for hemi in ['left','right']:
+            big_texture = surface.vol_to_surf(img_to_show, big_fsaverage.pial_right) if hemi == 'right' else surface.vol_to_surf(img_to_show, big_fsaverage.pial_left)
+            plot = plotting.plot_surf_stat_map(big_fsaverage.infl_right if hemi == 'right' else big_fsaverage.infl_left,
+                                            big_texture, hemi=hemi, colorbar=True,
+                                            threshold=0.5, vmax=k+1, cmap=discretized_colormap,
+                                            bg_map=big_fsaverage.sulc_right if hemi == 'right' else big_fsaverage.sulc_left )
+
+            # If option is set, save results as a png
+            if save_figure == True:
+                plot_path = path_data + '_' + hemi + '.png'
+                plot.savefig(plot_path)
+    
+    def plot_spinal_map(self, k, indiv_algorithm, showing, colormap=plt.cm.rainbow, label_type=None, order=None, poscorr=False, slice_y = None, show_spinal_levels=True, save_figure=False):
+        ''' Plot spinal maps on PAM50 template (coronal views)
+        
+        Inputs
+        ------------  
+        k : int
+            number of clusters  
+        indiv_algorithm : str
+            algorithm that was used at the participant level
+        showing : str
+            defines whether source or target data should be plotted
+        colormap : cmap
+            colormap to use, will be discretized (default = plt.cm.rainbow)
+        label_type : str [Only for target]
+            defines the type of labels to use to define connectivity patterns (target)
+            'indiv': relabeled labels (i.e., specific to each participant)
+            'group_mode': group labels (mode) (i.e., same for all participants)
+            'group_agglom': group labels (agglomerative) (i.e., same for all participants)       
+        order : arr
+            defines which number is going to be associated with each K value (default = None)
+            this is useful as K values do not correspond to segments
+            the array should contain one value par K, e.g. if K = 7: [1 3 2 7 5 6 4] (if None, we use the sequential order)
+        poscorr : boolean
+            defines if we take only the positive correlation for the clustering
+        slice_y : int
+            y position of the slice to display
+        show_spinal_levels : boolean
+            Defines whether spinal levels are displayed or not (default = True)
+        save_figure : boolean
+            Set to True to save figure (default = False)
+
+        Outputs
+        ------------
+        png of the spinal map
+            
+        '''
+
+        print(f"\033[1mRUN PLOTTING SPINAL MAPS\033[0m")
+        print(f"\033[37mK value = {k}\033[0m")
+        print(f"\033[37mShowing = {showing}\033[0m")
+        print(f"\033[37mSave figure = {save_figure}\033[0m")
+
+        if poscorr:
+            if self.fc_metric == 'corr':
+                print(f"\033[37mNote: keeping only positive correlations\033[0m")
+            else:
+                raise(Exception(f'The option to keep only positive correlations cannot be used with this metric.')) 
+        
+        print("The plotting is displayed in neurological orientation (Left > Right)")
+
+        if showing == 'source':
+            path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + 'K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k) + '_poscorr' if poscorr else self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + 'K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k)
+        elif showing == 'target':
+            if label_type is None:
+                raise(Exception(f'When plotting target, you need to define which labels you want to use!')) 
+            path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/target/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm + '_poscorr/K' + str(k) + '_wta' if poscorr else self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/target/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm + '/K' + str(k) + '_wta'    
+        else:
+            raise(Exception(f'The parameter "showing" should be "target" or "source".')) 
+        
+        # Create a discretized colormap
+        discretized_colormap = ListedColormap(colormap(np.linspace(0, 1, k+1)))
+
+        # Load data from images 
+        img_to_show = nib.load(path_data + '.nii.gz')
+        spinal_data= img_to_show.get_fdata().astype(int)
+
+        # Re-assign numbers (only for source, already done for wta maps)
+        if showing == 'source': 
+            order = np.concatenate(([0], order)) # Add a 0 to the beginning of the re-ordering info (for the background)
+            spinal_data = np.take(order, spinal_data)
+        
+        spinal_data= np.where(spinal_data > 0, spinal_data, np.nan) # To have transparent background  
+
+        # Load template image for background
+        template_img = nib.load(self.config['main_dir'] + self.config['template']['spinalcord'])
+        template_data = template_img.get_fdata()
+        y = template_data.shape[1]//2 if slice_y is None else slice_y # To center in the middle
+        plt.imshow(np.rot90(template_data[:,y,:].T,2),cmap='gray');     
+
+        # Load levels if needed
+        if show_spinal_levels == True: 
+            levels_img = nib.load(self.config['main_dir'] + self.config['spinal_levels'])
+            levels_data = levels_img.get_fdata()
+            levels_data = np.where(levels_data > 0, levels_data, np.nan) # To have transparent background   
+            plt.imshow(np.rot90(levels_data[:,y,:].T,2),cmap='gray');   
+
+        # Plot labels 
+        plt.imshow(np.rot90(spinal_data[:,y,:].T,2),cmap=discretized_colormap);   
+                                            
+        plt.axis('off')
+
+        # If option is set, save results as a png
+        if save_figure == True:
+            plot_path = path_data + '.png'
+            plt.savefig(plot_path)
+                
+        
     def plot_validity(self, k_range, internal=[], group=[], indiv_algorithm='kmeans', save_figures=True):
         '''  
         Plot validity metrics to help define the best number of clusters
@@ -780,6 +949,8 @@ class FC_Parcellation:
                 sns.lineplot(data=data_df, x='k', y=metric, marker='o', color=color)
                 plt.xlabel('K', fontsize=12, fontweight='bold')
                 plt.ylabel(metrics_names[metric], fontsize=12, fontweight='bold')
+                if save_figures:
+                    plt.savefig(path_validity + self.config['output_tag'] + '_' + indiv_algorithm + '_' + metric + '.pdf', format='pdf')
             # Other metrics are plotted as boxplots
             else:
                 data_df = internal_df[internal_df['k'].isin(k_range)] if metric in internal else group_df[group_df['k'].isin(k_range)]
