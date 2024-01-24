@@ -6,16 +6,16 @@
  "seeds2":{"SCAN":["SCAN"]},
 
 "model":"OneSampleT",
-"mask_path":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/brain/MNI_GM_2mm.nii",
+"mask_path":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/brain/MNI_WMGM_2mm.nii",
 "measure":"Corr",
   "target_1rstleve1l": "PAM50_cord_C1C7_gm",
- "target_1rstlevel": "MNI_GM_2mm",
+ "target_1rstlevel": "MNI_WMGM_2mm",
  "seed2vox_dir": "/seed_to_voxels/winter_2023/",
  "first_level":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/winter_2023/1_first_level/",
  "second_level":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/winter_2023/2_second_level/",
                  
- "winner_all":{"mask":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/brain/MNI_GM_2mm.nii",
-               "input_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/winter_2023/2_second_level/GLM/OneSampleT/MNI_GM_2mm/Corr/",
+ "winner_all":{"mask":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/brain/MNI_WMGM_2mm.nii",
+               "input_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/winter_2023/2_second_level/GLM/OneSampleT/MNI_WMGM_2mm/Corr/",
                 "tag_input": "/randomise/*maptstat1.nii.gz",
                 "analysis":"gm"},
 
@@ -26,7 +26,8 @@
  
  
 "templates":{"spinalcord":" ",
-             "brain":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/templates/MNI/MNI152_T1_1mm_brain.nii.gz"},
+             "brain":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/templates/MNI/MNI152_T1_1mm_brain.nii.gz",
+            "surface_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/templates/MNI/surf/"},
 
  
  "tools_dir":{"main_codes":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/codes/",
