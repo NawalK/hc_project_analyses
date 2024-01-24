@@ -769,9 +769,9 @@ class FC_Parcellation:
 
         for hemi in ['left','right']:
             big_texture = surface.vol_to_surf(img_to_show, big_fsaverage.pial_right) if hemi == 'right' else surface.vol_to_surf(img_to_show, big_fsaverage.pial_left)
-            plot = plotting.plot_surf_stat_map(big_fsaverage.infl_right if hemi == 'right' else big_fsaverage.infl_left,
+            plot = plotting.plot_surf(big_fsaverage.infl_right if hemi == 'right' else big_fsaverage.infl_left,
                                             big_texture, hemi=hemi, colorbar=True,
-                                            threshold=0.5, vmax=k+1, cmap=discretized_colormap,
+                                            vmin=1, vmax=k, cmap=discretized_colormap, avg_method="min",
                                             bg_map=big_fsaverage.sulc_right if hemi == 'right' else big_fsaverage.sulc_left )
 
             # If option is set, save results as a png
