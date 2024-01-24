@@ -9,6 +9,7 @@
     
     "template":{"spinalcord":"XXXX"},
     "spinal_levels": "XXXX",
+    "brain_surfaces": "XXXX",
     
     "masks":{"target":"XXXX",
             "source": "XXXX"},

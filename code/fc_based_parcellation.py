@@ -661,50 +661,59 @@ class FC_Parcellation:
         # Path to stats
         path_target = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/target/'
         path_stats = path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm + '_poscorr' if poscorr else path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm 
-        
-        # Define order
-        if order is None:
+        output_file = path_stats + '/K' + str(k) + '_wta.nii.gz'
+        order_file = path_stats + '/K' + str(k) + '_wta_order.txt'
+
+        if not overwrite and os.path.exists(output_file):
+            print(f"... WTA analysis already done")
+        else:
+            # Define order
             order = range(1,k+1) if order is None else order
+            
             if len(order) != k:
                 raise(Exception(f'The length of the order information ({len(order)}) is different from K {k}.'))  
 
-        for k_ind in range(0,k):
-            print('K' + str(k_ind+1) + ' will have a value of ' + str(order[k_ind]))
+            for k_ind in range(0,k):
+                print('K' + str(k_ind+1) + ' will have a value of ' + str(order[k_ind]))
 
-        # Select mask:
-        masker = NiftiMasker(self.mask_target_path,smoothing_fwhm=[0,0,0], t_r=1.55, low_pass=None, high_pass=None)
+            # Select mask:
+            masker = NiftiMasker(self.mask_target_path,smoothing_fwhm=[0,0,0], t_r=1.55, low_pass=None, high_pass=None)
 
-        # Find the t max value for each voxel (group level) 
-        maps_file = []; maps_data = []
-        for k_ind in range(0,k):
-            maps_file.append(glob.glob(path_stats + '/K' + str(k) + '_' + str(k_ind+1) + '_tstat1.nii.gz')[0]) # select individual maps   
+            # Find the t max value for each voxel (group level) 
+            maps_file = []; maps_data = []
+            for k_ind in range(0,k):
+                maps_file.append(glob.glob(path_stats + '/K' + str(k) + '_' + str(k_ind+1) + '_tstat1.nii.gz')[0]) # select individual maps   
 
-            if apply_threshold is not None:
-                maps_thr = image.threshold_img(maps_file[k_ind], threshold=apply_threshold, cluster_threshold=100, mask_img=self.mask_target_path)
-                #maps_thr.to_filename(maps_file[k_ind].split(".")[0] +"_thr_t"+str(apply_threshold)+".nii.gz") # create temporary 3D files
-                maps_data.append(masker.fit_transform(maps_thr)) # extract the data in a single array
+                if apply_threshold is not None:
+                    maps_thr = image.threshold_img(maps_file[k_ind], threshold=apply_threshold, cluster_threshold=100, mask_img=self.mask_target_path)
+                    #maps_thr.to_filename(maps_file[k_ind].split(".")[0] +"_thr_t"+str(apply_threshold)+".nii.gz") # create temporary 3D files
+                    maps_data.append(masker.fit_transform(maps_thr)) # extract the data in a single array
 
-            elif apply_threshold is None:
-                maps_data.append(masker.fit_transform(maps_file[k_ind])) # extract the data in a single array
+                elif apply_threshold is None:
+                    maps_data.append(masker.fit_transform(maps_file[k_ind])) # extract the data in a single array
 
-        data = np.squeeze(np.array(maps_data))
-        output_file = path_stats + '/K' + str(k) + '_wta.nii.gz'
-        max_level_indices = []
-                
-        # Loop through each voxel
-        for i in range(0,data.shape[1]):
-    
-            i_values = data[:,i]  # Get the voxel values
-
-            max_level_index = np.argmax(i_values)  # Find the level that have the max value for this column
-            if i_values[max_level_index] == 0 :
-                max_level_index =-1 # if the max value is 0 put -1 to the index
-
-            max_level_indices.append(order[max_level_index]) # add 1 to avoid 0 values
+            data = np.squeeze(np.array(maps_data))
+            
+            max_level_indices = []
+                    
+            # Loop through each voxel
+            for i in range(0,data.shape[1]):
         
-        # Save the output as an image
-        seed_to_voxel_img = masker.inverse_transform(np.array(max_level_indices).T)
-        seed_to_voxel_img.to_filename(output_file) # create temporary 3D files
+                i_values = data[:,i]  # Get the voxel values
+
+                max_level_index = np.argmax(i_values)  # Find the level that have the max value for this column
+                if i_values[max_level_index] == 0 :
+                    max_level_index =-1 # if the max value is 0 put -1 to the index
+
+                max_level_indices.append(order[max_level_index]) # add 1 to avoid 0 values
+            
+            # Save the output as an image
+            seed_to_voxel_img = masker.inverse_transform(np.array(max_level_indices).T)
+            seed_to_voxel_img.to_filename(output_file) # create temporary 3D files
+
+            # Save the order as well
+            np.savetxt(order_file,order,fmt='%d',delimiter=',')
+
 
         print("\033[1mDONE\033[0m\n")
 
@@ -762,18 +771,15 @@ class FC_Parcellation:
         # Create a discretized colormap
         discretized_colormap = ListedColormap(colormap(np.linspace(0, 1, k+1)))
 
-        # Load data from images 
-        img_to_show = image.load_img(path_data + '.nii.gz')
-
-        big_fsaverage = datasets.fetch_surf_fsaverage('fsaverage5') 
-
+        img_to_show = path_data + '.nii.gz'
         for hemi in ['left','right']:
-            big_texture = surface.vol_to_surf(img_to_show, big_fsaverage.pial_right) if hemi == 'right' else surface.vol_to_surf(img_to_show, big_fsaverage.pial_left)
-            plot = plotting.plot_surf(big_fsaverage.infl_right if hemi == 'right' else big_fsaverage.infl_left,
-                                            big_texture, hemi=hemi, colorbar=True,
-                                            vmin=1, vmax=k, cmap=discretized_colormap, avg_method="min",
-                                            bg_map=big_fsaverage.sulc_right if hemi == 'right' else big_fsaverage.sulc_left )
-
+            img_surf = surface.vol_to_surf(img_to_show, self.config['main_dir'] + self.config['brain_surfaces'] + 'rh.pial', radius=0,interpolation='nearest', kind='auto', n_samples=10, mask_img=None, depth=None) if hemi == 'right' else surface.vol_to_surf(img_to_show, self.config['main_dir'] + self.config['brain_surfaces'] + 'lh.pial', radius=0,interpolation='nearest', kind='auto', n_samples=10, mask_img=None, depth=None)
+           
+            plot = plotting.plot_surf_roi(self.config['main_dir']+self.config['brain_surfaces']+'rh.inflated' if hemi =='right' else self.config['main_dir']+self.config['brain_surfaces']+'lh.inflated', roi_map=img_surf,
+                       cmap=discretized_colormap, colorbar=True,
+                       hemi=hemi, view='lateral', vmin=1,vmax=k,
+                       bg_map=self.config['main_dir']+self.config['brain_surfaces']+'rh.sulc' if hemi=='right' else self.config['main_dir']+self.config['brain_surfaces']+'rh.sulc', #bg_on_data=True,
+                       darkness=0.7)
             # If option is set, save results as a png
             if save_figure == True:
                 plot_path = path_data + '_' + hemi + '.png'
@@ -838,6 +844,12 @@ class FC_Parcellation:
         else:
             raise(Exception(f'The parameter "showing" should be "target" or "source".')) 
         
+        
+        # Define order
+        order = range(1,k+1) if order is None else order
+        if len(order) != k:
+            raise(Exception(f'The length of the order information ({len(order)}) is different from K {k}.'))  
+
         # Create a discretized colormap
         discretized_colormap = ListedColormap(colormap(np.linspace(0, 1, k+1)))
 
@@ -872,10 +884,9 @@ class FC_Parcellation:
 
         # If option is set, save results as a png
         if save_figure == True:
-            plot_path = path_data + '.png'
-            plt.savefig(plot_path)
-                
-        
+            plt.savefig(path_data + '.png')
+            np.savetxt(path_data + '_order.txt',order,fmt='%d',delimiter=',')
+
     def plot_validity(self, k_range, internal=[], group=[], indiv_algorithm='kmeans', save_figures=True):
         '''  
         Plot validity metrics to help define the best number of clusters
