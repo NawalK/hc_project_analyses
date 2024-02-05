@@ -43,7 +43,7 @@ class FC_Parcellation:
     params_spectral : dict
         parameters for spectral clustering
         - n_init: number of times the algorithm is run with different centroid seeds (default = 256)
-        - kernel: Kernel coefficient for rbf, poly, sigmoid, laplacian and chi2 kernels. Ignored for metric='nearest_neighbors'. (default = 'nearest_neighbors')
+        - affinity: how to contruct the affinity matrix (common choices: 'nearest_neighbors' or 'rbf') (default = 'nearest_neighbors')
         - assign_labels: trategy for assigning labels in the embedding space (default = 'kmeans')
         - eigen_solver: eigenvalue decomposition strategy to use (default = 'arpack')
         - eigen_tol: stopping criterion for eigendecomposition of the Laplacian matrix (default = 1.0e-5)
@@ -53,7 +53,7 @@ class FC_Parcellation:
         - metric: metric used to compute the linkage (default = 'euclidean')
     '''
     
-    def __init__(self, config, struct_source='spinalcord', struct_target='brain', fc_metric='corr', params_kmeans={'init':'k-means++', 'n_init':256, 'max_iter':10000}, params_spectral={'n_init':256, 'kernel': 'nearest_neighbors', 'assign_labels': 'kmeans', 'eigen_solver': 'arpack', 'eigen_tol': 1.0e-5}, params_agglom={'linkage':'ward', 'metric':'euclidean'}):
+    def __init__(self, config, struct_source='spinalcord', struct_target='brain', fc_metric='corr', params_kmeans={'init':'k-means++', 'n_init':256, 'max_iter':10000}, params_spectral={'n_init':256, 'affinity': 'nearest_neighbors', 'assign_labels': 'kmeans', 'eigen_solver': 'arpack', 'eigen_tol': 1.0e-5}, params_agglom={'linkage':'ward', 'metric':'euclidean'}):
         self.config = config # Load config info
         self.struct_source = struct_source
         self.struct_target = struct_target
@@ -67,7 +67,7 @@ class FC_Parcellation:
         self.metric = params_agglom.get('metric')
 
         self.n_init_spectral = params_spectral.get('n_init')
-        self.kernel = params_spectral.get('kernel')
+        self.affinity = params_spectral.get('affinity')
         self.assign_labels = params_spectral.get('assign_labels')
         self.eigen_solver = params_spectral.get('eigen_solver')
         self.eigen_tol = params_spectral.get('eigen_tol')
@@ -261,7 +261,7 @@ class FC_Parcellation:
                 
                 elif algorithm == 'spectral':
                     print(f"... Running spectral clustering")
-                    spectral_kwargs = {'n_clusters': k, 'n_init': self.n_init_spectral, 'metric': self.kernel,
+                    spectral_kwargs = {'n_clusters': k, 'n_init': self.n_init_spectral, 'affinity': self.affinity,
                             'assign_labels': self.assign_labels, 'eigen_solver': self.eigen_solver, 'eigen_tol': self.eigen_tol}
                     
                     spectral_clusters = SpectralClustering(**spectral_kwargs)
@@ -633,7 +633,7 @@ class FC_Parcellation:
             defines which number is going to be associated with each K value (default = None)
             this is useful as K values do not correspond to segments
             the array should contain one value par K, e.g. if K = 7: [1 3 2 7 5 6 4] (if None, we use the sequential order)
-        apply_threshold: str 
+        apply_threshold: int
             to apply a threshold value on the input t-stats images, a cluster thresholding of 100 will also be applied (default = None)
         poscorr : boolean
             defines if we take only the positive correlation for the clustering
@@ -785,7 +785,7 @@ class FC_Parcellation:
                 plot_path = path_data + '_' + hemi + '.png'
                 plot.savefig(plot_path)
     
-    def plot_spinal_map(self, k, indiv_algorithm, showing, colormap=plt.cm.rainbow, label_type=None, order=None, poscorr=False, slice_y = None, show_spinal_levels=True, save_figure=False):
+    def plot_spinal_map(self, k, indiv_algorithm, showing, colormap=plt.cm.rainbow, group_type=None, label_type=None, order=None, poscorr=False, slice_y = None, show_spinal_levels=True, save_figure=False):
         ''' Plot spinal maps on PAM50 template (coronal views)
         
         Inputs
@@ -798,6 +798,10 @@ class FC_Parcellation:
             defines whether source or target data should be plotted
         colormap : cmap
             colormap to use, will be discretized (default = plt.cm.rainbow)
+        group_type : str [Only for source]
+            defines the type of labels to display for source
+            'mode': group labels (mode) 
+            'agglom': group labels (agglomerative)    
         label_type : str [Only for target]
             defines the type of labels to use to define connectivity patterns (target)
             'indiv': relabeled labels (i.e., specific to each participant)
@@ -836,7 +840,7 @@ class FC_Parcellation:
         print("The plotting is displayed in neurological orientation (Left > Right)")
 
         if showing == 'source':
-            path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + 'K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k) + '_poscorr' if poscorr else self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + 'K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k)
+            path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + 'K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_' + group_type + '_k' + str(k) + '_poscorr' if poscorr else self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + 'K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_' + group_type + '_k' + str(k)
         elif showing == 'target':
             if label_type is None:
                 raise(Exception(f'When plotting target, you need to define which labels you want to use!')) 
