@@ -17,6 +17,7 @@ from multiprocessing import Pool
 from functools import partial
 import pandas as pd
 from matplotlib.colors import ListedColormap
+from sklearn.decomposition import PCA
 
 class FC_Parcellation:
     '''
@@ -49,11 +50,11 @@ class FC_Parcellation:
         - eigen_tol: stopping criterion for eigendecomposition of the Laplacian matrix (default = 1.0e-5)
     params_agglom : dict
         parameters for agglomerative clustering
-        - linkage: distance to use between sets of observations (default = 'ward')
-        - metric: metric used to compute the linkage (default = 'euclidean')
+        - linkage: distance to use between sets of observations (default = 'average')
+        - metric: metric used to compute the linkage (default = 'precomputed')
     '''
     
-    def __init__(self, config, struct_source='spinalcord', struct_target='brain', fc_metric='corr', params_kmeans={'init':'k-means++', 'n_init':256, 'max_iter':10000}, params_spectral={'n_init':256, 'affinity': 'nearest_neighbors', 'assign_labels': 'kmeans', 'eigen_solver': 'arpack', 'eigen_tol': 1.0e-5}, params_agglom={'linkage':'ward', 'metric':'euclidean'}):
+    def __init__(self, config, struct_source='spinalcord', struct_target='brain', fc_metric='corr', params_kmeans={'init':'k-means++', 'n_init':256, 'max_iter':10000}, params_spectral={'n_init':256, 'affinity': 'nearest_neighbors', 'assign_labels': 'kmeans', 'eigen_solver': 'arpack', 'eigen_tol': 1.0e-5}, params_agglom={'linkage':'average', 'metric':'precomputed'}):
         self.config = config # Load config info
         self.struct_source = struct_source
         self.struct_target = struct_target
@@ -77,16 +78,104 @@ class FC_Parcellation:
         self.mask_target_path = self.config['main_dir']+self.config['masks']['target']
         self.mask_source = nib.load(self.mask_source_path).get_data().astype(bool)
         self.mask_target = nib.load(self.mask_target_path).get_data().astype(bool)
-
+        if struct_source == 'spinalcord':
+            self.levels_masked = nib.load(self.config['main_dir'] + self.config['spinal_levels']).get_fdata()[self.mask_source] 
+            self.levels_order = np.argsort(self.levels_masked.astype(int))
+            self.levels_sorted = self.levels_masked[self.levels_order]
+        
         # Create folder structure and save config file as json for reference
         path_to_create = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/'
         os.makedirs(os.path.dirname(path_to_create), exist_ok=True)
-        for folder in ['fcs', 'source', 'target']:
+        for folder in ['fcs', 'fcs_slicewise', 'source', 'target']:
             os.makedirs(os.path.join(path_to_create, folder), exist_ok=True)
         path_config = path_to_create + 'config_' + self.config['output_tag'] + '.json'
         with open(path_config, 'w') as f:
             json.dump(self.config,f)
             
+    def compute_slicewise_fc(self, sub, standardize=True, overwrite=False, njobs=10):
+        '''
+        To compute functional connectivity between each slice of mask_source to all voxels of mask_target
+        Can be done using Pearson correlation or Mutual Information
+        
+        Inputs
+        ------------
+        sub : str 
+            subject on which to run the correlations
+        standardize : bool, optional
+            if set to True, timeseries are z-scored (default = True)
+        overwrite : boolean
+            if set to True, labels are overwritten (default = False)
+        njobs: int
+            number of jobs for parallelization [for MI only] (default = 40)
+
+        Output
+        ------------
+        fc : array
+            one array per subject (n_source_voxels x n_target_voxels), saved as a .npy file
+        '''
+        
+        print(f"\033[1mCOMPUTE SLICEWISE FC\033[0m")
+        print(f"\033[37mStandardize = {standardize}\033[0m")
+        print(f"\033[37mOverwrite results = {overwrite}\033[0m")
+        
+        if self.struct_source != 'spinalcord':
+            raise(Exception(f'This option only makes sense for spinal cord as a source!'))
+        # Compute FC
+        # We can load it from file if it exists
+        if not overwrite and os.path.isfile(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/fcs_slicewise/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy'):
+            print(f"... FC already computed")
+        
+        else: # Otherwise we compute FC    
+            print(f"... Loading data")
+            data_source = nib.load(self.config['main_dir'] + self.config['smooth_dir'] + 'sub-'+ sub + '/' + self.struct_source + '/sub-' + sub + self.config['file_tag'][self.struct_source]).get_fdata() # Read the data as a matrix
+            data_target = nib.load(self.config['main_dir'] + self.config['smooth_dir'] + 'sub-'+ sub + '/' + self.struct_target + '/sub-' + sub + self.config['file_tag'][self.struct_target]).get_fdata() 
+
+            print(f"... Average source data slice-wise")
+            data_source_masked = np.where(self.mask_source[..., np.newaxis], data_source, np.nan)
+            data_target_masked = data_target[self.mask_target]
+            
+            # Calculate the mean along the first two dimensions, ignoring NaN values, to get slice-wise signals
+            data_source_slicewise = np.nanmean(data_source_masked, axis=(0, 1))
+            # Remove empty slices
+            data_source_slicewise_masked = data_source_slicewise[~np.isnan(data_source_slicewise).all(axis=1)]
+
+            # Create empty array
+            fc = np.zeros((data_source_slicewise_masked.shape[0],np.count_nonzero(self.mask_target)))
+            
+            if standardize:
+                data_source_masked = stats.zscore(data_source_slicewise_masked, axis=1).astype(np.float32)
+                data_target_masked = stats.zscore(data_target_masked, axis=1).astype(np.float32)
+
+            if self.fc_metric == 'corr':
+                print("... Metric: correlation")
+                fc = self._corr2_coeff(data_source_slicewise_masked,data_target_masked)
+                print(f"... Fisher transforming correlations")
+                # Set values slightly below 1 or above -1 (for use with, e.g., arctanh) [FROM CBP TOOLS]
+                fc[fc >= 1] = np.nextafter(np.float32(1.), np.float32(-1))
+                fc[fc <= -1] = np.nextafter(np.float32(-1.), np.float32(1))
+                fc = fc.astype(np.float32)
+                fc = np.arctanh(fc)
+            elif self.fc_metric == 'mi':
+                print("... Metric: mutual information")
+                #for vox_source in tqdm(range(np.shape(data_source_masked)[0])):
+                #    fc[vox_source,:] = mutual_info_regression(data_target_masked.T, data_source_masked[vox_source,:].T, n_neighbors=8) 
+                #    fc[vox_source,:] = np.max(fc[vox_source,:])
+                pool = Pool(njobs)
+                vox_source_list = list(range(np.shape(data_source_slicewise_masked)[0]))
+                result_list = []
+                for result in tqdm(pool.imap_unordered(partial(self._compute_mi, data_source_masked=data_source_slicewise_masked, data_target_masked=data_target_masked), vox_source_list), total=len(vox_source_list)):
+                    result_list.append(result)
+                pool.close()
+                pool.join()
+                for i, result in enumerate(result_list):
+                    fc[i, :] = result
+                    fc[i, :] /= np.max(fc[i, :])    
+                fc = fc.astype(np.float32)
+                
+            np.save(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/fcs_slicewise/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy',fc)
+        
+        print("\n\033[1mDONE\033[0m")
+    
     def compute_voxelwise_fc(self, sub, standardize=True, overwrite=False, njobs=10):
         '''
         To compute functional connectivity between each voxel of mask_source to all voxels of mask_target
@@ -163,7 +252,7 @@ class FC_Parcellation:
         
         print("\n\033[1mDONE\033[0m")
 
-    def run_clustering(self, sub, k_range, algorithm, poscorr=False, overwrite=False):
+    def run_clustering(self, sub, k_range, algorithm, features='fc', poscorr=False, save_visplot_sc=True, overwrite=False):
         '''  
         Run clustering for a range of k values
         Saving validity metrics using two methods:
@@ -180,8 +269,12 @@ class FC_Parcellation:
             number of clusters  
         algorithm : str
             defines which algorithm to use ('kmeans', 'spectral', or 'agglom')
+        features : str
+            defines if fc ('fc') or similarity matrix ('sim') (i.e., correlations between the fc profiles) is used as features (default = 'fc')
         poscorr : boolean
             defines if we take only the positive correlation for the clustering
+        save_visplot_sc : boolean
+            if set to True, plots are saved to visualize similarity matrix for the spinal cord
         overwrite : boolean
             if set to True, labels are overwritten (default = False)
         
@@ -194,6 +287,7 @@ class FC_Parcellation:
 
         print(f"\033[1mCLUSTERING AT THE INDIVIDUAL LEVEL\033[0m")
         print(f"\033[37mAlgorithm = {algorithm}\033[0m")
+        print(f"\033[37mFeatures = {features}\033[0m")
         print(f"\033[37mK value(s) = {k_range}\033[0m")
         print(f"\033[37mOverwrite results = {overwrite}\033[0m")
         
@@ -207,18 +301,20 @@ class FC_Parcellation:
         k_range = range(k_range,k_range+1) if isinstance(k_range,int) else k_range
 
         # Path to create folder structure
-        path_source = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/'
+        path_source = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + features + '/'
         os.makedirs(os.path.join(path_source, 'validity'), exist_ok=True)
         path_internal_validity = path_source + 'validity/' + self.config['output_tag'] + '_' + algorithm + '_internal_validity_poscorr.pkl' if poscorr else path_source + 'validity/' + self.config['output_tag'] + '_' + algorithm + '_internal_validity.pkl'
         # Load file with metrics to define K (SSE, silhouette, ...)
         if os.path.isfile(path_internal_validity): # Take it if it exists
             internal_validity_df = pd.read_pickle(path_internal_validity)
             if overwrite: # Overwrite subject if already done and option is set
-                internal_validity_df = internal_validity_df[internal_validity_df['sub'] != sub]
+                internal_validity_df = internal_validity_df[~((internal_validity_df['sub'] == sub) & internal_validity_df['k'].isin(k_range))]
+
         else: # Create an empty dataframe with the needed columns
             columns = ["sub", "SSE", "silhouette", "davies", "calinski", "k"]
             internal_validity_df = pd.DataFrame(columns=columns)
 
+        fc_not_loaded = True # To avoid loading fc multiple times
         # Check if file already exists
         for k in k_range:
             print(f"K = {k}")
@@ -234,18 +330,36 @@ class FC_Parcellation:
             
             # Otherwise, we compute them
             else:
-                print(f"... Loading FC from file")
-                path_fc = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/fcs/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy'
-                if os.path.isfile(path_fc):
-                    fc = np.load(path_fc)
-                    if poscorr:
-                        if self.fc_metric == 'corr':
-                            fc[fc<0] = 0; # Keep only positive correlations 
-                        else:
-                            raise(Exception(f'The option to keep only positive correlations cannot be used with this metric.'))
-                else:
-                    raise(Exception(f'FC cannot be found.'))
+                if fc_not_loaded is True:
+                    print(f"... Loading FC from file")
+                    path_fc = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/fcs/' + self.config['output_tag'] + '_' + sub + '_' + self.fc_metric + '.npy'
+                    if os.path.isfile(path_fc):
+                        fc = np.load(path_fc)
+                        if poscorr:
+                            if self.fc_metric == 'corr':
+                                fc[fc<0] = 0; # Keep only positive correlations 
+                            else:
+                                raise(Exception(f'The option to keep only positive correlations cannot be used with this metric.'))
+                    else:
+                        raise(Exception(f'FC cannot be found.'))
                 
+                    if features == 'sim':
+                        print(f"... Computing similarity from FC")
+                        data_to_cluster = np.corrcoef(fc)
+                        # Reorder for visualization purposes, to see if it follows levels for the spinal cord
+                        if self.struct_source == 'spinalcord' and save_visplot_sc is True:
+                            data_to_cluster_r = data_to_cluster[self.levels_order,:]
+                            data_to_cluster_r = data_to_cluster_r[:,self.levels_order]
+                            # Preparing some plots for visualization purposes
+                            os.makedirs(os.path.join(path_source, 'visualization'), exist_ok=True)
+                            self._plot_sim(sim_r=data_to_cluster_r,save_path=path_source + '/visualization/',sub=sub)
+                            self._plot_pca(sim_r=data_to_cluster_r,save_path=path_source + '/visualization/',sub=sub)
+                            
+                    elif features == 'fc':
+                        data_to_cluster = fc
+
+                    fc_not_loaded = False # To avoid loading fc multiple times
+
                 if algorithm == 'kmeans':
                     print(f"... Running k-means clustering")
                     # Dict containing k means parameters
@@ -253,46 +367,52 @@ class FC_Parcellation:
 
                     # Compute clustering
                     kmeans_clusters = KMeans(**kmeans_kwargs)
-                    kmeans_clusters.fit(fc)
+                    kmeans_clusters.fit(data_to_cluster)
                     labels = kmeans_clusters.labels_
 
                     # Compute validity metrics and add them to dataframe
-                    internal_validity_df.loc[len(internal_validity_df)] = [sub, kmeans_clusters.inertia_, silhouette_score(fc, labels), davies_bouldin_score(fc, labels), calinski_harabasz_score(fc, labels), k]
-                
+                    if features == 'fc':
+                        internal_validity_df.loc[len(internal_validity_df)] = [sub, kmeans_clusters.inertia_, silhouette_score(data_to_cluster, labels), davies_bouldin_score(data_to_cluster, labels), calinski_harabasz_score(data_to_cluster, labels), k]
+                    elif features == 'sim':
+                        internal_validity_df.loc[len(internal_validity_df)] = [sub, kmeans_clusters.inertia_, silhouette_score(1-data_to_cluster, labels, metric='precomputed'), davies_bouldin_score(data_to_cluster, labels), calinski_harabasz_score(data_to_cluster, labels), k]
+                    
                 elif algorithm == 'spectral':
                     print(f"... Running spectral clustering")
-                    spectral_kwargs = {'n_clusters': k, 'n_init': self.n_init_spectral, 'affinity': self.affinity,
-                            'assign_labels': self.assign_labels, 'eigen_solver': self.eigen_solver, 'eigen_tol': self.eigen_tol}
                     
+                    spectral_kwargs = {'n_clusters': k, 'n_init': self.n_init_spectral, 'affinity': self.affinity,
+                        'assign_labels': self.assign_labels, 'eigen_solver': self.eigen_solver, 'eigen_tol': self.eigen_tol} 
+                   
                     spectral_clusters = SpectralClustering(**spectral_kwargs)
-                    spectral_clusters.fit(fc)
+                    spectral_clusters.fit(data_to_cluster)
                     labels = spectral_clusters.labels_
                     
-                    internal_validity_df.loc[len(internal_validity_df)] = [sub, 0, silhouette_score(fc, labels), davies_bouldin_score(fc, labels), calinski_harabasz_score(fc, labels), k]
+                    internal_validity_df.loc[len(internal_validity_df)] = [sub, 0, silhouette_score(data_to_cluster, labels), davies_bouldin_score(data_to_cluster, labels), calinski_harabasz_score(data_to_cluster, labels), k]
 
                 elif algorithm == 'agglom':
                     print(f"... Running agglomerative clustering")
                     # Dict containing parameters
-                    agglom_kwargs = {'n_clusters': k, 'linkage': self.linkage, 'metric': self.metric}
+                    if features == 'sim':
+                        agglom_kwargs = {'n_clusters': k, 'linkage': self.linkage, 'metric': self.metric}
 
-                    agglom_clusters = AgglomerativeClustering(**agglom_kwargs)
-                    agglom_clusters.fit(fc)
-                    labels = agglom_clusters.labels_
+                        agglom_clusters = AgglomerativeClustering(**agglom_kwargs)
+                        agglom_clusters.fit(1-data_to_cluster)
+                        labels = agglom_clusters.labels_
 
-                    # Compute validity metrics and add them to dataframe
-                    # Note that SSE is not relevant for this type of clustering
-                    internal_validity_df.loc[len(internal_validity_df)] = [sub, 0,  silhouette_score(fc, labels), davies_bouldin_score(fc, labels), calinski_harabasz_score(fc, labels), k]
-                    
+                        # Compute validity metrics and add them to dataframe
+                        # Note that SSE is not relevant for this type of clustering
+                        internal_validity_df.loc[len(internal_validity_df)] = [sub, 0, silhouette_score(1-data_to_cluster, labels, metric='precomputed'), davies_bouldin_score(data_to_cluster, labels), calinski_harabasz_score(data_to_cluster, labels), k]
+                    else:
+                        raise(Exception(f'Algorithm {algorithm} can only be used with FC similarity.'))    
                 else:
                     raise(Exception(f'Algorithm {algorithm} is not a valid option.'))
             
                 np.save(path_indiv_labels, labels.astype(int))
 
-        internal_validity_df.to_pickle(path_internal_validity ) 
+        internal_validity_df.to_pickle(path_internal_validity) 
 
         print("\n")
-       
-    def group_clustering(self, k_range, indiv_algorithm, poscorr=False, linkage="complete", overwrite=False):
+               
+    def group_clustering(self, k_range, indiv_algorithm, features='fc', poscorr=False, linkage="complete", overwrite=False):
         '''  
         Perform group-level clustering using the individual labels
         BASED ON CBP toolbox
@@ -305,6 +425,8 @@ class FC_Parcellation:
             algorithm that was used at the subject level
         linkage : str
             define type of linkage to use for hierarchical clustering (default = "complete")
+        features : str
+            defines if fc ('fc') or similarity matrix ('sim') (i.e., correlations between the fc profiles) is used as features (default = 'fc')
         poscorr : boolean
             defines if we take only the positive correlation for the clustering
         overwrite : boolean
@@ -319,10 +441,11 @@ class FC_Parcellation:
         '''
         print(f"\033[1mCLUSTERING AT THE GROUP LEVEL\033[0m")
         print(f"\033[37mK value(s) = {k_range}\033[0m")
+        print(f"\033[37mFeatures = {features}\033[0m")
         print(f"\033[37mOverwrite results = {overwrite}\033[0m")
        
         if overwrite == False:
-            print("\033[38;5;208mWARNING: THESE RESULTS CHANGE IF GROUP CHANGES, MAKE SURE YOU ARE USING THE SAME SUBJECTS\033[0m\n")
+            print("\033[38;5;208mWARNING: THESE RESULTS CHANGE IF GROUP CHANGES, MAKE SURE YOU ARE USING THE SAME PARTICIPANTS\033[0m\n")
         
         if poscorr:
             if self.fc_metric == 'corr':
@@ -334,7 +457,7 @@ class FC_Parcellation:
         # If only one k value is given, convert to range
         k_range = range(k_range,k_range+1) if isinstance(k_range,int) else k_range
 
-        path_source = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/'
+        path_source = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + features + '/'
         path_group_validity = path_source + 'validity/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_validity_poscorr.pkl' if poscorr else path_source + 'validity/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_validity.pkl'
         path_cophenetic_correlation = path_source + 'validity/' + self.config['output_tag'] + '_' + indiv_algorithm + '_cophenetic_correlation_poscorr.pkl' if poscorr else path_source + 'validity/' + self.config['output_tag'] + '_' + indiv_algorithm + '_cophenetic_correlation.pkl'
         
@@ -430,7 +553,7 @@ class FC_Parcellation:
 
         print("\n\033[1mDONE\033[0m")
 
-    def prepare_target_maps(self, label_type, k_range, indiv_algorithm, poscorr=False, overwrite=False):
+    def prepare_target_maps(self, label_type, k_range, indiv_algorithm, features='fc', poscorr=False, overwrite=False):
         '''  
         To obtain images of the connectivity profiles assigned to each label
         (i.e., mean over the connectivity profiles of the voxel of this K)
@@ -446,6 +569,8 @@ class FC_Parcellation:
             number of clusters  
         indiv_algorithm : str
             algorithm that was used at the participant level
+        features : str
+            defines if fc ('fc') or similarity matrix ('sim') (i.e., correlations between the fc profiles) is used as features (default = 'fc')
         poscorr : boolean
             defines if we take only the positive correlation for the clustering
         overwrite : boolean
@@ -464,6 +589,7 @@ class FC_Parcellation:
         print(f"\033[1mPREPARE TARGET MAPS\033[0m")
         print(f"\033[37mType of source labels = {label_type}\033[0m")
         print(f"\033[37mK value(s) = {k_range}\033[0m")
+        print(f"\033[37mFeatures = {features}\033[0m")
         print(f"\033[37mOverwrite results = {overwrite}\033[0m")
 
         if poscorr:
@@ -476,7 +602,7 @@ class FC_Parcellation:
         k_range = range(k_range,k_range+1) if isinstance(k_range,int) else k_range
         
         # Path to create folder structure
-        path_target = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/target/'
+        path_target = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/target/' + features + '/'
        
         # Loop through K values
         for k in k_range:
@@ -499,14 +625,14 @@ class FC_Parcellation:
                     
                     # Load labels
                     if label_type == 'indiv':
-                        path_labels = self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/indiv_labels_relabeled/' + self.config['output_tag'] + '_' + indiv_algorithm + '_labels_relabeled_k' + str(k) + '_poscorr.npy' if poscorr else self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/indiv_labels_relabeled/' + self.config['output_tag'] + '_' + indiv_algorithm + '_labels_relabeled_k' + str(k) + '.npy'
+                        path_labels = self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/'+  features + '/K' + str(k) + '/indiv_labels_relabeled/' + self.config['output_tag'] + '_' + indiv_algorithm + '_labels_relabeled_k' + str(k) + '_poscorr.npy' if poscorr else self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/' + features + '/K' + str(k) + '/indiv_labels_relabeled/' + self.config['output_tag'] + '_' + indiv_algorithm + '_labels_relabeled_k' + str(k) + '.npy'
                         labels = np.load(path_labels)
                         labels =  np.squeeze(labels[sub_id,:].T)
                     elif label_type == 'group_mode':
-                        path_labels = self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k) + '_poscorr.npy' if poscorr else self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k) + '.npy'
+                        path_labels = self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/' + features + '/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k) + '_poscorr.npy' if poscorr else self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/' + features + '/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k) + '.npy'
                         labels = np.load(path_labels)
                     elif label_type == 'group_agglom':
-                        path_labels = self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_agglom_k' + str(k) + '_poscorr.npy' if poscorr else self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_agglom_k' + str(k) + '.npy'
+                        path_labels = self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/' + features + '/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_agglom_k' + str(k) + '_poscorr.npy' if poscorr else self.config['main_dir'] + self.config['output_dir'] +  '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/source/' + features + '/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_agglom_k' + str(k) + '.npy'
                         labels = np.load(path_labels)
                     else:
                         raise(Exception(f'Label type {label_type} is not a valid option.'))
@@ -540,7 +666,7 @@ class FC_Parcellation:
         print("\033[1mDONE\033[0m\n")
         
 
-    def stats_target_maps(self, label_type, k_range, indiv_algorithm, poscorr=False, overwrite=False):
+    def stats_target_maps(self, label_type, k_range, indiv_algorithm, features='fc', poscorr=False, overwrite=False):
         '''  
         To conduct statistical analyses of the connectivity profiles assigned to each label
         (i.e., mean over the connectivity profiles of the voxel of this K)
@@ -556,6 +682,8 @@ class FC_Parcellation:
             number of clusters  
         indiv_algorithm : str
             algorithm that was used at the participant level
+        features : str
+            defines if fc ('fc') or similarity matrix ('sim') (i.e., correlations between the fc profiles) is used as features (default = 'fc')
         poscorr : boolean
             defines if we take only the positive correlation for the clustering
         overwrite : boolean
@@ -571,6 +699,7 @@ class FC_Parcellation:
         print(f"\033[1mRUN STATISTICAL ANALYSIS\033[0m")
         print(f"\033[37mType of source labels = {label_type}\033[0m")
         print(f"\033[37mK value(s) = {k_range}\033[0m")
+        print(f"\033[37mFeatures = {features}\033[0m")
         print(f"\033[37mOverwrite results = {overwrite}\033[0m")
 
         if poscorr:
@@ -584,8 +713,8 @@ class FC_Parcellation:
         k_range = range(k_range,k_range+1) if isinstance(k_range,int) else k_range
         
         # Path to target maps
-        path_target = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/target/'
-       
+        path_target = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/target/' + features + '/'
+
         # Loop through K values
         for k in k_range:
             print(f"K = {k}")    
@@ -614,7 +743,7 @@ class FC_Parcellation:
 
         print("\033[1mDONE\033[0m\n")
 
-    def winner_takes_all(self, label_type, k, indiv_algorithm, order=None, apply_threshold=None, poscorr=False, overwrite=False):
+    def winner_takes_all(self, label_type, k, indiv_algorithm, features='fc', order=None, apply_threshold=None, poscorr=False, overwrite=False):
         '''  
         To generate winner-takes-all maps using the t-statistics obtained for each K
 
@@ -629,6 +758,8 @@ class FC_Parcellation:
             number of clusters   
         indiv_algorithm : str
             algorithm that was used at the participant level
+        features : str
+            defines if fc ('fc') or similarity matrix ('sim') (i.e., correlations between the fc profiles) is used as features (default = 'fc')
         order : arr
             defines which number is going to be associated with each K value (default = None)
             this is useful as K values do not correspond to segments
@@ -650,6 +781,7 @@ class FC_Parcellation:
         print(f"\033[1mRUN WINNER-TAKES-ALL ANALYSIS\033[0m")
         print(f"\033[37mType of source labels = {label_type}\033[0m")
         print(f"\033[37mK value = {k}\033[0m")
+        print(f"\033[37mFeatures = {features}\033[0m")
         print(f"\033[37mOverwrite results = {overwrite}\033[0m")
 
         if poscorr:
@@ -659,7 +791,7 @@ class FC_Parcellation:
                 raise(Exception(f'The option to keep only positive correlations cannot be used with this metric.'))  
         
         # Path to stats
-        path_target = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/target/'
+        path_target = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/target/' + features + '/'
         path_stats = path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm + '_poscorr' if poscorr else path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm 
         output_file = path_stats + '/K' + str(k) + '_wta.nii.gz'
         order_file = path_stats + '/K' + str(k) + '_wta_order.txt'
@@ -717,7 +849,7 @@ class FC_Parcellation:
 
         print("\033[1mDONE\033[0m\n")
 
-    def plot_brain_map(self, k, indiv_algorithm, showing, colormap=plt.cm.rainbow, label_type=None, poscorr=False, save_figure=False):
+    def plot_brain_map(self, k, indiv_algorithm, showing, colormap=plt.cm.rainbow, features='fc', label_type=None, poscorr=False, save_figure=False):
         ''' Plot brain maps on inflated brain
         
         Inputs
@@ -730,6 +862,8 @@ class FC_Parcellation:
             colormap to use, will be discretized (default = plt.cm.rainbow)
         showing : str
             defines whether source or target data should be plotted
+        features : str
+            defines if fc ('fc') or similarity matrix ('sim') (i.e., correlations between the fc profiles) is used as features (default = 'fc')
         label_type : str [Only for target]
             defines the type of labels to use to define connectivity patterns (target)
             'indiv': relabeled labels (i.e., specific to each participant)
@@ -749,6 +883,7 @@ class FC_Parcellation:
         print(f"\033[1mRUN PLOTTING BRAIN MAPS\033[0m")
         print(f"\033[37mK value = {k}\033[0m")
         print(f"\033[37mShowing = {showing}\033[0m")
+        print(f"\033[37mFeatures = {features}\033[0m")
         print(f"\033[37mSave figure = {save_figure}\033[0m")
 
         if poscorr:
@@ -758,13 +893,13 @@ class FC_Parcellation:
                 raise(Exception(f'The option to keep only positive correlations cannot be used with this metric.')) 
         
         if showing == 'source':
-            path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + 'K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k) + '_poscorr' if poscorr else self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + 'K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k)
+            path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + features + '/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k) + '_poscorr' if poscorr else self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + features + '/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k)
             print("Source labels are not re-ordered!")
 
         elif showing == 'target':
             if label_type is None:
                 raise(Exception(f'When plotting target, you need to define which labels you want to use!')) 
-            path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/target/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm + '_poscorr/K' + str(k) + '_wta' if poscorr else self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/target/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm + '/K' + str(k) + '_wta'    
+            path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/target/' + features + '/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm + '_poscorr/K' + str(k) + '_wta' if poscorr else self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/target/' + features + '/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm + '/K' + str(k) + '_wta'    
         else:
             raise(Exception(f'The parameter "showing" should be "target" or "source".')) 
         
@@ -785,7 +920,7 @@ class FC_Parcellation:
                 plot_path = path_data + '_' + hemi + '.png'
                 plot.savefig(plot_path)
     
-    def plot_spinal_map(self, k, indiv_algorithm, showing, colormap=plt.cm.rainbow, group_type=None, label_type=None, order=None, poscorr=False, slice_y = None, show_spinal_levels=True, save_figure=False):
+    def plot_spinal_map(self, k, indiv_algorithm, showing, colormap=plt.cm.rainbow, group_type=None, features='fc', label_type=None, order=None, poscorr=False, slice_y = None, show_spinal_levels=True, save_figure=False):
         ''' Plot spinal maps on PAM50 template (coronal views)
         
         Inputs
@@ -802,6 +937,8 @@ class FC_Parcellation:
             defines the type of labels to display for source
             'mode': group labels (mode) 
             'agglom': group labels (agglomerative)    
+        features : str
+            defines if fc ('fc') or similarity matrix ('sim') (i.e., correlations between the fc profiles) is used as features (default = 'fc')
         label_type : str [Only for target]
             defines the type of labels to use to define connectivity patterns (target)
             'indiv': relabeled labels (i.e., specific to each participant)
@@ -829,6 +966,7 @@ class FC_Parcellation:
         print(f"\033[1mRUN PLOTTING SPINAL MAPS\033[0m")
         print(f"\033[37mK value = {k}\033[0m")
         print(f"\033[37mShowing = {showing}\033[0m")
+        print(f"\033[37mFeatures = {features}\033[0m")
         print(f"\033[37mSave figure = {save_figure}\033[0m")
 
         if poscorr:
@@ -840,11 +978,11 @@ class FC_Parcellation:
         print("The plotting is displayed in neurological orientation (Left > Right)")
 
         if showing == 'source':
-            path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + 'K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_' + group_type + '_k' + str(k) + '_poscorr' if poscorr else self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + 'K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_' + group_type + '_k' + str(k)
+            path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + features + '/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_' + group_type + '_k' + str(k) + '_poscorr' if poscorr else self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + features + '/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_' + group_type + '_k' + str(k)
         elif showing == 'target':
             if label_type is None:
                 raise(Exception(f'When plotting target, you need to define which labels you want to use!')) 
-            path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/target/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm + '_poscorr/K' + str(k) + '_wta' if poscorr else self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/target/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm + '/K' + str(k) + '_wta'    
+            path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/target/' + features + '/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm + '_poscorr/K' + str(k) + '_wta' if poscorr else self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/target/' + features + '/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm + '/K' + str(k) + '_wta'    
         else:
             raise(Exception(f'The parameter "showing" should be "target" or "source".')) 
         
@@ -891,7 +1029,7 @@ class FC_Parcellation:
             plt.savefig(path_data + '.png')
             np.savetxt(path_data + '_order.txt',order,fmt='%d',delimiter=',')
 
-    def plot_validity(self, k_range, internal=[], group=[], indiv_algorithm='kmeans', save_figures=True):
+    def plot_validity(self, k_range, internal=[], group=[], features='fc', indiv_algorithm='kmeans', save_figures=True):
         '''  
         Plot validity metrics to help define the best number of clusters
         
@@ -914,6 +1052,8 @@ class FC_Parcellation:
             indicates internal metrics to plot ('SSE', 'silhouette', 'davies', 'calinski')
         group : str, liit
             indicates group metrics to plot ('ami_agglom', 'ari_agglom', 'ami_mode', 'ari_mode', 'corr')
+        features : str
+            defines if fc ('fc') or similarity matrix ('sim') (i.e., correlations between the fc profiles) is used as features (default = 'fc')
         indiv_algorithm: str
             defines which algorithm was used ('kmeans' or 'agglom') for participant-level clustering (default = 'kmeans')
         save_figures : boolean
@@ -922,6 +1062,7 @@ class FC_Parcellation:
         
         print(f"\033[1mVALIDITY METRICS\033[0m")
         print(f"\033[37mK value(s) = {k_range}\033[0m")
+        print(f"\033[37mFeatures = {features}\033[0m")
         print(f"\033[37mSaving figures = {save_figures}\033[0m\n")
 
         # If only one k value is given, convert to range
@@ -944,7 +1085,7 @@ class FC_Parcellation:
         color="#43c7cc"
 
         # Path to create folder structure
-        path_validity = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/validity/'
+        path_validity = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + features + '/validity/'
        
         # Open all dataframes 
         if internal:
@@ -1017,3 +1158,65 @@ class FC_Parcellation:
                 relabeled = y.copy()
 
         return relabeled, accuracy
+
+    def _plot_sim(self,sim_r,save_path,sub):
+        """Plot similarity matrix (i.e., correlations of FC profiles)"""
+        
+        # Create a figure and axis
+        fig, ax = plt.subplots()
+
+        # Plot the reordered matrix
+        img = ax.imshow(sim_r, cmap='bwr', vmin=-0.5, vmax=0.5)
+
+        # Customize x and y axis ticks
+        unique_levels, counts = np.unique(self.levels_sorted, return_counts=True)
+        x_label_positions = np.cumsum(counts) - counts / 2
+        y_label_positions = x_label_positions
+
+        # Use a dictionary for tick labels
+        label_mapping = {1: 'C1', 2: 'C2', 3: 'C3', 4: 'C4', 5: 'C5', 6: 'C6', 7: 'C7'}
+        tick_labels = [label_mapping[level] for level in unique_levels]
+
+        # Add vertical/horizontal lines
+        line_positions = [np.where(self.levels_sorted == level)[0][-1] for level in unique_levels]
+        for x_pos, y_pos in zip(line_positions, line_positions):
+            ax.axvline(x_pos, color='black', linestyle=':', linewidth=1)
+            ax.axhline(y_pos, color='black', linestyle=':', linewidth=1)
+
+        # Add ticks at the center of each region
+        ax.set_xticks(x_label_positions)
+        ax.set_yticks(y_label_positions)
+
+        # Set tick labels
+        ax.set_xticklabels(tick_labels)
+        ax.set_yticklabels(tick_labels)
+
+        # Display colorbar
+        plt.colorbar(img)
+
+        plt.savefig(save_path + self.config['output_tag'] + '_' + sub + '_sim_reordered.pdf', format='pdf')
+
+    def _plot_pca(self,sim_r,save_path,sub):
+        # Perform PCA
+        pca = PCA(n_components=3)
+        pca_result = pca.fit_transform(sim_r)
+
+        # Create a 2D PC plot
+        fig, ax = plt.subplots(figsize=(8, 6))
+
+        # Scatter plot
+        scatter = ax.scatter(pca_result[:, 0], pca_result[:, 1], c=self.levels_sorted, cmap='rainbow', marker='.')
+
+        # Set axis labels
+        ax.set_xlabel('Principal Component 1')
+        ax.set_ylabel('Principal Component 2')
+
+        # Set plot title
+        ax.set_title('2D PC Plot')
+
+        # Add colorbar
+        cbar = plt.colorbar(scatter)
+        cbar.set_label('Levels')
+
+        plt.savefig(save_path + self.config['output_tag'] + '_' +  sub + '_pca.pdf', format='pdf')
+
