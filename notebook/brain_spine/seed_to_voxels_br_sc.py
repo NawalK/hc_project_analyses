@@ -48,7 +48,7 @@ seed2voxels=Seed2voxels(config,seed_indiv) # initialize the function
 # In[23]:
 
 
-target_timeseries,seeds_timeseries =seed2voxels.extract_data(redo=True,n_jobs=8) 
+target_timeseries,seeds_timeseries =seed2voxels.extract_data(redo=False,n_jobs=4) 
 
 
 # ## <font color=#B2D732> <span style="background-color: #4424D6"> C/ Correlation analysis
@@ -83,7 +83,7 @@ for side in ["positive","negative","two-sided"]:
                                           save_maps=True,
                                           smoothing_output=None,
                                           redo=True,
-                                          n_jobs=8)
+                                          n_jobs=4)
 
         #calculate the mean across participant
         string="fslmaths " +output_file[seed_name] + " -Tmean " + output_file[seed_name].split(".")[0] + "_mean.nii.gz"

@@ -94,6 +94,7 @@ class Plotting:
                 self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_indiv/*' + self.subject[set] + '*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
             elif self.duration[set] == None and self.subject[set] == None and self.analysis[set]!=("icap_duration" or "ica_duration"):
                 #print(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')
+
                 self.data[set] = nib.load(glob.glob(self.config['main_dir']+self.config['data'][self.dataset[set]][self.analysis[set]][self.region]['dir'] + '/K_' + str(self.k[set]) + '/comp_zscored/*' + self.config['data'][self.dataset[set]][self.analysis[set]][self.region]["tag_filename"] + '*')[0]).get_fdata()
             else:
                 raise(Exception(f'"You should define subject *or* duration, or none. If duration is chose, please choose "ica_duration" or "icap_duration" as analysis.'))
@@ -167,7 +168,7 @@ class Plotting:
         else:
             main_dataset = self.name1 # If only one dataset, it is for sure the longest :) 
             colormaps[main_dataset ]=colormap_one
-            alpha[main_dataset] = 1
+            alpha[main_dataset] = 0.7
         
         # Order the second dataset
         if len(self.k.keys())==2:
@@ -190,6 +191,7 @@ class Plotting:
         if show_spinal_levels == True: # Load levels if needed
             # Find list of spinal levels to consider (defined in config)
             levels_list = sorted(glob.glob(self.config['main_dir'] +self.config['templates']["sc_levels_path"] + 'spinal_level_*.nii.gz')) # Sorted is used to make sure files are listed from low to high number (i.e., rostro-caudally)
+            
             levels_data = np.zeros((self.data[main_dataset].shape[0],self.data[main_dataset].shape[1],self.data[main_dataset].shape[2],len(levels_list))) # To store spinal levels, based on size of 4D map data (corresponding to template) & number of spinal levels in template
             
             # Loop through levels & store data
@@ -249,7 +251,7 @@ class Plotting:
                     else:
                         axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_matched[main_dataset][i]]),cmap='gray_r')                    
                 else:
-                    axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_sorted[main_dataset][i]]),cmap='gray_r')
+                    axs[row_coronal,col].imshow(np.rot90(levels_data[:,max_y,:,self.spinal_levels_sorted[main_dataset][i]]),cmap='gray_r',alpha=0.8)
             # Show components
             if plot_mip:
                 # Compute projection
@@ -406,7 +408,7 @@ class Plot_brain:
     def __init__(self, config):
         self.config = config # Load config info
         
-    def plot_3D(self, i_img=None,hemi_view=["lh","rh"],face_view=["lateral"],vmin=None,vmax=None,threshold=1e-6, colormap='hot', tag="",output_dir=None, save_results=False):
+    def plot_3D(self, i_img=None,hemi_view=["lh","rh"],face_view=["lateral"],vmin=None,vmax=None,threshold=1e-6, mask_img=None,colormap='hot', tag="",output_dir=None, save_results=False):
         '''
         This function help to plot functional 3D maps on a render surface 
         Two nilearn function are used, see details here:
@@ -448,8 +450,9 @@ class Plot_brain:
         img_surf={}
         for hemi in hemi_view:
             #2. Transform volume into surface image --------------------------------------------------------------------
+            # include a mask is there are 0 values that you don't want to include in the interpolation
             img_surf[hemi]=surface.vol_to_surf(i_img,surface_dir+ hemi + ".pial",radius=0, 
-                                     interpolation='nearest', kind='auto', n_samples=10, mask_img=None, depth=None)
+                                     interpolation='nearest', kind='line', n_samples=10, mask_img=mask_img, depth=None)
   
 
             #3. Plot surface image --------------------------------------------------------------------
@@ -457,9 +460,10 @@ class Plot_brain:
             for face in face_view:
                 colorbar=True if face == face_view[-1] else False
                 plot=plotting.plot_surf_roi(surface_dir+ hemi +".inflated", roi_map=img_surf[hemi],
-                               cmap=colormap, colorbar=colorbar,
-                               hemi=side, view=face,vmin=vmin,vmax=vmax,threshold=threshold,
-                               bg_map=surface_dir + hemi +".sulc",darkness=.5)
+                                            cmap=colormap, colorbar=colorbar,mask_img=mask_img,
+                                            
+                                            hemi=side, view=face,vmin=vmin,vmax=vmax,threshold=threshold,
+                                            bg_map=surface_dir + hemi +".sulc",darkness=.5)
 
                 if save_results:
                     

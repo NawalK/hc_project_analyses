@@ -187,7 +187,7 @@ class ICA:
             data_sbj[self.structures_ana[0]+'_'+self.structures_ana[1]]={};data_all[self.structures_ana[0]+'_'+self.structures_ana[1]]=[]
             for subject_nb in range(0,len(self.config["list_subjects"][self.dataset])):
                 data_sbj[self.structures_ana[0]+'_'+self.structures_ana[1]][subject_nb]=np.concatenate([data_sbj[self.structures_ana[0]][subject_nb],data_sbj[self.structures_ana[1]][subject_nb]],axis=1)# shape: n_volumes, n_voxels(brain + sc)
-                print(data_sbj[self.structures_ana[0]+'_'+self.structures_ana[1]][subject_nb].shape)
+                
             data_all_structure=data_sbj[self.structures_ana[0]+'_'+self.structures_ana[1]]
         else:
             data_all_structure=data_sbj[self.structures_ana[0]]
@@ -258,8 +258,14 @@ class ICA:
             else: 
                 reducedata_all=np.concatenate([reducedata_all, U]) # concatenation of individual components, sbj1PC1, sbj1PC2 ... sbjnPC1,sbjnPC2.. (n_comp*n_sbj,n_voxels)
             
-        if save_indiv_img== True and len(self.structures_ana)<2 :
+        if save_indiv_img== True :
             for structure in self.structures_ana:
+                
+                if len(self.structures_ana)==2:
+                    components_img={};n_voxels={};nifti_masker={}
+                    nifti_masker[structure]= NiftiMasker(mask_img=self.config["main_dir"] + self.config["masks"][self.dataset][structure], standardize=False,smoothing_fwhm=None).fit() #Extract the data inside the mask and create a vector
+                    n_voxels[structure]= nifti_masker[structure].fit_transform(self.config["main_dir"] + self.config["masks"][self.dataset][structure]).shape[1] # number of voxels in the structure
+  
                 j=0
                 for sbj_nb in range(0,len(self.config["list_subjects"][self.dataset])):
                     subject_name=self.config["list_subjects"][self.dataset][sbj_nb]
@@ -268,11 +274,23 @@ class ICA:
                         j=i
                         
                     j=+i+1
-                   
-                    components_img = self.nifti_masker[structure].inverse_transform(reducedata_all[j-n_comp_pca:j]) # transform the components in nifti
-                    components_img.to_filename(self.analyse_dir + '/pca_indiv/sub-' + subject_name +'_comp_PCA.nii.gz') #save the n principal components for each subject
                     
+                    if len(self.structures_ana)<2:
+                        components_img = self.nifti_masker[structure].inverse_transform(reducedata_all[j-n_comp_pca:j]) # transform the components in nifti
+                        components_img.to_filename(self.analyse_dir + '/pca_indiv/sub-' + subject_name +'_comp_PCA.nii.gz') #save the n principal components for each subject
+                    
+                    elif len(self.structures_ana)==2:
+                        if structure==self.structures_ana[0]:
+                            components_img[self.structures_ana[0]] = nifti_masker[self.structures_ana[0]].inverse_transform(reducedata_all[j-n_comp_pca:j,0:n_voxels[self.structures_ana[0]]]) # transform the components in nifti
+                            components_img[self.structures_ana[0]].to_filename(self.analyse_dir + '/pca_indiv/sub-' + subject_name +'_'+self.structures_ana[0]+'_comp_PCA.nii.gz') #save the n principal components for each subject
+                        else:
+                            components_img[self.structures_ana[1]] = nifti_masker[self.structures_ana[1]].inverse_transform(reducedata_all[j-n_comp_pca:j,n_voxels[self.structures_ana[0]]:]) # transform the components in nifti
+                            components_img[self.structures_ana[1]].to_filename(self.analyse_dir + '/pca_indiv/sub-' + subject_name +'_'+self.structures_ana[1]+'_comp_PCA.nii.gz') #save the n principal components for each subject
+ 
                     print("- 4D image create for sbj  " +subject_name)
+                    
+                 
+            
         print(">> Individual PCA done <<")
         return reducedata_all
 

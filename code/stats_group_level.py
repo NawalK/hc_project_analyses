@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import glob, os, json, math, shutil
 import sc_utilities as util
-import matlab.engine
+#import matlab.engine
 import pandas as pd
 import numpy as np
 import nibabel as nb
@@ -388,7 +388,7 @@ class Stats:
             
         #>>> 2. Run randomise ---------------- 
         if self.model=="OneSampleT":
-            string="randomise -i "+ self.data_1rstlevel_4D[seed_name] +" -m " + self.mask_img+" -o " + output_rnd + "/" +seed_name + " -n " + str(permutation) +" -1 -c 2 -R --uncorrp "
+            string="randomise -i "+ self.data_1rstlevel_4D[seed_name] +" -m " + self.mask_img+" -o " + output_rnd + "/" +seed_name + " -n " + str(permutation) +" -1  -T -c 2 -R --uncorrp "
             
         elif self.model=="HigherOrder_paired":
             # Create a 4D file with all the 1rst levels files

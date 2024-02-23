@@ -4,6 +4,7 @@ import glob, os, shutil, json, scipy
 import nibabel as nib
 import numpy as np
 from nilearn.maskers import NiftiMasker
+
 from nilearn import image
 from joblib import Parallel, delayed
 
@@ -48,10 +49,13 @@ class Seed2voxels:
         self.target_structure=self.config["targeted_voxels"]["target_structure"]
         
         #>>> create output directory if needed -------------------------------------
+        if not os.path.exists(config['main_dir'] + config['seed2vox_dir']):
+            os.mkdir(self.config['main_dir'] + self.config['seed2vox_dir'])
+            os.mkdir(self.config['main_dir'] + self.config['seed2vox_dir'] + '/1_first_level/')
         if not os.path.exists(config['main_dir'] + config['seed2vox_dir'] + '/1_first_level/'+self.target):
-                os.mkdir(self.config['main_dir'] + self.config['seed2vox_dir'] + '/1_first_level/'+self.target)
-                os.mkdir(self.config['main_dir'] + self.config['seed2vox_dir'] + '/1_first_level/'+self.target+'/timeseries/') # folder to store timeseries extraction
-                os.mkdir(self.config['main_dir'] + self.config['seed2vox_dir'] + '/1_first_level/'+self.target+'/' + self.target +'_fc_maps/') # folder to store maps of FC
+            os.mkdir(self.config['main_dir'] + self.config['seed2vox_dir'] + '/1_first_level/'+self.target)
+            os.mkdir(self.config['main_dir'] + self.config['seed2vox_dir'] + '/1_first_level/'+self.target+'/timeseries/') # folder to store timeseries extraction
+            os.mkdir(self.config['main_dir'] + self.config['seed2vox_dir'] + '/1_first_level/'+self.target+'/' + self.target +'_fc_maps/') # folder to store maps of FC
 
                 
         for seed_name in self.seed_names:
@@ -76,7 +80,7 @@ class Seed2voxels:
                 subject_name='sub-' +  subject_name
                 if self.seed_indiv==False:
                     self.mask_seeds[seed_name].append(glob.glob(self.config["main_dir"] + self.config["seeds"]["seed_dir"]+ seed_name + ".nii.gz")[0]) # mask of the voxels tareted for the analysis
-                elif self.seed_indiv==True:
+                elif self.seed_indiv:
                     self.mask_seeds[seed_name].append(glob.glob(self.config["main_dir"] + self.config["seeds"]["seed_indiv_dir"]+ subject_name + "*" +seed_name + "*.nii.gz")[0]) # mask of the voxels tareted for the analysis
   
             print(self.mask_seeds[seed_name][0])

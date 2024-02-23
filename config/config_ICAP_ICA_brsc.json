@@ -1,0 +1,46 @@
+{"main_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/",
+ "acq_params":{"mtl":{"TR":1.55,
+              "physio_frq":400}},
+ 
+"masks":{"mtl":{"spinalcord": "hc_project_analyses/masks/spinalcord/PAM50_C1C7_gmwm.nii.gz",
+                "brain":"/hc_project_analyses/masks/brain_old_3mm/MNI_GM_3mm.nii"}},
+
+"output_dir": "//iCAP/results_brsc_project/young/spinalcord/",
+"output_tag": "Indiv",
+ 
+ 
+"data":{"mtl":
+        {"inputs_ica":
+        {"dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/",
+                "spinalcord":
+                    {"tag_filename_brain_spinalcord":"moco_brsc_BP_inTemplate_s.nii.gz"},
+               "brain":
+                    {"tag_filename_brain_spinalcord":"moco_brsc_BP_reg_SPM_inTemplate3mm_s.nii.gz"}},
+        "ica":{"spinalcord":
+                    {"dir":"/ICA/results_brsc_7fev24/spinalcord/",
+                    "tag_filename":"4D_z"},
+               "brain_spinalcord":
+                    {"dir":"/ICA/results_brsc_7fev24/brain_spinalcord/",
+                    "tag_filename":"4D_z"}},
+       "icap":{"spinalcord":
+                    {"dir":"/iCAP/results_brsc_project/young/spinalcord/",
+                    "tag_filename":"iCAPs_z"},
+               "brain_spinalcord":
+                    {"dir":"/iCAP/results_brsc_project/young/spinalcord/",
+                    "tag_filename":"iCAPs_z"}}},
+        "atlas":
+            {"icap":
+                {"spinalcord":{
+                    "dir":"/hc_project_analyses/masks/spinalcord/levels/frostell/spinal_levels/",
+                    "tag_filename":"C1toC7.nii.gz"}}}},
+ 
+"ica_ana":{"iter": 500,
+            "n_comp":0,
+            "k_range": {"brain_spinalcord":[20]}},
+
+"templates":{"spinalcord":"/templates/PAM50/template/PAM50_t2_C1T1.nii.gz",
+             "sc_levels_path":"/hc_project_analyses/masks/spinalcord/levels/frostell/spinal_levels/",
+             "brain":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/templates/MNI/MNI152_T1_1mm_brain.nii.gz",
+            "surface_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/templates/MNI/surf/"},
+
+"list_subjects":{"mtl":["P030","P099","A006","A007","A008","A009","A011","A013","A023","A024","A025","A026","A027","A028","A029","A030","A032","A033","A034","A036","A037","A038","A039","A043","A044","A045","A046","A048","A050","A051","A052"]}}

@@ -3,49 +3,28 @@
 "masks":{"brain":"/templates/MNI/MNI_GM_2mm.nii.gz",
          "spinalcord": "/templates/PAM50/template/PAM50_cord.nii.gz"},
 
-"seeds":{"seed_dir2":"/hc_project_analyses/masks/brain/",
-         "seed_dir":"/hc_project_analyses/masks/spinalcord/levels/icaps/gm/",
+"seeds":{"seed_dir":"/hc_project_analyses/masks/spinalcord/levels/icaps/gm/",
          "seed_indiv_dir":"/templates/PAM50/masks/indiv/",
-         "seed_names":["icap_C1_gm","icap_C2_gm","icap_C3_gm","icap_C4_gm","icap_C5_gm","icap_C6_gm","icap_C7_gm"],
-          "seed_names1":["SCAN","sSCAN_L","sSCAN_R","mSCAN_L","mSCAN_R","iSCAN_L","iSCAN_R"],
+         "seed_names1":["icap_C1_gm"],
+         "seed_names":["icap_C2_gm","icap_C3_gm","icap_C4_gm","icap_C5_gm","icap_C6_gm","icap_C7_gm"],
          "seed_structure":"spinalcord"},
  
 "targeted_voxels":{"target_dir":"/hc_project_analyses/masks/brain/",
-                   "target_name1": "PAM50_cord_C1C7_gm",
                    "target_name": "MNI_GM_2mm",
                   "target_structure":"brain"},
 
 "input_func":{"seed_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/2_func_in_template/",
               "target_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/",
              "seed_tag":"moco_brsc_BP*_inTemplate.nii",
-             "target_tag":"moco_brsc_BP*_inTemplate2mm_s.nii.gz",
-             "target_tag1":"moco_brsc_BP*_inTemplate_s.nii.gz"},
+             "target_tag":"moco_brsc_BP*_inTemplate2mm_s.nii.gz"},
  
 "denoised_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/1_func_denoised/",
 "smooth_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/3_func_smoothed/",
+        
+ "seed2vox_dir": "/seed_to_voxels/29jan_2024/",
+ "first_level":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/29jan_2024/1_first_level/",
+ "second_level":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/29jan_2024/2_second_level/",
 
- "templates":{"brain":"/templates/MNI/3mm_resolution/MNI_T1w_AverageHCs_3mm.nii.gz",
-             "spinalcord": "/templates/PAM50/template/PAM50_t2.nii.gz",
-            "sc_axialdiv_path":"/templates/PAM50/template/",
-            "sc_levels_path": "/templates/PAM50/spinal_levels/",
-            "spinalcord_seeds": "/templates/PAM50/rois/",
-            "brain_seeds": "/templates/MNI/rois/"},
-         
- "seed2vox_dir": "/seed_to_voxels/winter_2023/",
- "first_level":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/winter_2023/1_first_level/",
- "second_level":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/winter_2023/2_second_level/",
- "ica_dir": "/seed_to_voxels/summer_2023/",
- "tools_dir":{"main_codes":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/codes/",
-             "sct_toolbox":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spinalcordtoolbox-5.0.0",
-            "spm_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spm12/"},
+"list_subjects":["P030","P099","A006","A007","A008","A009","A011","A013","A023","A024","A025","A026","A027","A028","A029","A030","A032","A033","A034","A036","A037","A038","A039","A043","A044","A045","A046","A048","A050","A051","A052"]
  
-"list_subjects":["P030","P099","A006","A007","A008","A009","A011","A013","A023","A024","A025","A026","A027","A028","A029","A030","A032","A033","A034","A036","A037","A038","A039","A043","A044","A045","A046","A048","A050","A051","A052"],
-                    
-                    
-"list_subjects_all":["P030","P099","A006","A007","A008","A009","A011","A013","A023","A024","A025","A026","A027","A028","A029","A030","A032","A033","A034","A036","A037","A038","A039","A043","A044","A045","A046","A048","A050","A051","A052"],
- 
-
- 
-
- "SPM_Dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spm12/"
 } 

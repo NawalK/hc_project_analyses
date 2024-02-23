@@ -1,0 +1,350 @@
+40
+Analyse will be run on brain and spinalcord structures simultaneously
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/brain_old_3mm/MNI_GM_3mm.nii
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/spinalcord/PAM50_C1C7_gmwm.nii.gz
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+>> Individual PCA done <<
+>> Group ICA done <<
+>> Components z-scored done <<
+20
+Analyse will be run on brain and spinalcord structures simultaneously
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/brain_old_3mm/MNI_GM_3mm.nii
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/spinalcord/PAM50_C1C7_gmwm.nii.gz
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+>> Individual PCA done <<
+>> Group ICA done <<
+>> Components z-scored done <<
+10
+Analyse will be run on brain and spinalcord structures simultaneously
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project//hc_project_analyses/masks/brain_old_3mm/MNI_GM_3mm.nii
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+>> data extraction done <<
+/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/bmpd_python/lib/python3.6/site-packages/nilearn/__init__.py:69: FutureWarning: Python 3.6 support is deprecated and will be removed in release 0.10 of Nilearn. Consider switching to Python 3.8 or 3.9.
+  _python_deprecation_warnings()
+/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/spinalcord/PAM50_C1C7_gmwm.nii.gz
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+(265, 103503)
+>> Individual PCA done <<
+>> Group ICA done <<
+>> Components z-scored done <<

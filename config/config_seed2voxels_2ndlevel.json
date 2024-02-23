@@ -1,26 +1,22 @@
 {"main_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/",
-
- "gradient_seeds":["icap_C1_gm","icap_C2_gm","icap_C3_gm","icap_C4_gm","icap_C5_gm","icap_C6_gm","icap_C7_gm"],
- "seeds1":{"icap_C7_gm":["icap_C7_gm"]},
- "seeds":{"icap_C1_gm":["icap_C1_gm"],"icap_C2_gm":["icap_C2_gm"],"icap_C3_gm":["icap_C3_gm"],"icap_C4_gm":["icap_C4_gm"],"icap_C5_gm":["icap_C5_gm"],"icap_C6_gm":["icap_C6_gm"],"icap_C7_gm":["icap_C7_gm"]},
- "seeds2":{"SCAN":["SCAN"]},
+"gradient_seeds":["icap_C1_gm","icap_C2_gm","icap_C3_gm","icap_C4_gm","icap_C5_gm","icap_C6_gm","icap_C7_gm"],
+"seeds":{"icap_C1_gm":["icap_C1_gm"],"icap_C2_gm":["icap_C2_gm"],"icap_C3_gm":["icap_C3_gm"],"icap_C4_gm":["icap_C4_gm"],"icap_C5_gm":["icap_C5_gm"],"icap_C6_gm":["icap_C6_gm"],"icap_C7_gm":["icap_C7_gm"]},
 
 "model":"OneSampleT",
-"mask_path":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/brain/MNI_WMGM_2mm.nii",
+"mask_path":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/brain/iCAPs_z_SMC_bin.nii.gz",
 "measure":"Corr",
-  "target_1rstleve1l": "PAM50_cord_C1C7_gm",
- "target_1rstlevel": "MNI_WMGM_2mm",
- "seed2vox_dir": "/seed_to_voxels/winter_2023/",
- "first_level":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/winter_2023/1_first_level/",
- "second_level":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/winter_2023/2_second_level/",
+"target_1rstlevel": "MNI_GM_2mm",
+"seed2vox_dir": "/seed_to_voxels/29jan_2024/",
+"first_level":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/29jan_2024/1_first_level/",
+ "second_level":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/29jan_2024/2_second_level/",
                  
- "winner_all":{"mask":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/brain/MNI_WMGM_2mm.nii",
-               "input_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/winter_2023/2_second_level/GLM/OneSampleT/MNI_WMGM_2mm/Corr/",
+ "winner_all":{"mask":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/brain/MNI_GM_2mm.nii",
+               "input_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/29jan_2024/2_second_level/GLM/OneSampleT/MNI_GM_2mm/Corr/",
                 "tag_input": "/randomise/*maptstat1.nii.gz",
                 "analysis":"gm"},
 
  "winner_all_indiv":{"mask":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/brain/MNI_GM_2mm.nii",
-               "input_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/winter_2023/1_first_level/",
+               "input_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/29jan_2024/1_first_level/",
                 "tag_input": "/MNI_GM_2mm_fc_maps/Corr/bi-corr_*",
                 "analysis":"pseudoindiv"},
  
@@ -29,9 +25,4 @@
              "brain":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/templates/MNI/MNI152_T1_1mm_brain.nii.gz",
             "surface_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/templates/MNI/surf/"},
 
- 
- "tools_dir":{"main_codes":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/func_preparation/codes/",
-             "sct_toolbox":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spinalcordtoolbox-5.0.0",
-            "spm_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/thibault_test/code/toolbox/spm12/"},
- 
 "list_subjects":["P030","P099","A006","A007","A008","A009","A011","A013","A023","A024","A025","A026","A027","A028","A029","A030","A032","A033","A034","A036","A037","A038","A039","A043","A044","A045","A046","A048","A050","A051","A052"]} 
