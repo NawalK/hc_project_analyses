@@ -5,7 +5,7 @@
 "masks":{"mtl":{"spinalcord": "hc_project_analyses/masks/spinalcord/PAM50_C1C7_gmwm.nii.gz",
                 "brain":"/hc_project_analyses/masks/brain_old_3mm/MNI_GM_3mm.nii"}},
 
-"output_dir": "//iCAP/results_brsc_project/young/spinalcord/",
+"output_dir": "//iCAP/results_brsc_project/young/figures/",
 "output_tag": "Indiv",
  
  
@@ -25,6 +25,10 @@
        "icap":{"spinalcord":
                     {"dir":"/iCAP/results_brsc_project/young/spinalcord/",
                     "tag_filename":"iCAPs_z"},
+               "brain":
+                    {"dir":"/iCAP/results_brsc_project/young/brain/k_10/",
+                    "tag_filename":"iCAPs_z"},
+               
                "brain_spinalcord":
                     {"dir":"/iCAP/results_brsc_project/young/spinalcord/",
                     "tag_filename":"iCAPs_z"}}},

@@ -33,15 +33,15 @@ class WinnerAll:
             print("Analyses will be run in the following mask:" + self.mask_name)
             
              
-    def compute_GradMaps(self, output_tag="_",apply_threshold=None,redo=False,verbose=True):
+    def compute_GradMaps(self, output_tag="_",fwhm=[0,0,0],cluster_threshold=100,apply_threshold=None,redo=False,verbose=True):
         '''
         Use se the t_maps or mean group 
         Attributes
         ----------
         config : dict
-        
-        apply_threshold: str (default None)
-        To apply a threshold value at the input images, a cluster thresholding of 100 will also be applied
+        fwhm <scalar>: smoothing will be apply in 3 dimensions with gaussian filter
+        apply_threshold: str (default None)To apply a threshold value at the input images, 
+        cluster_threshold <str>: to appl a cluster thresholding (default: 100)
         
         '''
         self.output_tag=output_tag
@@ -50,7 +50,8 @@ class WinnerAll:
             print("---------- Initialization info: ")
             for seed_nb in range(len(self.seed_names)):
                 print(self.seed_names[seed_nb] + " will have a value of: " + str(seed_nb+1))
-
+        
+        
         #### 2. Create output diresctory:  -------------------------------------
         for seed_name in self.seed_names:
             self.output_dir=self.secondlevel +"/WinnerTakeAll/" + self.analysis
@@ -60,48 +61,61 @@ class WinnerAll:
                 
             if not os.path.exists(self.output_dir):
                 os.mkdir(self.output_dir) # create sub directory for each analysis
+        
+        output_file=self.output_dir + "/" + output_tag + "_thr" + str(apply_threshold)+"_cluster"+ str(cluster_threshold) + "_s"+ str(fwhm[0]) + ".nii.gz"
 
-        #3 Select mask:
-        masker= NiftiMasker(self.mask,smoothing_fwhm=[0,0,0], t_r=1.55,low_pass=None, high_pass=None) # seed masker
+        #3 Select mask for individual maps (no smoothing):
+        if not os.path.exists(output_file) or redo==True:
+            masker= NiftiMasker(self.mask,smoothing_fwhm=[0,0,0], t_r=1.55,low_pass=None, high_pass=None) # seed masker
 
-        #4. Find the t max value for each voxels (group level) ________________________
-        maps_file=[];maps_data=[]
-        for seed_nb in range(len(self.seed_names)):
-            #print(self.indir +self.seed_names[seed_nb]+ self.tag_input)
-            maps_file.append(glob.glob(self.indir +self.seed_names[seed_nb]+ self.tag_input)[0]) # select individual maps   
+            #4. Find the t max value for each voxels (group level) ________________________
+            maps_file=[];maps_data=[]
+            for seed_nb in range(len(self.seed_names)):
+                
+                maps_file.append(glob.glob(self.indir +self.seed_names[seed_nb]+ self.tag_input)[0]) # select individual maps   
 
-            if apply_threshold is not None:
-                maps_thr=image.threshold_img(maps_file[seed_nb], threshold=apply_threshold, cluster_threshold=100, mask_img=self.mask)
+                if apply_threshold is not None:
+                    maps_thr=image.threshold_img(maps_file[seed_nb], threshold=apply_threshold, cluster_threshold=cluster_threshold, mask_img=self.mask)
 
-                maps_thr.to_filename(maps_file[seed_nb].split(".")[0] +"_thr_t"+str(apply_threshold)+".nii.gz") # create temporary 3D files
-                maps_data.append(masker.fit_transform(maps_thr)) # extract the data in a single array
+                    maps_thr.to_filename(maps_file[seed_nb].split(".")[0] +"_thr_t"+str(apply_threshold)+".nii.gz") # create temporary 3D files
+                    maps_data.append(masker.fit_transform(maps_thr)) # extract the data in a single array
 
-            elif apply_threshold is None:
-                maps_data.append(masker.fit_transform(maps_file[seed_nb])) # extract the data in a single array
+                elif apply_threshold is None:
+                    maps_data.append(masker.fit_transform(maps_file[seed_nb])) # extract the data in a single array
 
-        data=np.array(maps_data)
-        output_file=self.output_dir + "/" + output_tag +".nii.gz"
-        max_level_indices = []
+            data=np.array(maps_data)
+            
+        
+            max_level_indices = []
 
-        for i in range(0,data.shape[2]):
-            i_values = data[:,:,i]  # Get the voxel values
+            for i in range(0,data.shape[2]):
+                i_values = data[:,:,i]  # Get the voxel values
 
-            max_level_index = np.argmax(i_values)  # Find the level that have the max value for this column
-            if i_values[max_level_index] == 0 :
-                max_level_index =-1 # if the max value is 0 put -1 to the index
+                max_level_index = np.argmax(i_values)  # Find the level that have the max value for this column
+                if i_values[max_level_index] == 0 :
+                    max_level_index =np.nan # if the max value is 0 put -1 to the index
 
-            max_level_indices.append(max_level_index+1) # add 1 to avoid 0 values
+                max_level_indices.append(max_level_index+1) # add 1 to avoid 0 values
 
-        ####5. Output Image
-        #5.a Save the output as an image
-        seed_to_voxel_img = masker.inverse_transform(np.array(max_level_indices).T)
-        seed_to_voxel_img.to_filename(output_file) # create temporary 3D files
+            ####5. Output Image
+            #5.a Save the output as an image, group level, smoothing can be applied if needed
+            seed_to_voxel_img = masker.inverse_transform(np.array(max_level_indices).T)
+            if fwhm!=[0,0,0]:
+                seed_to_voxel_img_s=image.smooth_img(seed_to_voxel_img,fwhm)
+                seed_to_voxel_img=seed_to_voxel_img_s
 
-        #6. copy the config file
-        with open(self.output_dir + '/' + output_tag + '_analysis_config.json', 'w') as fp:
-            json.dump(self.config, fp)
+                seed_to_voxel_img.to_filename(output_file) # create temporary 3D files
+                # threshold the output image to avoid unrelevant values
+                string="fslmaths "+ output_file + " -thr 0.8 " + output_file
+            else:
+                seed_to_voxel_img.to_filename(output_file) # create temporary 3D files
 
-   
+            os.system(string)
+            #6. copy the config file
+            with open(self.output_dir + '/' + output_tag + '_analysis_config.json', 'w') as fp:
+                json.dump(self.config, fp)
+
+        return output_file
     
     def group_indiv_GradMaps(self,output_tag,redo=False):
     
@@ -175,9 +189,10 @@ class WinnerAll:
             img = masker.inverse_transform(np.array(mode_values).T)
             img.to_filename(output_file) # create temporary 3D files
             
-             #mask the image
+            #mask the image
             if self.mask_name is not None:
                 mode_maskfile=self.output_dir + "/mode_n" + str(len(self.subject_names)) + "_" + output_tag +"_"+self.mask+".nii.gz"
                 string='fslmaths ' + output_file+ ' -mas ' + self.mask + " " + mode_maskfile # fsl command to mask
                 os.system(string) # run fsl command
     
+       
