@@ -82,7 +82,7 @@ class WinnerAll:
 
                 elif apply_threshold is None:
                     maps_data.append(masker.fit_transform(maps_file[seed_nb])) # extract the data in a single array
-
+            
             data=np.array(maps_data)
             
         
@@ -107,10 +107,11 @@ class WinnerAll:
                 seed_to_voxel_img.to_filename(output_file) # create temporary 3D files
                 # threshold the output image to avoid unrelevant values
                 string="fslmaths "+ output_file + " -thr 0.8 " + output_file
+                os.system(string)
             else:
                 seed_to_voxel_img.to_filename(output_file) # create temporary 3D files
 
-            os.system(string)
+            
             #6. copy the config file
             with open(self.output_dir + '/' + output_tag + '_analysis_config.json', 'w') as fp:
                 json.dump(self.config, fp)

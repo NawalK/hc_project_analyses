@@ -11,8 +11,10 @@
  "second_level":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/29jan_2024/2_second_level/",
                  
  "winner_all":{"mask":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/brain/MNI_GM_2mm.nii",
-               "input_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/29jan_2024/2_second_level/GLM/OneSampleT/MNI_GM_2mm/Corr/",
-                "tag_input": "/randomise/*maptstat1.nii.gz",
+               "input_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/29jan_2024/1_first_level/",
+               "input_dir2":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/29jan_2024/2_second_level/GLM/OneSampleT/MNI_GM_2mm/Corr/",
+               "tag_input2":"/randomise/*maptstat1.nii.gz",
+               "tag_input":"/MNI_GM_2mm_fc_maps/Corr/bi-corr*mean.nii.gz",
                 "analysis":"gm"},
 
  "winner_all_indiv":{"mask":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/brain/MNI_GM_2mm.nii",

@@ -3,10 +3,11 @@
 "masks":{"brain":"/templates/MNI/MNI_GM_2mm.nii.gz",
          "spinalcord": "/templates/PAM50/template/PAM50_cord.nii.gz"},
 
-"seeds":{"seed_dir":"/hc_project_analyses/masks/spinalcord/levels/icaps/gm/",
+"seeds":{"seed_dir":"/hc_project_analyses/masks/spinalcord/levels/icaps/atlas/",
          "seed_indiv_dir":"/templates/PAM50/masks/indiv/",
          "seed_names1":["icap_C1_gm"],
-         "seed_names":["icap_C2_gm","icap_C3_gm","icap_C4_gm","icap_C5_gm","icap_C6_gm","icap_C7_gm"],
+         "seed_names":["icap_C6_D","icap_C6_V","icap_C6_I",
+                      "icap_C7_D","icap_C7_V","icap_C7_I"],
          "seed_structure":"spinalcord"},
  
 "targeted_voxels":{"target_dir":"/hc_project_analyses/masks/brain/",
