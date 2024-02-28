@@ -155,5 +155,3 @@ def compute_similarity(config, data1, data2, thresh1=1.6, thresh2=1.6, mask1=Non
         print(f"DONE!")
 
     return similarity_matrix, orderX, orderY
-
-

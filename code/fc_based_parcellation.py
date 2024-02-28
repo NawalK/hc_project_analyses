@@ -18,6 +18,7 @@ from functools import partial
 import pandas as pd
 from matplotlib.colors import ListedColormap
 from sklearn.decomposition import PCA
+from compute_similarity import compute_similarity
 
 class FC_Parcellation:
     '''
@@ -403,7 +404,7 @@ class FC_Parcellation:
                 internal_validity_df = internal_validity_df[~((internal_validity_df['sub'] == sub) & internal_validity_df['k'].isin(k_range))]
 
         else: # Create an empty dataframe with the needed columns
-            columns = ["sub", "SSE", "silhouette", "davies", "calinski", "k"]
+            columns = ["sub", "SSE", "silhouette", "davies", "calinski", "ami_frost", "k"]
             internal_validity_df = pd.DataFrame(columns=columns)
 
         fc_not_loaded = True # To avoid loading fc multiple times
@@ -463,9 +464,9 @@ class FC_Parcellation:
 
                     # Compute validity metrics and add them to dataframe
                     if features == 'fc':
-                        internal_validity_df.loc[len(internal_validity_df)] = [sub, kmeans_clusters.inertia_, silhouette_score(data_to_cluster, labels), davies_bouldin_score(data_to_cluster, labels), calinski_harabasz_score(data_to_cluster, labels), k]
+                        internal_validity_df.loc[len(internal_validity_df)] = [sub, kmeans_clusters.inertia_, silhouette_score(data_to_cluster, labels), davies_bouldin_score(data_to_cluster, labels), calinski_harabasz_score(data_to_cluster, labels), adjusted_mutual_info_score(labels.flatten(),self.levels_masked), k]
                     elif features == 'sim':
-                        internal_validity_df.loc[len(internal_validity_df)] = [sub, kmeans_clusters.inertia_, silhouette_score(1-data_to_cluster, labels, metric='precomputed'), davies_bouldin_score(data_to_cluster, labels), calinski_harabasz_score(data_to_cluster, labels), k]
+                        internal_validity_df.loc[len(internal_validity_df)] = [sub, kmeans_clusters.inertia_, silhouette_score(1-data_to_cluster, labels, metric='precomputed'), davies_bouldin_score(data_to_cluster, labels), calinski_harabasz_score(data_to_cluster, labels), adjusted_mutual_info_score(labels.flatten(),self.levels_masked), k]
                     
                 elif algorithm == 'spectral':
                     print(f"... Running spectral clustering")
@@ -477,7 +478,7 @@ class FC_Parcellation:
                     spectral_clusters.fit(data_to_cluster)
                     labels = spectral_clusters.labels_
                     
-                    internal_validity_df.loc[len(internal_validity_df)] = [sub, 0, silhouette_score(data_to_cluster, labels), davies_bouldin_score(data_to_cluster, labels), calinski_harabasz_score(data_to_cluster, labels), k]
+                    internal_validity_df.loc[len(internal_validity_df)] = [sub, 0, silhouette_score(data_to_cluster, labels), davies_bouldin_score(data_to_cluster, labels), calinski_harabasz_score(data_to_cluster, labels), adjusted_mutual_info_score(labels.flatten(),self.levels_masked), k]
 
                 elif algorithm == 'agglom':
                     print(f"... Running agglomerative clustering")
@@ -491,7 +492,7 @@ class FC_Parcellation:
 
                         # Compute validity metrics and add them to dataframe
                         # Note that SSE is not relevant for this type of clustering
-                        internal_validity_df.loc[len(internal_validity_df)] = [sub, 0, silhouette_score(1-data_to_cluster, labels, metric='precomputed'), davies_bouldin_score(data_to_cluster, labels), calinski_harabasz_score(data_to_cluster, labels), k]
+                        internal_validity_df.loc[len(internal_validity_df)] = [sub, 0, silhouette_score(1-data_to_cluster, labels, metric='precomputed'), davies_bouldin_score(data_to_cluster, labels), calinski_harabasz_score(data_to_cluster, labels), adjusted_mutual_info_score(labels.flatten(),self.levels_masked), k]
                     else:
                         raise(Exception(f'Algorithm {algorithm} can only be used with FC similarity.'))    
                 else:
@@ -684,7 +685,7 @@ class FC_Parcellation:
         
         # Path to create folder structure
         path_target = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/target/' + features + '/'
-       
+                           
         # Loop through K values
         for k in k_range:
             print(f"K = {k}")    
@@ -816,7 +817,7 @@ class FC_Parcellation:
 
         print("\033[1mDONE\033[0m\n")
 
-    def winner_takes_all(self, label_type, k, indiv_algorithm, features='fc', order=None, apply_threshold=None, cluster_threshold=100, overwrite=False):
+    def winner_takes_all(self, label_type, k, indiv_algorithm, input_type='stats', features='fc', order=None, apply_threshold=None, cluster_threshold=100, overwrite=False):
         '''  
         To generate winner-takes-all maps using the t-statistics obtained for each K
 
@@ -832,12 +833,16 @@ class FC_Parcellation:
             number of clusters   
         indiv_algorithm : str
             algorithm that was used at the participant level
+        input_type : str
+            defines whether to use statistical t-maps ('stats') or correlation maps ('corr') as inputs (default = 'corr')
         features : str
             defines if fc ('fc') or similarity matrix ('sim') (i.e., correlations between the fc profiles) is used as features (default = 'fc')
-        order : arr
+        order : arr or str
             defines which number is going to be associated with each K value (default = None)
             this is useful as K values do not correspond to segments
-            the array should contain one value par K, e.g. if K = 7: [1 3 2 7 5 6 4] (if None, we use the sequential order)
+            Two options:
+                - array containing one value par K, e.g. if K = 7: [1 3 2 7 5 6 4] (if None, we use the sequential order)
+                - 'from_file' to indicate that order should be loaded from existing txt file
         apply_threshold : float
             to apply a threshold value on the input t-stats images, a cluster thresholding will also be applied (default = None)
         cluster_threshold : int
@@ -847,7 +852,7 @@ class FC_Parcellation:
         
         Outputs
         ------------
-        KX_wta.nii.gz
+        KX_wta_input_type.nii.gz
             WTA map for a particular K
             
         '''
@@ -862,15 +867,23 @@ class FC_Parcellation:
         # Path to stats
         path_target = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/target/' + features + '/'
         path_stats = path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm 
-        output_file = path_stats + '/K' + str(k) + '_wta.nii.gz'
-        order_file = path_stats + '/K' + str(k) + '_wta_order.txt'
+        output_file = path_stats + '/K' + str(k) + '_wta_' + input_type + '.nii.gz'
+        order_file = path_stats + '/K' + str(k) + '_wta_' + input_type + '_order.txt'
 
         if not overwrite and os.path.exists(output_file):
             print(f"... WTA analysis already done")
         else:
             # Define order
-            order = range(1,k+1) if order is None else order
-            
+            if order is None:
+                order = range(1,k+1)
+            elif order == 'from_file':
+                if os.path.exists(order_file):
+                    order = np.loadtxt(order_file).astype(int)[1:]
+                else:
+                    raise(Exception(f'Order file could not be found.')) 
+            else:
+                order = order
+
             if len(order) != k:
                 raise(Exception(f'The length of the order information ({len(order)}) is different from K {k}.'))  
 
@@ -885,8 +898,12 @@ class FC_Parcellation:
             # Find the t max value for each voxel (group level) 
             maps_file = []; maps_data = []
             for k_ind in range(0,k):
-                maps_file.append(glob.glob(path_stats + '/K' + str(k) + '_' + str(k_ind+1) + '_tstat1.nii.gz')[0]) # select individual maps   
-
+                if input_type == 'stats':
+                    maps_file.append(glob.glob(path_stats + '/K' + str(k) + '_' + str(k_ind+1) + '_tstat1.nii.gz')[0]) # select individual maps   
+                elif input_type == 'corr':
+                    maps_file.append(glob.glob(path_target + '/K' + str(k) + '/' + label_type + '_labels' + '/maps_mean' + '/' +  self.config['output_tag'] + '_mean_' + indiv_algorithm + '_' + label_type + '_labels_targetmap_K' + str(k) + '_' + str(k_ind+1) + '.nii.gz')[0])
+                else:
+                    raise(Exception(f'Input type should be "stats" or "corr".'))      
                 if apply_threshold is not None:
                     maps_thr = image.threshold_img(maps_file[k_ind], threshold=apply_threshold, cluster_threshold=cluster_threshold, mask_img=self.mask_target_path)
                     #maps_thr.to_filename(maps_file[k_ind].split(".")[0] +"_thr_t"+str(apply_threshold)+".nii.gz") # create temporary 3D files
@@ -932,10 +949,12 @@ class FC_Parcellation:
             defines if fc ('fc') or similarity matrix ('sim') (i.e., correlations between the fc profiles) is used as features (default = 'fc')
         save_fc_profiles : boolean
             if set to True, the mean fc profiles for each cluster are saved as nifti files (default = True)
-        order : arr
+        order : arr or str
             defines which number is going to be associated with each K value (default = None)
             this is useful as K values do not correspond to segments
-            the array should contain one value par K, e.g. if K = 7: [1 3 2 7 5 6 4] (if None, we use the sequential order)
+            Two options:
+                - array containing one value par K, e.g. if K = 7: [1 3 2 7 5 6 4] (if None, we use the sequential order)
+                - 'from_file' to indicate that order should be loaded from existing txt file
         overwrite : boolean
             if set to True, maps are overwritten (default = False)
         
@@ -967,8 +986,16 @@ class FC_Parcellation:
             os.makedirs(path_wta, exist_ok=True)
                 
             # Define order
-            order = range(1,k+1) if order is None else order
-            
+            if order is None:
+                order = range(1,k+1)
+            elif order == 'from_file':
+                if os.path.exists(order_file):
+                    order = np.loadtxt(order_file).astype(int)[1:]
+                else:
+                    raise(Exception(f'Order file could not be found.')) 
+            else:
+                order = order
+                
             if len(order) != k:
                 raise(Exception(f'The length of the order information ({len(order)}) is different from K {k}.'))  
 
@@ -1015,7 +1042,7 @@ class FC_Parcellation:
 
         print("\033[1mDONE\033[0m\n")
 
-    def plot_brain_map(self, k, indiv_algorithm, showing, wta_fc_mean=False, colormap=plt.cm.rainbow, features='fc', label_type=None, save_figure=False):
+    def plot_brain_map(self, k, indiv_algorithm, showing, input_type='stats', wta_fc_mean=False, colormap=plt.cm.rainbow, features='fc', label_type=None, save_figure=False):
         ''' Plot brain maps on inflated brain
         
         Inputs
@@ -1028,6 +1055,8 @@ class FC_Parcellation:
             colormap to use, will be discretized (default = plt.cm.rainbow)
         showing : str
             defines whether source or target data should be plotted
+        input_type : str [Only for target]
+            defines whether to plot WTA maps based on statistical t-maps ('stats') or correlation maps ('corr') as inputs (default = 'corr')
         wta_fc_mean : boolean [Only for target]
             set to True to use WTA results coming from mean FC matrix (default = False)
         features : str
@@ -1062,12 +1091,14 @@ class FC_Parcellation:
             if wta_fc_mean:
                 path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/target/' + features + '/K' + str(k) + '/wta_fc_mean/K' + str(k) + '_wta'     
             else:
-                path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/target/' + features + '/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm + '/K' + str(k) + '_wta' 
+                path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/target/' + features + '/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm + '/K' + str(k) + '_wta_' + input_type 
         else:
             raise(Exception(f'The parameter "showing" should be "target" or "source".')) 
         
-        # Create a discretized colormap
-        discretized_colormap = ListedColormap(colormap(np.linspace(0, 1, k+1)))
+        if isinstance(colormap.colors, list): # Test if colormap is discrete
+            discretized_colormap = colormap
+        else: # Create a discretized colormap if is not already discrete
+            discretized_colormap = ListedColormap(colormap(np.linspace(0, 1, k+1)))
 
         img_to_show = path_data + '.nii.gz'
         for hemi in ['left','right']:
@@ -1080,10 +1111,13 @@ class FC_Parcellation:
                        darkness=0.7)
             # If option is set, save results as a png
             if save_figure == True:
-                plot_path = path_data + '_' + hemi + '.png'
+                if wta_fc_mean:
+                    plot_path = path_data + '_' + hemi + '.png'
+                else:
+                    plot_path = path_data + '_' + hemi + '_' + input_type + '.png'
                 plot.savefig(plot_path)
     
-    def plot_spinal_map(self, k, indiv_algorithm, showing, colormap=plt.cm.rainbow, wta_fc_mean=False, group_type=None, features='fc', label_type=None, order=None, slice_y=None, show_spinal_levels=True, save_figure=False):
+    def plot_spinal_map(self, k, indiv_algorithm, showing, colormap=plt.cm.rainbow, input_type='corr', wta_fc_mean=False, group_type=None, features='fc', label_type=None, order=None, slice_y=None, show_spinal_levels=True, save_figure=False):
         ''' Plot spinal maps on PAM50 template (coronal views)
         
         Inputs
@@ -1094,6 +1128,8 @@ class FC_Parcellation:
             algorithm that was used at the participant level
         showing : str
             defines whether source or target data should be plotted
+        input_type : str [Only for target]
+            defines whether to plot WTA maps based on statistical t-maps ('stats') or correlation maps ('corr') as inputs (default = 'corr')
         colormap : cmap
             colormap to use, will be discretized (default = plt.cm.rainbow)
         group_type : str [Only for source]
@@ -1110,10 +1146,12 @@ class FC_Parcellation:
             'indiv': relabeled labels (i.e., specific to each participant)
             'group_mode': group labels (mode) (i.e., same for all participants)
             'group_agglom': group labels (agglomerative) (i.e., same for all participants)       
-        order : arr
+        order : arr or str
             defines which number is going to be associated with each K value (default = None)
             this is useful as K values do not correspond to segments
-            the array should contain one value par K, e.g. if K = 7: [1 3 2 7 5 6 4] (if None, we use the sequential order)
+            Two options:
+                - array containing one value par K, e.g. if K = 7: [1 3 2 7 5 6 4] (if None, we use the sequential order)
+                - 'from_file' to indicate that order should be loaded from existing txt file
         slice_y : int
             y position of the slice to display
         show_spinal_levels : boolean
@@ -1149,17 +1187,28 @@ class FC_Parcellation:
             if wta_fc_mean:
                 path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/target/' + features + '/K' + str(k) + '/wta_fc_mean/K' + str(k) + '_wta'    
             else:
-                path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/target/' + features + '/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm + '/K' + str(k) + '_wta'    
+                path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/target/' + features + '/K' + str(k) + '/' + label_type + '_labels' + '/stats/' + indiv_algorithm + '/K' + str(k) + '_wta_' + input_type 
         else:
             raise(Exception(f'The parameter "showing" should be "target" or "source".')) 
     
         # Define order
-        order = range(1,k+1) if order is None else order
+        if order is None:
+            order = range(1,k+1)
+        elif order == 'from_file':
+            if os.path.exists(path_data + '_order.txt'):
+                order = np.loadtxt(path_data + '_order.txt').astype(int)[1:]
+            else:
+                raise(Exception(f'Order file could not be found.')) 
+        else:
+            order = order
+        
         if len(order) != k:
             raise(Exception(f'The length of the order information ({len(order)}) is different from K {k}.'))  
 
-        # Create a discretized colormap
-        discretized_colormap = ListedColormap(colormap(np.linspace(0, 1, k+1)))
+        if isinstance(colormap.colors, list): # Test if colormap is discrete
+            discretized_colormap = colormap
+        else: # Create a discretized colormap if is not already discrete
+            discretized_colormap = ListedColormap(colormap(np.linspace(0, 1, k+1)))
 
         # Load data from images 
         img_to_show = nib.load(path_data + '.nii.gz')
@@ -1195,6 +1244,65 @@ class FC_Parcellation:
             plt.savefig(path_data + '.png')
             np.savetxt(path_data + '_order.txt',order,fmt='%d',delimiter=',')
 
+    def compute_similarity_spinal_levels(self, indiv_algorithm, group_type=None, features='fc', save_figure=True):
+        ''' Compute the similarity of the spinal parcellation for K=7 with frostell atlas 
+        
+        Inputs
+        ------------         
+        indiv_algorithm : str
+            algorithm that was used at the participant level
+        group_type : str 
+            defines the type of labels to display for source
+            'mode': group labels (mode) 
+            'agglom': group labels (agglomerative)    
+            'mean': labels obtained from the mean FC or similarity matrix  
+        features : str
+            defines if fc ('fc') or similarity matrix ('sim') (i.e., correlations between the fc profiles) is used as features (default = 'fc')
+        save_figure : boolean
+            Set to True to save figure (default = True)
+
+        Outputs
+        ------------
+        
+        XX_diag_sim_atlas.txt
+            text file containing diagonal of similarity matrix
+        XX_sim_atlas.png
+            heatmap of similarity matrix
+        '''     
+
+        print(f"\033[1mCOMPUTE SIMILARITY WITH ATLAS\033[0m")
+        print(f"\033[37mFeatures = {features}\033[0m")
+
+        if group_type is None:
+            raise(Exception(f'The parameter group_type is missing!')) 
+        elif group_type == 'agglom' or group_type == 'mode':
+            path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + features + '/K7/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_' + group_type + '_k7'
+        elif group_type == 'mean':
+            path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + features + '/K7/mean_labels/' + self.config['output_tag'] + '_mean_' + indiv_algorithm + '_labels_k7'
+        
+        # Load data from images 
+        img_to_show = nib.load(path_data + '.nii.gz')
+        spinal_data = img_to_show.get_fdata().astype(int)
+        # Load atlas
+        levels_img = nib.load(self.config['main_dir'] + self.config['spinal_levels'])
+        levels_data = levels_img.get_fdata()
+        levels_data[~self.mask_source] = 0# To take into account the mask of our analyses
+
+        # We need to convert to 4D data
+        k_values = range(1,8)
+        spinal_data = (spinal_data[..., np.newaxis] == k_values).astype(int) * spinal_data.reshape(spinal_data.shape + (1,))
+        levels_data = (levels_data[..., np.newaxis] == k_values).astype(int) * levels_data.reshape(levels_data.shape + (1,))
+
+        # Compute similarity matrix with atlas
+        similarity_matrix,_,orderY = compute_similarity(self.config, spinal_data, levels_data, thresh1=0.1, thresh2=0.1, method='Dice', match_compo=True, verbose=True)   
+        print(f'Mean Dice = {np.mean(np.diagonal(similarity_matrix))}')
+        np.savetxt(path_data + '_diag_dice_atlas.txt',np.diagonal(similarity_matrix) ,fmt='%2f', delimiter=',')
+
+        # Saving result and figure if applicable
+        if save_figure == True:
+            sns.heatmap(similarity_matrix,linewidths=.5,square=True,cmap='YlOrBr',vmin=0, vmax=1,xticklabels=orderY+1,yticklabels=np.array(range(1,8)));
+            plt.savefig(path_data + '_dice_atlas.pdf', format='pdf')
+                
     def plot_loo_validity(self, k_range, color="black", save_figure=True):
         '''  
         Plot LOO-validity metrics (i.e., Dice between adjacency matrices) to help define the best number of clusters
@@ -1282,6 +1390,7 @@ class FC_Parcellation:
                          'silhouette': 'Silhouette score',
                          'davies': 'Davies-Bouldin index', 
                          'calinski': 'Calinski-Harabasz index',
+                         'ami_frost': 'AMI with Frostell levels',
                          'ami_mode': 'Adjusted Mutual Information (mode)',
                          'ari_mode': 'Adjusted Rand Index (mode)',
                          'ami_agglom': 'Adjusted Mutual Information (agglom)',
