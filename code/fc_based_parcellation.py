@@ -1,10 +1,12 @@
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans, SpectralClustering, AgglomerativeClustering
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score, adjusted_mutual_info_score, adjusted_rand_score
+from sklearn.metrics.cluster import contingency_matrix
 from sklearn.feature_selection import mutual_info_regression
 from scipy.spatial.distance import pdist, dice
 from scipy.cluster import hierarchy
 from scipy import stats
+import random
 import numpy as np
 import itertools
 from nilearn.maskers import NiftiMasker
@@ -19,6 +21,7 @@ import pandas as pd
 from matplotlib.colors import ListedColormap
 from sklearn.decomposition import PCA
 from compute_similarity import compute_similarity
+from skimage.metrics import variation_of_information
 
 class FC_Parcellation:
     '''
@@ -224,6 +227,184 @@ class FC_Parcellation:
 
         print("\n\033[1mDONE\033[0m")           
 
+    def split_half_validity(self, stability=False, k_selection=False, k_range=None, reps=100, overwrite=False):
+        '''  
+        ONLY FOR FEATURES = 'SIM' and ALGORITHM = 'AGGLOM' 
+        Run split-half validation analyses:
+        - correlation between similarity matrix computed from two random halves of the dataset
+        - Dice coefficients between adjacency matrix obtained with clustering computed from two random halves of the dataset
+
+        Inputs
+        ------------
+        stability : boolean
+            to compute split-half stability between similarity matrices (default = False)
+        k_selection : boolean
+            to compute Dice coefficients between split-half clustering (default = False)
+        k_range : int, array or range [Only if k_selection == True] 
+            number of clusters  
+        reps : int
+            number of times the dataset is randomly split
+        overwrite : boolean
+            if set to True, labels are overwritten (default = False)
+        
+        Output
+        ------------
+        splithalf_k_selection_df : df
+            contains Dice coefficients between split-half clustering for each K and repetition
+        stability.nii.gz / npy
+            contains average similarity map (in nifti) and similarity maps for each repetition (as npy)
+        '''
+        
+        print(f"\033[1mSPLIT-HALF VALIDATION\033[0m")
+        print(f"\033[37mOverwrite results = {overwrite}\033[0m")
+        
+        # Path to create folder structure
+        path_source = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/sim/'
+        os.makedirs(os.path.join(path_source, 'splithalf_validity'), exist_ok=True)
+
+        if stability:
+            path_stability = path_source + 'splithalf_validity/' + self.config['output_tag'] + '_stability'
+            if not overwrite and os.path.isfile(path_stability + '.nii.gz'):
+                print(f"\033[1mSplit-half maps stability already computed \033[0m")
+                stability = False # Set to False as we don't need to redo it
+            else:
+                print(f"\033[1mSplit-half maps stability will be computed \033[0m")
+                stability_maps = np.zeros((reps,np.count_nonzero(self.mask_source))) # Prepare structure
+        if k_selection:
+            if k_range is None:
+                raise(Exception(f'Parameters "k_range" needs to be provided!'))  
+            # If only one k value is given, convert to range
+            k_range = range(k_range,k_range+1) if isinstance(k_range,int) else k_range
+            path_splithalf_k_selection = path_source + 'splithalf_validity/' + self.config['output_tag'] + '_splithalf_k_selection.pkl'
+            # Load file if it exists
+            if os.path.isfile(path_splithalf_k_selection): # Take it if it exists
+                splithalf_k_selection_df = pd.read_pickle(path_splithalf_k_selection)
+                if not overwrite:
+                    # Then we check if our ks of interest have already been done
+                    k_not_done = [k not in splithalf_k_selection_df['k'].unique() for k in k_range]
+                    k_range = [k for k, m in zip(k_range, k_not_done) if m] # Keep only values that have not been done
+                    if k_range == []: # if no value left, no analysis to do
+                        print(f"\033[1mSplit-half clustering stability already computed for provided K values \033[0m")
+                        k_selection = False
+                    else:
+                        print(f"\033[1mSplit-half clustering stability will be computed for {k_range}\033[0m")
+                else:
+                    # We overwrite the rows corresponding to k_range
+                    splithalf_k_selection_df = splithalf_k_selection_df[~splithalf_k_selection_df['k'].isin(k_range)].reset_index(drop=True)
+                    print(f"\033[1mSplit-half clustering stability will be computed for {k_range} \033[0m")
+            else: # Create an empty dataframe with the needed columns
+                print(f"\033[1mSplit-half clustering stability will be computed for {k_range} \033[0m")
+                columns = ["rep", "dice", "ami", "ari", "vi", "k"]
+                splithalf_k_selection_df = pd.DataFrame(columns=columns)
+    
+        # If both stability and k_selection are False, stop further execution
+        if not stability and not k_selection:
+            print("No analysis to run!")
+            return
+            
+        # Otherwise, for both analyses, we need to load either similarity matrices
+        print(f"... Loading similarity matrices")
+        sim_all = np.zeros((len(self.config['list_subjects']),np.count_nonzero(self.mask_source),np.count_nonzero(self.mask_source)))
+        for sub_id,sub_name in enumerate(self.config['list_subjects']):
+            sim_all[sub_id,:,:] = np.load(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/fcs/' + self.config['output_tag'] + '_' + sub_name + '_' + self.fc_metric + '_sim.npy')            
+
+        # Randomly split dataset 
+        for rep in range(reps):
+            print(f"... Rep: {rep+1}")
+            random.sample(range(31), 15)
+            half1_idx = random.sample(range(len(self.config['list_subjects'])), len(self.config['list_subjects'])//2)
+            half2_idx = np.setdiff1d(np.arange(len(self.config['list_subjects'])), half1_idx)
+            # Compute average connectivity matrix for the two halves dataset
+            sim_mean_half1 = np.mean(sim_all[half1_idx,:,:],axis=0)
+            sim_mean_half2 = np.mean(sim_all[half2_idx,:,:],axis=0)
+
+            if k_selection:
+                # Cluster each half
+                up_tri_half1 = sim_mean_half1[np.triu_indices(sim_mean_half1.shape[0], k=1)]
+                linkage_half1 = hierarchy.linkage(1-up_tri_half1, method=self.linkage)        
+                up_tri_half2 = sim_mean_half2[np.triu_indices(sim_mean_half2.shape[0], k=1)]
+                linkage_half2 = hierarchy.linkage(1-up_tri_half2, method=self.linkage)    
+
+                # Cut at different K
+                for k in k_range:
+                    print(f"...... Running clustering stability analysis for K = {k}")
+                    kvalues_half1 = hierarchy.cut_tree(linkage_half1, n_clusters=k).flatten().astype(int)
+                    kvalues_half2 = hierarchy.cut_tree(linkage_half2, n_clusters=k).flatten().astype(int)    
+                    # Compute adjacency metrics and extract Dice coefficients
+                    A_half1 = self._cluster_indices_to_adjacency(kvalues_half1)
+                    A_half2 = self._cluster_indices_to_adjacency(kvalues_half2)
+                    A_half1_tri = A_half1[np.triu_indices(A_half1.shape[0], k=1)]    
+                    A_half2_tri = A_half2[np.triu_indices(A_half2.shape[0], k=1)] 
+                    splithalf_k_selection_df.loc[len(splithalf_k_selection_df)] = [sub_name,dice(A_half1_tri,A_half2_tri),adjusted_mutual_info_score(kvalues_half1.flatten(),kvalues_half2.flatten()),adjusted_rand_score(kvalues_half1.flatten(),kvalues_half2.flatten()), variation_of_information(kvalues_half1.flatten(),kvalues_half2.flatten())[0], k]
+ 
+            if stability: # Compute correlation with the left-out participant for each source voxel
+                print(f"...... Running maps stability analysis")
+                for vox in range(np.count_nonzero(self.mask_source)):
+                    stability_maps[rep,vox], _ = stats.pearsonr(sim_mean_half1[vox], sim_mean_half2[vox])
+       
+        if stability:
+                # Save as npy
+                np.save(path_stability + '.npy',stability_maps)    
+                # Compute average stability maps across reps and save as nifti
+                average_stability_map = np.mean(stability_maps, axis=0)
+                source_mask = NiftiMasker(self.mask_source_path).fit()
+                average_stability_map_img = source_mask.inverse_transform(average_stability_map) 
+                average_stability_map_img.to_filename(path_stability + '.nii.gz')
+
+        if k_selection:
+            splithalf_k_selection_df.to_pickle(path_splithalf_k_selection) 
+
+        print("\n\033[1mDONE\033[0m") 
+        
+    def similarity_intersub(self, overwrite=False):
+        '''  
+        ONLY FOR FEATURES = 'SIM' and ALGORITHM = 'AGGLOM' 
+        
+
+        XXX TO DO
+
+    
+        '''
+        
+        print(f"\033[1mSTABILITY ANALYSIS\033[0m")
+        print(f"\033[37mOverwrite results = {overwrite}\033[0m")
+        
+        # Path to create folder structure
+        path_source = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/fcs/'
+        path_stability = path_source + self.config['output_tag'] + '_stability'
+        if not overwrite and os.path.isfile(path_stability + '.nii.gz'):
+            print(f"\033[1mLOO maps stability already computed \033[0m")
+        else:
+            # Otherwise, we need to load either similarity matrices
+            print(f"... Loading similarity matrices")
+            sim_all = np.zeros((len(self.config['list_subjects']),np.count_nonzero(self.mask_source),np.count_nonzero(self.mask_source)))
+            for sub_id,sub_name in enumerate(self.config['list_subjects']):
+                sim_all[sub_id,:,:] = np.load(self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric  + '/' + self.config['output_tag'] + '/fcs/' + self.config['output_tag'] + '_' + sub_name + '_' + self.fc_metric + '_sim.npy')            
+
+            print(f"... Computing stability across participants")
+            # Generate all unique combinations of subject indices
+            subject_combinations = list(itertools.combinations(range(len(self.config['list_subjects'])), 2))
+
+            # Iterate over unique subject combinations
+            stability_maps = []
+            for sub_id_1, sub_id_2 in subject_combinations:
+                sim_sub_1 = sim_all[sub_id_1,:,:]
+                sim_sub_2 = sim_all[sub_id_2,:,:]
+                map_combination = np.zeros((np.count_nonzero(self.mask_source),1))
+                for vox in range(np.count_nonzero(self.mask_source)):
+                    map_combination[vox], _ = stats.pearsonr(sim_sub_1[vox,:], sim_sub_2[vox,:])
+                stability_maps.append(map_combination)
+                
+            # Save as npy
+            np.save(path_stability + '.npy',stability_maps)    
+            # Compute average stability maps across leave-one-out steps and save as nifti
+            average_stability_map = np.mean(stability_maps, axis=0)
+            source_mask = NiftiMasker(self.mask_source_path).fit()
+            average_stability_map_img = source_mask.inverse_transform(np.squeeze(average_stability_map)) 
+            average_stability_map_img.to_filename(path_stability + '.nii.gz')
+            
+        print("\n\033[1mDONE\033[0m") 
+    
     def loo_validity(self, stability=False, k_selection=False, k_range=None, overwrite=False):
         '''  
         ONLY FOR FEATURES = 'SIM' and ALGORITHM = 'AGGLOM' 
@@ -289,7 +470,7 @@ class FC_Parcellation:
                     print(f"\033[1mLOO clustering stability will be computed for {k_range} \033[0m")
             else: # Create an empty dataframe with the needed columns
                 print(f"\033[1mLOO clustering stability will be computed for {k_range} \033[0m")
-                columns = ["sub", "dice", "k"]
+                columns = ["sub", "dice", "ami", "ari", "vi", "k"]
                 loo_k_selection_df = pd.DataFrame(columns=columns)
     
         # If both stability and k_selection are False, stop further execution
@@ -310,14 +491,6 @@ class FC_Parcellation:
             sim_mean = np.mean(np.delete(sim_all, sub_id, axis=0), axis=0)
             sim_sub = sim_all[sub_id,:,:]
 
-            if stability:
-                # Save as npy
-                np.save(path_stability + '.npy',stability_maps)    
-                # Compute average stability maps across leave-one-out steps and save as nifti
-                average_stability_map = np.mean(stability_maps, axis=0)
-                source_mask = NiftiMasker(self.mask_source_path).fit()
-                average_stability_map_img = source_mask.inverse_transform(average_stability_map) 
-                average_stability_map_img.to_filename(path_stability + '.nii.gz')
             if k_selection:
                 # Cluster mean N-1
                 up_tri_mean = sim_mean[np.triu_indices(sim_mean.shape[0], k=1)]
@@ -328,24 +501,33 @@ class FC_Parcellation:
                 # Cut at different K
                 for k in k_range:
                     print(f"...... Running clustering stability analysis for K = {k}")
-                    kvalues_mean = hierarchy.cut_tree(linkage_mean, n_clusters=k).flatten()
-                    kvalues_sub = hierarchy.cut_tree(linkage_sub, n_clusters=k).flatten()    
+                    kvalues_mean = hierarchy.cut_tree(linkage_mean, n_clusters=k).flatten().astype(int)
+                    kvalues_sub = hierarchy.cut_tree(linkage_sub, n_clusters=k).flatten().astype(int)    
                     # Compute adjacency metrics and extract Dice coefficients
                     A_mean = self._cluster_indices_to_adjacency(kvalues_mean)
                     A_sub = self._cluster_indices_to_adjacency(kvalues_sub)
                     A_mean_tri = A_mean[np.triu_indices(A_mean.shape[0], k=1)]    
-                    A_sub_tri = A_sub[np.triu_indices(A_sub.shape[0], k=1)]  
-                    loo_k_selection_df.loc[len(loo_k_selection_df)] = [sub_name,dice(A_mean_tri,A_sub_tri),k]
+                    A_sub_tri = A_sub[np.triu_indices(A_sub.shape[0], k=1)] 
+                    loo_k_selection_df.loc[len(loo_k_selection_df)] = [sub_name,dice(A_mean_tri,A_sub_tri),adjusted_mutual_info_score(kvalues_mean.flatten(),kvalues_sub.flatten()),adjusted_rand_score(kvalues_mean.flatten(),kvalues_sub.flatten()), variation_of_information(kvalues_mean.flatten(),kvalues_sub.flatten())[0], k]
 
             if stability: # Compute correlation with the left-out participant for each source voxel
                 print(f"...... Running maps stability analysis")
                 for vox in range(np.count_nonzero(self.mask_source)):
                     stability_maps[sub_id,vox], _ = stats.pearsonr(sim_mean[vox], sim_all[sub_id, vox])
-            if k_selection:
-                loo_k_selection_df.to_pickle(path_loo_k_selection) 
+        
+        if stability:
+                # Save as npy
+                np.save(path_stability + '.npy',stability_maps)    
+                # Compute average stability maps across leave-one-out steps and save as nifti
+                average_stability_map = np.mean(stability_maps, axis=0)
+                source_mask = NiftiMasker(self.mask_source_path).fit()
+                average_stability_map_img = source_mask.inverse_transform(average_stability_map) 
+                average_stability_map_img.to_filename(path_stability + '.nii.gz')
+        if k_selection:
+            loo_k_selection_df.to_pickle(path_loo_k_selection) 
         print("\n\033[1mDONE\033[0m") 
     
-    def run_clustering(self, k_range, algorithm, sub=None, take_mean=False, features='fc', save_visplot_sc=True, overwrite=False):
+    def run_clustering(self, k_range, algorithm, sub=None, take_mean=False, features='fc', save_visplot_sc=True, save_nifti=True, overwrite=False):
         '''  
         Run clustering for a range of k values
         Saving validity metrics using two methods:
@@ -368,7 +550,9 @@ class FC_Parcellation:
         features : str
             defines if fc ('fc') or similarity matrix ('sim') (i.e., correlations between the fc profiles) is used as features (default = 'fc')
         save_visplot_sc : boolean
-            if set to True, plots are saved to visualize similarity matrix for the spinal cord
+            if set to True, plots are saved to visualize similarity matrix for the spinal cord (default = True)
+        save_nifi : boolean
+            if set to True, labels are saved as .nii.gz (default = True)
         overwrite : boolean
             if set to True, labels are overwritten (default = False)
         
@@ -404,7 +588,7 @@ class FC_Parcellation:
                 internal_validity_df = internal_validity_df[~((internal_validity_df['sub'] == sub) & internal_validity_df['k'].isin(k_range))]
 
         else: # Create an empty dataframe with the needed columns
-            columns = ["sub", "SSE", "silhouette", "davies", "calinski", "ami_frost", "k"]
+            columns = ["sub", "SSE", "silhouette", "davies", "calinski", "k"]
             internal_validity_df = pd.DataFrame(columns=columns)
 
         fc_not_loaded = True # To avoid loading fc multiple times
@@ -417,7 +601,7 @@ class FC_Parcellation:
                 os.makedirs(os.path.join(path_source, 'K'+str(k), folder), exist_ok=True)
 
             # Check if file already exists
-            path_indiv_labels = path_source + 'K' + str(k) + '/mean_labels/' + self.config['output_tag'] + '_mean_' + algorithm + '_labels_k' + str(k) if take_mean else path_source + 'K' + str(k) + '/mean_labels/' + self.config['output_tag'] + '_' + sub + '_' + algorithm + '_mean_labels_k' + str(k)
+            path_indiv_labels = path_source + 'K' + str(k) + '/mean_labels/' + self.config['output_tag'] + '_mean_' + algorithm + '_labels_k' + str(k) if take_mean else path_source + 'K' + str(k) + '/indiv_labels/' + self.config['output_tag'] + '_' + sub + '_' + algorithm + '_labels_k' + str(k)
             
             if not overwrite and os.path.isfile(path_indiv_labels + '.npy'):
                 print(f"... Labels already computed")
@@ -464,9 +648,9 @@ class FC_Parcellation:
 
                     # Compute validity metrics and add them to dataframe
                     if features == 'fc':
-                        internal_validity_df.loc[len(internal_validity_df)] = [sub, kmeans_clusters.inertia_, silhouette_score(data_to_cluster, labels), davies_bouldin_score(data_to_cluster, labels), calinski_harabasz_score(data_to_cluster, labels), adjusted_mutual_info_score(labels.flatten(),self.levels_masked), k]
+                        internal_validity_df.loc[len(internal_validity_df)] = [sub, kmeans_clusters.inertia_, silhouette_score(data_to_cluster, labels), davies_bouldin_score(data_to_cluster, labels), calinski_harabasz_score(data_to_cluster, labels), k]
                     elif features == 'sim':
-                        internal_validity_df.loc[len(internal_validity_df)] = [sub, kmeans_clusters.inertia_, silhouette_score(1-data_to_cluster, labels, metric='precomputed'), davies_bouldin_score(data_to_cluster, labels), calinski_harabasz_score(data_to_cluster, labels), adjusted_mutual_info_score(labels.flatten(),self.levels_masked), k]
+                        internal_validity_df.loc[len(internal_validity_df)] = [sub, kmeans_clusters.inertia_, silhouette_score(1-data_to_cluster, labels, metric='precomputed'), davies_bouldin_score(data_to_cluster, labels), calinski_harabasz_score(data_to_cluster, labels), k]
                     
                 elif algorithm == 'spectral':
                     print(f"... Running spectral clustering")
@@ -478,7 +662,7 @@ class FC_Parcellation:
                     spectral_clusters.fit(data_to_cluster)
                     labels = spectral_clusters.labels_
                     
-                    internal_validity_df.loc[len(internal_validity_df)] = [sub, 0, silhouette_score(data_to_cluster, labels), davies_bouldin_score(data_to_cluster, labels), calinski_harabasz_score(data_to_cluster, labels), adjusted_mutual_info_score(labels.flatten(),self.levels_masked), k]
+                    internal_validity_df.loc[len(internal_validity_df)] = [sub, 0, silhouette_score(data_to_cluster, labels), davies_bouldin_score(data_to_cluster, labels), calinski_harabasz_score(data_to_cluster, labels), k]
 
                 elif algorithm == 'agglom':
                     print(f"... Running agglomerative clustering")
@@ -492,16 +676,15 @@ class FC_Parcellation:
 
                         # Compute validity metrics and add them to dataframe
                         # Note that SSE is not relevant for this type of clustering
-                        internal_validity_df.loc[len(internal_validity_df)] = [sub, 0, silhouette_score(1-data_to_cluster, labels, metric='precomputed'), davies_bouldin_score(data_to_cluster, labels), calinski_harabasz_score(data_to_cluster, labels), adjusted_mutual_info_score(labels.flatten(),self.levels_masked), k]
+                        internal_validity_df.loc[len(internal_validity_df)] = [sub, 0, silhouette_score(1-data_to_cluster, labels, metric='precomputed'), davies_bouldin_score(data_to_cluster, labels), calinski_harabasz_score(data_to_cluster, labels), k]
                     else:
                         raise(Exception(f'Algorithm {algorithm} can only be used with FC similarity.'))    
                 else:
                     raise(Exception(f'Algorithm {algorithm} is not a valid option.'))
             
                 np.save(path_indiv_labels + '.npy', labels.astype(int))
-
-                if take_mean:
-                    # If we take the mean, we need to save the nifti files, as no group clustering will be conducted
+            
+                if save_nifti:
                     seed = NiftiMasker(self.mask_source_path).fit()
                     labels_img = seed.inverse_transform(labels.astype(int)+1) # +1 because labels start from 0 
                     labels_img.to_filename(path_indiv_labels + '.nii.gz')
@@ -510,7 +693,7 @@ class FC_Parcellation:
 
         print("\n")
                
-    def group_clustering(self, k_range, indiv_algorithm, features='fc', linkage="complete", overwrite=False):
+    def group_clustering(self, k_range, indiv_algorithm, features='fc', linkage='ward', overwrite=False):
         '''  
         Perform group-level clustering using the individual labels
         BASED ON CBP toolbox
@@ -522,7 +705,7 @@ class FC_Parcellation:
         indiv_algorithm : str
             algorithm that was used at the subject level
         linkage : str
-            define type of linkage to use for hierarchical clustering (default = "complete")
+            define type of linkage to use for hierarchical clustering (default = 'ward')
         features : str
             defines if fc ('fc') or similarity matrix ('sim') (i.e., correlations between the fc profiles) is used as features (default = 'fc')
         overwrite : boolean
@@ -642,6 +825,66 @@ class FC_Parcellation:
 
         print("\n\033[1mDONE\033[0m")
     
+    def subject_variability(self, k_range, overwrite=False):
+        '''  
+        ONLY FOR FEATURES = 'SIM' and ALGORITHM = 'AGGLOM' 
+        Relabel individual labels to match mean ones
+
+        Inputs
+        ------------
+        k_range : int, array or range
+            number of clusters  
+        overwrite : boolean
+            if set to True, labels are overwritten (default = False)
+       
+        Output
+        ------------
+        Saving relabeled labels for all participants (as .npy)
+        
+        '''
+        print(f"\033[1mRELABELING\033[0m")
+        print(f"\033[37mK value(s) = {k_range}\033[0m")
+        print(f"\033[37mOverwrite results = {overwrite}\033[0m")
+        
+        # If only one k value is given, convert to range
+        k_range = range(k_range,k_range+1) if isinstance(k_range,int) else k_range
+
+        # Loop through K values
+        for k in k_range:
+            print(f"K = {k}")        
+            path_source = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/sim/K' + str(k) + '/indiv_labels/' 
+            path_ref = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/sim/K' + str(k) + '/mean_labels/' + self.config['output_tag'] + '_mean_agglom_labels_k' + str(k) + '.npy'
+            # Load file with metrics to similarity indiv vs group labels
+            if not overwrite and os.path.isfile(path_source + self.config['output_tag'] + '_all_agglom_labels_k' + str(k) + '_relabeled.npy'):
+                print(f"... Relabeling already computed")
+            else: # Create an empty dataframe with the needed columns
+                ref_labels = np.load(path_ref)
+                relabeled_labels = np.zeros((len(self.config['list_subjects']),ref_labels.shape[0]))
+                seed = NiftiMasker(self.mask_source_path).fit()
+                for sub_id, sub in enumerate(self.config['list_subjects']): 
+                    print(f"... Relabeling sub-" + sub)
+                    sub_labels = np.load(path_source + self.config['output_tag'] + '_' + sub + '_agglom_labels_k' + str(k) + '.npy')
+                    # Relabel the target labels to match the reference labels as closely as possible
+                    relabeled_labels[sub_id,:] = self._relabel_labels(ref_labels, sub_labels)
+                # Save
+                np.save(path_source + self.config['output_tag'] + '_all_agglom_labels_k' + str(k) + '_relabeled.npy', relabeled_labels.astype(int))
+                print(f"... Compute distribution for each K")
+                k_maps = np.zeros((k,ref_labels.shape[0]))
+                for k_i in range(0,k):
+                    for sub_id,sub in enumerate(self.config['list_subjects']): 
+                        k_maps[k_i,:] = k_maps[k_i,:] + (relabeled_labels[sub_id,:]==k_i).astype(int)
+                    labels_img = seed.inverse_transform(k_maps[k_i,:]) 
+                    labels_img.to_filename(path_source + self.config['output_tag'] + '_all_agglom_labels_k' + str(k) + '_' + str(k_i+1) + '_relabeled.nii.gz')
+                
+                # Count how many voxels of each cluster each participant has
+                clusters_val_per_sub = np.sum(relabeled_labels.astype(int) == np.arange(7)[:, None, None], axis=2)
+                # Check how many participants have a corresponding cluster
+                participants_per_cluster = np.sum(clusters_val_per_sub > 0, axis=1)
+                # Save as txt file
+                np.savetxt(path_source + self.config['output_tag'] + '_all_agglom_labels_k' + str(k) + '_' + str(k_i+1) + '_relabeled.txt',participants_per_cluster,fmt='%d',delimiter=',')
+
+        print("\n\033[1mDONE\033[0m")
+        
     def prepare_target_maps(self, label_type, k_range, indiv_algorithm, features='fc', overwrite=False):
         '''  
         To obtain images of the connectivity profiles assigned to each label
@@ -748,7 +991,6 @@ class FC_Parcellation:
             
         print("\033[1mDONE\033[0m\n")
         
-
     def stats_target_maps(self, label_type, k_range, indiv_algorithm, features='fc', overwrite=False):
         '''  
         To conduct statistical analyses of the connectivity profiles assigned to each label
@@ -1042,7 +1284,7 @@ class FC_Parcellation:
 
         print("\033[1mDONE\033[0m\n")
 
-    def plot_brain_map(self, k, indiv_algorithm, showing, input_type='stats', wta_fc_mean=False, colormap=plt.cm.rainbow, features='fc', label_type=None, save_figure=False):
+    def plot_brain_map(self, k, indiv_algorithm, showing, group_type=None, input_type='stats', wta_fc_mean=False, colormap=plt.cm.rainbow, features='fc', label_type=None, save_figure=False):
         ''' Plot brain maps on inflated brain
         
         Inputs
@@ -1055,6 +1297,11 @@ class FC_Parcellation:
             colormap to use, will be discretized (default = plt.cm.rainbow)
         showing : str
             defines whether source or target data should be plotted
+        group_type : str [Only for source]
+            defines the type of labels to display for source
+            'mode': group labels (mode) 
+            'agglom': group labels (agglomerative)    
+            'mean': labels obtained from the mean FC or similarity matrix  
         input_type : str [Only for target]
             defines whether to plot WTA maps based on statistical t-maps ('stats') or correlation maps ('corr') as inputs (default = 'corr')
         wta_fc_mean : boolean [Only for target]
@@ -1083,7 +1330,12 @@ class FC_Parcellation:
         print(f"\033[37mSave figure = {save_figure}\033[0m")
 
         if showing == 'source':
-            path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + features + '/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_mode_k' + str(k)
+            if group_type is None:
+                raise(Exception(f'The parameter group_type is missing!')) 
+            elif group_type == 'agglom' or group_type == 'mode':
+                path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + features + '/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_' + group_type + '_k' + str(k)
+            elif group_type == 'mean':
+                path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + features + '/K' + str(k) + '/mean_labels/' + self.config['output_tag'] + '_mean_' + indiv_algorithm + '_labels_k' + str(k)
             print("Source labels are not re-ordered!")
         elif showing == 'target':
             if label_type is None and not wta_fc_mean:
@@ -1095,10 +1347,10 @@ class FC_Parcellation:
         else:
             raise(Exception(f'The parameter "showing" should be "target" or "source".')) 
         
-        if isinstance(colormap.colors, list): # Test if colormap is discrete
-            discretized_colormap = colormap
-        else: # Create a discretized colormap if is not already discrete
+        if ~hasattr(colormap, 'colors'): # Create a discretized colormap if is not already discrete
             discretized_colormap = ListedColormap(colormap(np.linspace(0, 1, k+1)))
+        elif isinstance(colormap.colors, list): # Test if colormap is discrete 
+            discretized_colormap = colormap
 
         img_to_show = path_data + '.nii.gz'
         for hemi in ['left','right']:
@@ -1116,7 +1368,7 @@ class FC_Parcellation:
                 else:
                     plot_path = path_data + '_' + hemi + '_' + input_type + '.png'
                 plot.savefig(plot_path)
-    
+                    
     def plot_spinal_map(self, k, indiv_algorithm, showing, colormap=plt.cm.rainbow, input_type='corr', wta_fc_mean=False, group_type=None, features='fc', label_type=None, order=None, slice_y=None, show_spinal_levels=True, save_figure=False):
         ''' Plot spinal maps on PAM50 template (coronal views)
         
@@ -1180,7 +1432,20 @@ class FC_Parcellation:
                 path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + features + '/K' + str(k) + '/group_labels/' + self.config['output_tag'] + '_' + indiv_algorithm + '_group_labels_' + group_type + '_k' + str(k)
             elif group_type == 'mean':
                 path_data = self.config['main_dir'] + self.config['output_dir'] + self.fc_metric + '/' + self.config['output_tag'] + '/source/' + features + '/K' + str(k) + '/mean_labels/' + self.config['output_tag'] + '_mean_' + indiv_algorithm + '_labels_k' + str(k)
-        
+            # Define order
+            if order is None:
+                order = range(1,k+1)
+            elif order == 'from_file':
+                if os.path.exists(path_data + '_order.txt'):
+                    order = np.loadtxt(path_data + '_order.txt').astype(int)[1:]
+                else:
+                    raise(Exception(f'Order file could not be found.')) 
+            else:
+                order = order
+            
+            if len(order) != k:
+                raise(Exception(f'The length of the order information ({len(order)}) is different from K {k}.'))  
+
         elif showing == 'target':
             if label_type is None and not wta_fc_mean:
                 raise(Exception(f'When plotting target, you need to define which labels you want to use!')) 
@@ -1191,24 +1456,10 @@ class FC_Parcellation:
         else:
             raise(Exception(f'The parameter "showing" should be "target" or "source".')) 
     
-        # Define order
-        if order is None:
-            order = range(1,k+1)
-        elif order == 'from_file':
-            if os.path.exists(path_data + '_order.txt'):
-                order = np.loadtxt(path_data + '_order.txt').astype(int)[1:]
-            else:
-                raise(Exception(f'Order file could not be found.')) 
-        else:
-            order = order
-        
-        if len(order) != k:
-            raise(Exception(f'The length of the order information ({len(order)}) is different from K {k}.'))  
-
-        if isinstance(colormap.colors, list): # Test if colormap is discrete
-            discretized_colormap = colormap
-        else: # Create a discretized colormap if is not already discrete
+        if ~hasattr(colormap, 'colors'): # Create a discretized colormap if is not already discrete
             discretized_colormap = ListedColormap(colormap(np.linspace(0, 1, k+1)))
+        elif isinstance(colormap.colors, list): # Test if colormap is discrete 
+            discretized_colormap = colormap
 
         # Load data from images 
         img_to_show = nib.load(path_data + '.nii.gz')
@@ -1242,7 +1493,8 @@ class FC_Parcellation:
         # If option is set, save results as a png
         if save_figure == True:
             plt.savefig(path_data + '.png')
-            np.savetxt(path_data + '_order.txt',order,fmt='%d',delimiter=',')
+            if showing == "source":
+                np.savetxt(path_data + '_order.txt',order,fmt='%d',delimiter=',')
 
     def compute_similarity_spinal_levels(self, indiv_algorithm, group_type=None, features='fc', save_figure=True):
         ''' Compute the similarity of the spinal parcellation for K=7 with frostell atlas 
@@ -1303,7 +1555,7 @@ class FC_Parcellation:
             sns.heatmap(similarity_matrix,linewidths=.5,square=True,cmap='YlOrBr',vmin=0, vmax=1,xticklabels=orderY+1,yticklabels=np.array(range(1,8)));
             plt.savefig(path_data + '_dice_atlas.pdf', format='pdf')
                 
-    def plot_loo_validity(self, k_range, color="black", save_figure=True):
+    def plot_loo_validity(self, k_range, to_plot=['dice','ami','ari','vi'], color="black", save_figure=True):
         '''  
         Plot LOO-validity metrics (i.e., Dice between adjacency matrices) to help define the best number of clusters
         
@@ -1311,6 +1563,8 @@ class FC_Parcellation:
         ------------
         k_range : int, array or range
             number of clusters to plot  
+        to_plot: str, list
+            indicates internal metrics to plot ('dice', 'ami', 'ari', 'vi') (default = plot all)
         color : str
             color used for plotting (default: 'black')
         save_figures : boolean
@@ -1319,25 +1573,82 @@ class FC_Parcellation:
 
         # If only one k value is given, convert to range
         k_range = range(k_range,k_range+1) if isinstance(k_range,int) else k_range
+        # If only one string is given for internal / group metrics, convert to list
+        to_plot = [to_plot] if isinstance(to_plot,str) else to_plot
+
+        # Useful info
+        metrics_names = {'dice': 'Dice coefficient',
+                         'ami': 'Adjusted Mutual Information ',
+                         'ari': 'Adjusted Rand Index',
+                         'vi': 'Variation of Information'}
         
-        # Path to create folder structure
         path_validity = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/sim/loo_validity/'
-        loo_k_selection_df = pd.read_pickle(path_validity + self.config['output_tag'] + '_loo_k_selection.pkl')
-        # Keep only k of k_range
-        loo_k_selection_df  = loo_k_selection_df [loo_k_selection_df ['k'].isin(k_range)] 
-        plt.figure(figsize=(5, 3))
-        sns.lineplot(data=loo_k_selection_df, x='k', y='dice', errorbar=('ci',95), marker='o', markersize=5, color=color, err_kws={'edgecolor': None, 'alpha': 0.1})  # Plot mean line
+        
+        for metric in to_plot:
+            loo_k_selection_df = pd.read_pickle(path_validity + self.config['output_tag'] + '_loo_k_selection.pkl')
+            # Keep only k of k_range
+            loo_k_selection_df  = loo_k_selection_df [loo_k_selection_df ['k'].isin(k_range)] 
+            plt.figure(figsize=(5, 3))
+            sns.lineplot(data=loo_k_selection_df, x='k', y=metric, errorbar=('ci',95), marker='o', markersize=5, color=color, err_kws={'edgecolor': None, 'alpha': 0.1})  # Plot mean line
 
-        # Set ticks for each k value
-        plt.xticks(loo_k_selection_df['k'].unique())
+            # Set ticks for each k value
+            plt.xticks(loo_k_selection_df['k'].unique())
 
-        # Add labels and title
-        plt.xlabel('K')
-        plt.ylabel('Dice coefficient')
+            # Add labels and title
+            plt.xlabel('K', fontsize=12, fontweight='bold')
+            plt.ylabel(metrics_names[metric], fontsize=12, fontweight='bold')
+            plt.tight_layout()
 
-        if save_figure:
-            plt.savefig(path_validity + self.config['output_tag'] + '_loo_k_selection.pdf', format='pdf')
+            if save_figure:
+                plt.savefig(path_validity + self.config['output_tag'] + '_loo_k_selection.pdf', format='pdf')
                 
+    def plot_split_half_validity(self, k_range, to_plot=['dice','ami','ari','vi'], color="black", save_figure=True):
+        '''  
+        Plot LOO-validity metrics (i.e., Dice between adjacency matrices) to help define the best number of clusters
+        
+        Inputs
+        ------------
+        k_range : int, array or range
+            number of clusters to plot  
+        to_plot: str, list
+            indicates internal metrics to plot ('dice', 'ami', 'ari', 'vi') (default = plot all)
+        color : str
+            color used for plotting (default: 'black')
+        save_figures : boolean
+            is True, figures are saved as pdf (default = True)
+        '''
+
+        # If only one k value is given, convert to range
+        k_range = range(k_range,k_range+1) if isinstance(k_range,int) else k_range
+        # If only one string is given for internal / group metrics, convert to list
+        to_plot = [to_plot] if isinstance(to_plot,str) else to_plot
+
+        # Useful info
+        metrics_names = {'dice': 'Dice coefficient',
+                         'ami': 'Adjusted Mutual Information ',
+                         'ari': 'Adjusted Rand Index',
+                         'vi': 'Variation of Information'}
+        
+        path_validity = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/source/sim/splithalf_validity/'
+        
+        for metric in to_plot:
+            loo_k_selection_df = pd.read_pickle(path_validity + self.config['output_tag'] + '_splithalf_k_selection.pkl')
+            # Keep only k of k_range
+            loo_k_selection_df  = loo_k_selection_df [loo_k_selection_df ['k'].isin(k_range)] 
+            plt.figure(figsize=(5, 3))
+            sns.lineplot(data=loo_k_selection_df, x='k', y=metric, errorbar=('ci',95), marker='o', markersize=5, color=color, err_kws={'edgecolor': None, 'alpha': 0.1})  # Plot mean line
+
+            # Set ticks for each k value
+            plt.xticks(loo_k_selection_df['k'].unique())
+
+            # Add labels and title
+            plt.xlabel('K', fontsize=12, fontweight='bold')
+            plt.ylabel(metrics_names[metric], fontsize=12, fontweight='bold')
+            plt.tight_layout()
+
+            if save_figure:
+                plt.savefig(path_validity + self.config['output_tag'] + '_splithalf_k_selection.pdf', format='pdf')
+        
     def plot_validity(self, k_range, internal=[], group=[], take_mean=False, features='fc', indiv_algorithm='kmeans', color="black", save_figures=True):
         '''  
         Plot validity metrics to help define the best number of clusters
@@ -1390,7 +1701,6 @@ class FC_Parcellation:
                          'silhouette': 'Silhouette score',
                          'davies': 'Davies-Bouldin index', 
                          'calinski': 'Calinski-Harabasz index',
-                         'ami_frost': 'AMI with Frostell levels',
                          'ami_mode': 'Adjusted Mutual Information (mode)',
                          'ari_mode': 'Adjusted Rand Index (mode)',
                          'ami_agglom': 'Adjusted Mutual Information (agglom)',
@@ -1548,3 +1858,36 @@ class FC_Parcellation:
         adjacency_matrix = (cluster_indices[:, np.newaxis] == cluster_indices[np.newaxis, :]).astype(int)
         
         return adjacency_matrix
+    
+    def _relabel_labels(self, reference_labels, target_labels):
+        # Compute contingency matrix to assess overlap between labels
+        cm = contingency_matrix(reference_labels, target_labels)
+        # Normalize it to take into account different sizes of clusters
+        label_counts = np.bincount(reference_labels)
+        # Divide each row of the contingency matrix by the corresponding count
+        normalized_cm = cm / label_counts[:, None]
+        
+        # For each individual label (target), find to which group label (ref) it corresponds best
+        cm_argmax = normalized_cm.argmax(axis=0)
+
+        relabel_mapping = {}
+        # Loop through the ref labels that have been matched to the individual ones 
+        for i in np.unique(cm_argmax):
+            # If one group label is the "best" one for multiple indiv labels
+            if len(cm_argmax[cm_argmax == i]) > 1: 
+                # We check which of the labels has the best overlap
+                best = normalized_cm[i,:].argmax()
+                relabel_mapping[best] = i
+                # For the label(s) that are not mapped, we use -1
+                for other_lbl in np.where((cm_argmax == i) & (np.arange(len(cm_argmax)) != best))[0]:
+                    relabel_mapping[other_lbl] = -1
+            else:
+                relabel_mapping[np.argmax(cm_argmax==i)] = i
+        
+        # Assign relabeled labels using the relabeling mapping
+        relabeled_labels = np.zeros_like(target_labels)
+        for j, label in enumerate(target_labels):
+            if label in relabel_mapping:
+                relabeled_labels[j] = relabel_mapping[label]
+        
+        return relabeled_labels
