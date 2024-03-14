@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import glob, os, json, math, shutil
 import sc_utilities as util
-#import matlab.engine
+import matlab.engine
 import pandas as pd
 import numpy as np
 import nibabel as nb

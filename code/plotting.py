@@ -463,7 +463,7 @@ class Plot_brain:
                                             cmap=colormap, colorbar=colorbar,mask_img=mask_img,
                                             
                                             hemi=side, view=face,vmin=vmin,vmax=vmax,threshold=threshold,
-                                            bg_map=surface_dir + hemi +".sulc",darkness=.5)
+                                            bg_map=surface_dir + hemi +".sulc",darkness=.7)
 
                 if save_results:
                     

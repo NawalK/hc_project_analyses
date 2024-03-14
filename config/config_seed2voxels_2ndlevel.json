@@ -1,6 +1,10 @@
 {"main_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/",
 "gradient_seeds":["icap_C1_gm","icap_C2_gm","icap_C3_gm","icap_C4_gm","icap_C5_gm","icap_C6_gm","icap_C7_gm"],
+ "gradient_seeds2":["icap_C7_RV","icap_C7_LV","icap_C7_RI","icap_C7_LI","icap_C7_RD","icap_C7_LD"],
+"gradient_seeds2":["icap_C6_V","icap_C6_I","icap_C6_D"],
+
 "seeds":{"icap_C1_gm":["icap_C1_gm"],"icap_C2_gm":["icap_C2_gm"],"icap_C3_gm":["icap_C3_gm"],"icap_C4_gm":["icap_C4_gm"],"icap_C5_gm":["icap_C5_gm"],"icap_C6_gm":["icap_C6_gm"],"icap_C7_gm":["icap_C7_gm"]},
+
 
 "model":"OneSampleT",
 "mask_path":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/brain/iCAPs_z_SMC_bin.nii.gz",
@@ -12,15 +16,13 @@
                  
  "winner_all":{"mask":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/brain/MNI_GM_2mm.nii",
                "input_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/29jan_2024/1_first_level/",
-               "input_dir2":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/29jan_2024/2_second_level/GLM/OneSampleT/MNI_GM_2mm/Corr/",
-               "tag_input2":"/randomise/*maptstat1.nii.gz",
                "tag_input":"/MNI_GM_2mm_fc_maps/Corr/bi-corr*mean.nii.gz",
                 "analysis":"gm"},
 
  "winner_all_indiv":{"mask":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/hc_project_analyses/masks/brain/MNI_GM_2mm.nii",
                "input_dir":"/cerebro/cerebro1/dataset/bmpd/derivatives/HealthyControls_project/seed_to_voxels/29jan_2024/1_first_level/",
                 "tag_input": "/MNI_GM_2mm_fc_maps/Corr/bi-corr_*",
-                "analysis":"pseudoindiv"},
+                "analysis":"gm_indiv"},
  
  
 "templates":{"spinalcord":" ",
