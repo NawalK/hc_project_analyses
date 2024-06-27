@@ -23,6 +23,8 @@ from sklearn.decomposition import PCA
 from compute_similarity import compute_similarity
 from skimage.metrics import variation_of_information
 
+#TODO add launching of config file if already exists
+
 class FC_Parcellation:
     '''
     The FC_Parcellation class is used to perform the parcellation of a specific roi
@@ -375,7 +377,7 @@ class FC_Parcellation:
         if not overwrite and os.path.isfile(path_stability + '.nii.gz'):
             print(f"\033[1mLOO maps stability already computed \033[0m")
         else:
-            # Otherwise, we need to load either similarity matrices
+            # Otherwise, we need to load similarity matrices
             print(f"... Loading similarity matrices")
             sim_all = np.zeros((len(self.config['list_subjects']),np.count_nonzero(self.mask_source),np.count_nonzero(self.mask_source)))
             for sub_id,sub_name in enumerate(self.config['list_subjects']):
