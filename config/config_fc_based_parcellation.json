@@ -1,0 +1,18 @@
+{   "main_dir":"/media/miplab-nas2/Data3/BMPD/hc_project/",
+    "coreg_dir":"/",
+    "smooth_dir":"/brain_spine/",
+    "file_tag":{"brain":"XXXX",
+             "spinalcord":"XXXX"},
+    
+    "output_dir": "/brain_spine/results/fc_parcellation/",
+    "output_tag": "XXXX",
+    
+    "template":{"spinalcord":"XXXX"},
+    "spinal_levels": "XXXX",
+    "brain_surfaces": "XXXX",
+    
+    "masks":{"target":"XXXX",
+            "source": "XXXX"},
+    
+    "list_subjects":["XXXX"]
+} 
