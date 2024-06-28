@@ -23,7 +23,7 @@ from sklearn.decomposition import PCA
 from compute_similarity import compute_similarity
 from skimage.metrics import variation_of_information
 
-#TODO add launching of config file if already exists
+# Note: this is the class containing all the possible tests we have done
 
 class FC_Parcellation:
     '''
@@ -60,7 +60,7 @@ class FC_Parcellation:
         - metric: metric used to compute the linkage (default = 'precomputed')
     '''
     
-    def __init__(self, config, struct_source='spinalcord', struct_target='brain', fc_metric='corr', params_kmeans={'init':'k-means++', 'n_init':256, 'max_iter':10000}, params_spectral={'n_init':256, 'affinity': 'nearest_neighbors', 'assign_labels': 'kmeans', 'eigen_solver': 'arpack', 'eigen_tol': 1.0e-5}, params_agglom={'linkage':'average', 'metric':'precomputed'}):
+    def __init__(self, config, struct_source='spinalcord', struct_target='brain', fc_metric='corr', params_kmeans={'init':'k-means++', 'n_init':256, 'max_iter':10000}, params_spectral={'n_init':256, 'affinity': 'nearest_neighbors', 'assign_labels': 'kmeans', 'eigen_solver': 'arpack', 'eigen_tol': 1.0e-5}, params_agglom={'linkage':'average', 'metric':'precomputed'}, overwrite=False):
         self.config = config # Load config info
         self.struct_source = struct_source
         self.struct_target = struct_target
@@ -91,12 +91,21 @@ class FC_Parcellation:
         
         # Create folder structure and save config file as json for reference
         path_to_create = self.config['main_dir'] + self.config['output_dir'] + '/' + self.fc_metric + '/' + self.config['output_tag'] + '/'
-        os.makedirs(os.path.dirname(path_to_create), exist_ok=True)
-        for folder in ['fcs', 'fcs_slicewise', 'source', 'target']:
-            os.makedirs(os.path.join(path_to_create, folder), exist_ok=True)
         path_config = path_to_create + 'config_' + self.config['output_tag'] + '.json'
-        with open(path_config, 'w') as f:
-            json.dump(self.config,f)
+        if os.path.exists(path_to_create) and not overwrite:
+            print("An analysis with this tag has already been done - Loading configuration from existing file!")
+            with open(path_config) as config_file:
+                self.config = json.load(config_file)
+        else:
+            print("Creating instance based on provided configuration file")
+
+            os.makedirs(os.path.dirname(path_to_create),exist_ok=True)
+            for folder in ['fcs', 'source', 'target']:
+                os.makedirs(os.path.join(path_to_create, folder), exist_ok=True)
+            with open(path_config, 'w') as f:
+                json.dump(config,f)
+            
+            self.config = config
             
     def compute_voxelwise_fc(self, sub, standardize=True, overwrite=False, njobs=10):
         '''
