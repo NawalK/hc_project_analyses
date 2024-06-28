@@ -10,7 +10,7 @@ from joblib import Parallel, delayed
 
 import time
 
-import dcor 
+#import dcor 
 import pingouin as pg
 import pandas as pd
 
@@ -19,10 +19,10 @@ from sklearn import decomposition
 from scipy import stats
 
 
-from tqdm import tqdm
+#from tqdm import tqdm
 
-import frites 
-from frites.estimator import (GCMIEstimator)
+#import frites 
+#from frites.estimator import (GCMIEstimator)
 # to improve---------------------------
 # loop per seed
 
@@ -79,6 +79,7 @@ class Seed2voxels:
             for subject_name in config['list_subjects']:
                 subject_name='sub-' +  subject_name
                 if self.seed_indiv==False:
+                    
                     self.mask_seeds[seed_name].append(glob.glob(self.config["main_dir"] + self.config["seeds"]["seed_dir"]+ seed_name + ".nii.gz")[0]) # mask of the voxels tareted for the analysis
                 elif self.seed_indiv:
                     self.mask_seeds[seed_name].append(glob.glob(self.config["main_dir"] + self.config["seeds"]["seed_indiv_dir"]+ subject_name + "*" +seed_name + "*.nii.gz")[0]) # mask of the voxels tareted for the analysis
@@ -92,7 +93,7 @@ class Seed2voxels:
             
             # images selected for extraction:
             self.data_seed.append(glob.glob(self.config["input_func"]["seed_dir"] + subject_name +'/'+ self.seed_structure +'/*'+ config["input_func"]["seed_tag"] +'*')[0])
-            print(self.config["input_func"]["target_dir"] + subject_name +'/'+ self.target_structure +'/*'+ config["input_func"]["target_tag"] +'*')
+            #print(self.config["input_func"]["target_dir"] + subject_name +'/'+ self.target_structure +'/*'+ config["input_func"]["target_tag"] +'*')
             self.data_target.append(glob.glob(self.config["input_func"]["target_dir"] + subject_name +'/'+ self.target_structure +'/*'+ config["input_func"]["target_tag"] +'*')[0])
              
                 
@@ -367,7 +368,9 @@ class Seed2voxels:
             seed_to_voxel_correlations= np.where(seed_to_voxel_correlations > 0, 0, seed_to_voxel_correlations) # remplace positive value by 0
             
         return  seed_to_voxel_correlations
-    
+        
+    def extract_corr_values(self,smoothing_seed=None,smoothing_target=None,redo=False,n_jobs=0):
+        print("bo")
 
     def nonlinear_maps(self,seed_ts,voxels_ts,metric="mi",output_img=None,save_maps=True,smoothing_output=False,redo=False, n_jobs=1):
         '''

@@ -129,8 +129,6 @@ class WinnerAll:
     
     
     def voxel_distr_GradMaps(self,input_file=None,plot=True,save_plot=False,redo=False):
-        
-        
         # Create directory
         if not os.path.exists(self.output_dir + '/vox_distr/'):
             os.mkdir(self.output_dir + '/vox_distr/')
@@ -148,7 +146,7 @@ class WinnerAll:
             mask_file=glob.glob(self.output_dir+"/masks/*" + seed_name + "*")[0] # select seed mask image
             mask_img = nib.load(mask_file) # load the mask image
             mask_data = mask_img.get_fdata() # extract data
-
+            
             # 3. extract the fmri value in the mask
             mask_flat = mask_data.flatten() # Flatten the mask to make indexing easier
             masked_data = fmri_flat[mask_flat.astype(bool)] # Extract values from fMRI data within the mask
@@ -156,6 +154,7 @@ class WinnerAll:
             values_of_interest = [1, 2, 3, 4, 5, 6, 7]
             
             num_voxels_mask = np.sum(mask_flat.astype(bool)) # total number of voxels in the mask
+
             participant_names = []; value_names = []; percentages = [] ;  total_voxels=[]; seed_names=[] # initiate variables
             print(seed_name )
             print(num_voxels_mask)
@@ -196,12 +195,14 @@ class WinnerAll:
                 SEM = df_filtered.groupby('level_assigned')['Total_vox'].sem() # Calculate the standard deviation of the mean for each mask
                 
                 # Plot the results using seaborn
-                ax=sns.pointplot(data=df_filtered, x='level_assigned', y='Total_vox', errorbar=('ci', 95), palette=palette, estimator=np.median,join=False)
-                #plt.errorbar(x=SEM.index, y=df_filtered.groupby('level_assigned')['Total_vox'].median(), yerr=SEM, fmt='o', color="#babbc6", capsize=2, markerfacecolor='green', markersize=1, zorder=0)
+                plt.figure(figsize=(4, 5))
+                ax=sns.pointplot(data=df_filtered, x='level_assigned', y='Total_vox', palette=palette, hue='level_assigned', estimator=np.mean,errorbar=None)
+                plt.errorbar(x=SEM.index, y=df_filtered.groupby('level_assigned')['Total_vox'].mean(), yerr=SEM, fmt='o', color="#babbc6", capsize=2, markerfacecolor='green', markersize=1, zorder=0)
                 
                 # Remove spines
                 ax.spines['top'].set_visible(False)
                 ax.spines['right'].set_visible(False)
+                ax.set(ylim=(0,600))
                 plt.xlabel('Spinal level assigned')
                 plt.ylabel('Total number of voxels')
                 plt.title(f'Total number of voxels of voxels in {seed_name}')
@@ -211,7 +212,8 @@ class WinnerAll:
                 
                 # Save the figure as a PDF
                 if save_plot:
-                    output_filename = self.output_dir + "/vox_distr/" + f'plot_{value}.svg'
+                    output_filename = self.output_dir + "/vox_distr/" + f'plot_C{str(seed_nb+1)}_gm_rescale.svg'
+
                     plt.savefig(output_filename, format='svg')
                 plt.show()
                 plt.close()  # Close the figure to release memory

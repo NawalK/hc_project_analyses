@@ -292,11 +292,11 @@ class Stats:
                 
                 print(p_thr)
                 contrast_map[title]=non_parametric_inference(nifti_files,
+                                                             mask=self.mask_img,
                                                              design_matrix=Design_matrix[title],model_intercept=True,
-                                                             n_perm=1000, # should be set between 1000 and 10000
+                                                             n_perm=100, # should be set between 1000 and 10000
                                                              two_sided_test=False,
-                                                             mask=None,
-                                                             smoothing_fwhm=None,
+                                                             smoothing_fwhm=6,
                                                              tfce=True, # choose tfce=True or threshold is not None
                                                              threshold=p_thr,
                                                              n_jobs=8)
@@ -358,21 +358,27 @@ class Stats:
         #if z_thr="auto":
             #definie trhreshold
         for i, (title,values) in enumerate(maps.items()):
-            thresholded_map, threshold = threshold_stats_img(maps[title]["z_score"],alpha=p_value,threshold=z_thr,height_control=corr,cluster_threshold=cluster_threshold,two_sided=False)
+            thresholded_map, threshold = threshold_stats_img(maps[title]["z_score"],
+                                                             alpha=p_value,
+                                                             threshold=z_thr,
+                                                             height_control=corr,
+                                                             cluster_threshold=cluster_threshold,
+                                                             two_sided=False)
             
 
 
             if plot_stats_corr==True:
                 thresholded_map=image.threshold_img(thresholded_map, 0,mask_img=self.mask_img, copy=True)
 
-                self._plot_stats(thresholded_map, title ,threshold, cluster_threshold)
+                self._plot_stats(thresholded_map, title ,threshold, cluster_threshold,vmax=4)
 
             if save_img==True:
-                output_corrected=self.output_dir + "/"+corr+"_corrected/"
+                correction = corr if corr is not None else "nocorr"
+                output_corrected=self.output_dir + "/"+correction+"_corrected/"
                 #print(output_corrected + "/" + title + "_" +corr+ "_p"+ str(p_value).split('.')[-1] +".nii.gz")
                 if not os.path.exists(output_corrected):
                     os.mkdir(output_corrected)
-                nb.save(thresholded_map, output_corrected + "/" + title + "_" +corr+ "_p"+ str(p_value).split('.')[-1] +".nii.gz")
+                nb.save(thresholded_map, output_corrected + "/" + title + "_" +correction+ "_p"+ str(p_value).split('.')[-1] +".nii.gz")
                 
         
     def randomise(self,Design_matrix,permutation):
@@ -388,7 +394,9 @@ class Stats:
             
         #>>> 2. Run randomise ---------------- 
         if self.model=="OneSampleT":
-            string="randomise -i "+ self.data_1rstlevel_4D[seed_name] +" -m " + self.mask_img+" -o " + output_rnd + "/" +seed_name + " -n " + str(permutation) +" -1  -T -c 2 -R --uncorrp "
+            string="randomise -i "+ self.data_1rstlevel_4D[seed_name] +" -m " + self.mask_img+" -o " + output_rnd + "/" +seed_name + " -n " + str(permutation) +" -1 -v 3  -T -C 2 -R --uncorrp "
+
+
             
         elif self.model=="HigherOrder_paired":
             # Create a 4D file with all the 1rst levels files
@@ -410,8 +418,7 @@ class Stats:
 
             # prepare randomise
             string="randomise -i "+ all_levels_file +" -m " + self.mask_img+" -d " +output_rnd + "/all_levels_fsl.mat -t " + output_rnd + "/all_levels_fsl.con -f " + output_rnd + "/all_levels_fsl.fts -F 1.6 -o " + output_rnd + "/" +self.ana_name + " -n " + str(permutation) +" -1 -R --uncorrp "
-            
-    
+        
         os.system(string)
         stat_map=output_rnd + "/" +self.ana_name + "_maptstat1.nii.gz"
         os.rename(output_rnd + "/" +self.ana_name + "_tstat1.nii.gz",stat_map)
@@ -449,7 +456,7 @@ class Stats:
 
 
                 
-    def _plot_stats(self,second_level_map,title,threshold,cluster_threshold):
+    def _plot_stats(self,second_level_map,title,threshold,cluster_threshold,vmax=5):
         '''
         Extract significant cluster in a table
         Attributes
@@ -464,7 +471,7 @@ class Stats:
         display = plotting.plot_glass_brain(
             second_level_map,
             colorbar=True,
-
+            vmax=vmax,
             display_mode='lyrz',
             title=title)  
         plotting.show()
