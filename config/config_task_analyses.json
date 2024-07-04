@@ -1,0 +1,6 @@
+{"main_dir":"/media/miplab-nas2/Data3/Somato/",
+"list_movements": ["Jaw","Upperarm","Forearm","Wrist","Finger"],
+
+"brain_surfaces": "/media/miplab-nas2/Data3/BMPD/hc_project/templates/surf/",
+"smc_mask": "/media/miplab-nas2/Data3/BMPD/hc_project/analysis/masks/brain/iCAPs_z_SMC_bin.nii.gz",
+} 
