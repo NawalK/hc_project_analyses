@@ -18,20 +18,6 @@ class FC_Parcellation:
     '''
     The FC_Parcellation class is used to perform the parcellation of a specific roi
     based on the FC profiles of each of its voxels
-    
-    Attributes
-    ----------
-    config : dict
-    fc_metric: str
-        defines metrics to used to compute functional connectivity (e.g., 'corr' or 'mi') (default = 'corr')
-    clusters : dict
-        will contain the labeling results for each subject
-    data_source/target : dict of array
-        contains 4D data of all subjects for the structures of interest
-    params_agglom : dict
-        parameters for agglomerative clustering
-        - linkage: distance to use between sets of observations (default = 'average')
-        - metric: metric used to compute the linkage (default = 'precomputed')
     '''
     
     def __init__(self, config, overwrite=False):
