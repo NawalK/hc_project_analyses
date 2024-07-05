@@ -28,14 +28,14 @@ class WinnerAll:
         #self.IndivMapsDir= self.config["first_level"] # directory of the input data
         self.subject_names= self.config["list_subjects"] # list of the participant to analyze
         
-        self.secondlevel=self.config["second_level"] # directory to save the outputs
+        self.wta_dir=self.config["main_dir"] + self.config["wta_dir"] # directory to save the outputs
         if indiv==False:
-            self.indir=self.config["winner_all"]["input_dir"] # directory to save the outputs
+            self.indir=self.config["main_dir"] + self.config["winner_all"]["input_dir"] # directory to save the inputs
             self.tag_input=self.config["winner_all"]["tag_input"]
             self.analysis=self.config["winner_all"]["analysis"]
             self.mask=self.config["winner_all"]["mask"]# filename of the target mask (without directory either extension)
         else:
-            self.indir=self.config["winner_all_indiv"]["input_dir"]
+            self.indir==self.config["main_dir"] + self.config["winner_all_indiv"]["input_dir"]
             self.tag_input=self.config["winner_all_indiv"]["tag_input"]
             self.analysis=self.config["winner_all_indiv"]["analysis"]
             self.mask=self.config["winner_all_indiv"]["mask"]# filename of the target mask (without directory either extension)
@@ -66,10 +66,10 @@ class WinnerAll:
         
         #### 2. Create output diresctory:  -------------------------------------
         for seed_name in self.seed_names:
-            self.output_dir=self.secondlevel +"/WinnerTakeAll/" + self.analysis
+            self.output_dir=self.wta_dir +"/WinnerTakeAll/" + self.analysis
             
-            if not os.path.exists(self.secondlevel +"/WinnerTakeAll/"):
-                os.mkdir(self.secondlevel +"/WinnerTakeAll/") # create main directory
+            if not os.path.exists(self.wta_dir +"/WinnerTakeAll/"):
+                os.mkdir(self.wta_dir +"/WinnerTakeAll/") # create main directory
                 
             if not os.path.exists(self.output_dir):
                 os.mkdir(self.output_dir) # create sub directory for each analysis
@@ -226,7 +226,7 @@ class WinnerAll:
     
     
         #4.d transfome in 4D image and remove individual images
-        self.output_dir=self.secondlevel +"/WinnerTakeAll/" + self.analysis
+        self.output_dir=self.wta_dir +"/WinnerTakeAll/" + self.analysis
         file4D=self.output_dir + "/4D_n" + str(len(self.subject_names)) + "_" + output_tag + ".nii.gz"
         indiv_files=glob.glob(self.output_dir + "/sub-*.nii.gz") # concatenate the filename in a list
         indiv_json_files=glob.glob(self.output_dir + "/sub-*.json") # concatenate the filename in a list
